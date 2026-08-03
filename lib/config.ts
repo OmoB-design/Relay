@@ -1,0 +1,528 @@
+import { z } from "zod";
+import { format, formatDistanceStrict, parseISO } from "date-fns";
+import { now } from "@/lib/clock";
+import { MetricKeySchema } from "@/lib/types";
+import type { Currency, MetricKey } from "@/lib/types";
+
+/* ============================================================================
+   lib/config.ts — the ONE place tunables live (CLAUDE.md convention #2).
+   Thresholds, durations, page sizes, polarity, locale, and repeated copy.
+   If a value appears twice anywhere, it belongs here. Zod-validated at import.
+   ========================================================================== */
+
+const MetricPolaritySchema = z.enum([
+  "higher_is_better",
+  "lower_is_better",
+  "neutral",
+]);
+
+const ConfigSchema = z.object({
+  /** motion durations in ms (design.md §2 "Motion"). */
+  motion: z.object({
+    fast: z.number().int().positive(),
+    base: z.number().int().positive(),
+  }),
+
+  /** Delta coloring is by MEANING for the client, not by sign (design.md §2).
+   *  A CPA/CPO drop is positive; a ROAS drop is negative; a spend move is
+   *  neutral until context makes it otherwise. */
+  deltaPolarity: z.record(z.string(), MetricPolaritySchema),
+
+  /** Pagination / windowing. */
+  pageSizes: z.object({
+    library: z.number().int().positive(),
+    timeline: z.number().int().positive(),
+    /** How long a SENT narrative stays visible on Today before it's history. */
+    dueRecentDays: z.number().int().positive(),
+  }),
+
+  /** Currency + locale. USD default; per-client override supported (SEED uses
+   *  USD throughout; EUR override is exercised only in config tests). */
+  currency: z.object({
+    default: z.string().length(3),
+    locale: z.record(z.string(), z.string()), // currency code -> BCP-47 locale
+  }),
+
+  /** Working timezone: GST (UTC+4) (SEED.md). */
+  timezone: z.string(),
+
+  /** NarrativeSplitView tunables (design.md §4.3 + the flagship mockup). */
+  splitView: z.object({
+    paneSplitPct: z.number().min(50).max(70), // left (draft) pane width, desktop
+    dimOpacity: z.number().min(0).max(1), // unselected evidence/claims
+    settleTranslatePx: z.number(), // linked-card "settle" lift
+    mobileBreakpointPx: z.number().int(), // below this, evidence becomes a Sheet
+  }),
+
+  /** Voice-profile capture (Phase 3 silent collection). */
+  voice: z.object({
+    demoBuyerKey: z.string(),
+  }),
+
+  /** The daily ritual (Phase 7.5a). Times are in the agency's working zone;
+   *  "yesterday" is resolved per client in the ad account's timezone. */
+  daily: z.object({
+    pullHour: z.number().int().min(0).max(23), // day has ended, attribution settling
+    deliverHour: z.number().int().min(0).max(23), // buyer's start time
+    readyLeadHours: z.number().int().positive(), // digest waiting this early
+    retryAttempts: z.number().int().positive(),
+    retryGapMinutes: z.number().int().positive(),
+    numbersWindowDays: z.number().int().positive(), // the agency's own convention
+    /** Manual re-compile cooldown. Each run hits the Sheets API once per
+     *  client; rapid clicking would burn quota for no new information. */
+    recompileCooldownSeconds: z.number().int().positive(),
+  }),
+
+  /** Flag detection thresholds (Phase 7.5a). Per-client overridable later. */
+  flags: z.object({
+    targetBreachPct: z.number().positive(), // wrong side of a KPI target by >this
+    daySwingPct: z.number().positive(), // vs the trailing average
+    swingBaselineDays: z.number().int().positive(),
+    sustainedDriftDays: z.number().int().positive(), // consecutive wrong-way days
+    /** A drift only counts if the current value is also materially worse than
+     *  its trailing MEDIAN — otherwise every settle-down after a spike day
+     *  reads as a decline. */
+    sustainedDriftMinPct: z.number().positive(),
+    /** Period-scoped targets ("weekly orders: 1,900") divided down before a
+     *  single day is judged against them. Assumes weekly, which is every
+     *  seeded target; an explicit KPI `targetPeriod` is the proper fix. */
+    dailyTargetDivisor: z.number().int().positive(),
+  }),
+
+  /** Tracker ingestion (Phase 7, AGENCY.md §1/§3). Read-only Google Sheets. */
+  ingestion: z.object({
+    /** Tab-header convention: the client's source of truth is named in the
+     *  header block above the DAILY ENTRY table. */
+    sourceOfTruthPrefix: z.string(),
+    /** Header cell that marks the start of the daily table. */
+    dateHeader: z.string(),
+    /** Sheet column header → internal metric key. Order-independent: the
+     *  mapper matches on the header text, so a re-ordered tab still works. */
+    columnToMetric: z.record(z.string(), MetricKeySchema),
+    /** How a week's value is derived from daily rows, per metric.
+     *  sum     — additive (spend, sales, revenue)
+     *  derived — recomputed from summed components (correct for ratios)
+     *  last    — the period's closing value (ratios whose components the
+     *            tracker doesn't carry: NC ROAS, NCAC, NVP)
+     *  Matches the agency's own apparent convention; confirm at onboarding. */
+    aggregation: z.record(z.string(), z.enum(["sum", "derived", "last"])),
+    /** Tabs that are not clients (AGENCY.md §1). */
+    ignoredTabs: z.array(z.string()),
+    /** Dry-run: report a value mismatch beyond this, ignore rounding noise. */
+    dryRunTolerancePct: z.number().positive(),
+    /** Local fixture used when no live workbook is configured. */
+    fixturePath: z.string(),
+  }),
+
+  /** Repeated UI copy (CLAUDE.md UI writing rules — sentence case, plain verbs). */
+  copy: z.object({
+    status: z.object({
+      drafted: z.string(),
+      reviewed: z.string(),
+      sent: z.string(),
+    }),
+    actionByStatus: z.object({
+      drafted: z.string(),
+      reviewed: z.string(),
+      sent: z.string(),
+    }),
+    sourceLabel: z.object({
+      googleAds: z.string(),
+      tracker: z.string(),
+    }),
+    cadenceLabel: z.object({
+      daily: z.string(),
+      weekly: z.string(),
+      "weekly-lite": z.string(),
+      monthly: z.string(),
+    }),
+    channelLabel: z.object({
+      whatsapp: z.string(),
+      email: z.string(),
+    }),
+    dismissReasonPlaceholder: z.string(),
+    splitView: z.object({
+      draftLabel: z.string(),
+      evidenceLabel: z.string(),
+      clearLabel: z.string(),
+      editDraft: z.string(),
+      saveDraft: z.string(),
+      markReviewed: z.string(),
+      backToDraft: z.string(),
+      send: z.string(),
+      sentToastPrefix: z.string(), // + client name
+      copy: z.string(),
+      copiedToastPrefix: z.string(), // + tone label
+      previewShow: z.string(),
+      previewHide: z.string(),
+      paragraphCountError: z.string(),
+      emailSignoff: z.string(),
+      signature: z.string(),
+    }),
+    daily: z.object({
+      bandTitle: z.string(),
+      compiledAt: z.string(),
+      confirm: z.string(),
+      confirmed: z.string(),
+      confirmedToast: z.string(),
+      edit: z.string(),
+      overridePlaceholder: z.string(),
+      overrideRequired: z.string(),
+      recompile: z.string(),
+      allConfirmed: z.string(),
+      noRows: z.string(),
+      working: z.string(),
+      cooldown: z.string(),
+      goToTracker: z.string(),
+      blockedFromClient: z.string(),
+      goesToClient: z.string(),
+      unavailableNote: z.string(),
+    }),
+    library: z.object({
+      title: z.string(),
+      searchPlaceholder: z.string(),
+      allClients: z.string(),
+      allTypes: z.string(),
+      empty: z.string(),
+      emptyBody: z.string(),
+      noResults: z.string(),
+      noResultsBody: z.string(),
+      openLive: z.string(),
+    }),
+    artifactTypeLabel: z.object({
+      commentary: z.string(),
+      answer: z.string(),
+      loom_brief: z.string(),
+    }),
+    answerDesk: z.object({
+      title: z.string(),
+      pickClient: z.string(),
+      pickClientBody: z.string(),
+      inputPlaceholder: z.string(),
+      answerButton: z.string(),
+      supportingData: z.string(),
+      emptyThread: z.string(),
+      emptyThreadBody: z.string(),
+      answeredToast: z.string(),
+      waitingBadge: z.string(),
+    }),
+    loom: z.object({
+      title: z.string(),
+      subtitle: z.string(),
+      riskLabel: z.string(),
+      winLabel: z.string(),
+      copyAsText: z.string(),
+      copiedToast: z.string(),
+      stopsHere: z.string(), // product-voice requirement — do not cut
+      openBrief: z.string(),
+      oneSentenceError: z.string(),
+    }),
+    actions: z.object({
+      save: z.string(),
+      cancel: z.string(),
+      edit: z.string(),
+      remove: z.string(),
+      saved: z.string(),
+    }),
+    sensitivityTypeLabel: z.object({
+      framing: z.string(),
+      cadence: z.string(),
+      "metric-avoidance": z.string(),
+      tone: z.string(),
+    }),
+    stakeholderGetsLabel: z.object({
+      short: z.string(),
+      full: z.string(),
+      deck: z.string(),
+    }),
+    today: z.object({
+      greeting: z.string(),
+      waitingTitle: z.string(),
+      flagsTitle: z.string(),
+      dueTitle: z.string(),
+      dueEmpty: z.string(),
+      dueEmptyBody: z.string(),
+      emptyTitle: z.string(),
+      emptyBody: z.string(),
+      emptyCta: z.string(),
+    }),
+  }),
+});
+
+export type Config = z.infer<typeof ConfigSchema>;
+
+const deltaPolarity: Record<MetricKey, z.infer<typeof MetricPolaritySchema>> = {
+  spend: "neutral",
+  sales: "higher_is_better",
+  revenue: "higher_is_better",
+  roas: "higher_is_better",
+  nc_roas: "higher_is_better",
+  conversions: "higher_is_better",
+  aov: "higher_is_better",
+  cpa_cpo: "lower_is_better",
+  ncac: "lower_is_better",
+  cpc: "lower_is_better",
+  // NVP: tracker column 8. The workbook shows it as a percentage (73–80%),
+  // which rules out Net Variable Profit; it reads as a new-visitor/new-customer
+  // share. Treated as higher-is-better alongside the other new-customer
+  // metrics — confirm the expansion and this flips in one line if wrong.
+  nvp: "higher_is_better",
+};
+
+export const config: Config = ConfigSchema.parse({
+  motion: { fast: 140, base: 220 },
+  deltaPolarity,
+  pageSizes: { library: 25, timeline: 20, dueRecentDays: 7 },
+  currency: {
+    default: "USD",
+    locale: {
+      USD: "en-US",
+      EUR: "de-DE",
+      GBP: "en-GB",
+      AED: "en-AE",
+    },
+  },
+  timezone: "Asia/Dubai", // GST (UTC+4)
+  splitView: {
+    paneSplitPct: 58, // design.md §4.3: 58% draft / 42% evidence
+    dimOpacity: 0.45, // design.md §3 EvidenceCard dimmed state
+    settleTranslatePx: 2, // claim→evidence highlight "settle"
+    mobileBreakpointPx: 768, // Tailwind md — panes stack below this
+  },
+  voice: {
+    demoBuyerKey: "demo-buyer",
+  },
+  daily: {
+    pullHour: 2, // 02:00 — day ended, initial attribution settled
+    deliverHour: 8, // buyer's start time
+    readyLeadHours: 2, // digest waiting from 06:00
+    retryAttempts: 3,
+    retryGapMinutes: 15,
+    numbersWindowDays: 14, // the agency's own rolling-chart window
+    recompileCooldownSeconds: 20,
+  },
+  flags: {
+    targetBreachPct: 10,
+    daySwingPct: 30,
+    swingBaselineDays: 7,
+    sustainedDriftDays: 3,
+    sustainedDriftMinPct: 5,
+    dailyTargetDivisor: 7,
+  },
+  ingestion: {
+    sourceOfTruthPrefix: "Source of truth:",
+    dateHeader: "Date",
+    columnToMetric: {
+      Spend: "spend",
+      // The agency says "Sales"; Relay's internal key for order count is
+      // `conversions` (what KPIs and seeded evidence use). This map is exactly
+      // where their vocabulary meets ours — same pattern as KPI label → mapsTo.
+      Sales: "conversions",
+      Revenue: "revenue",
+      ROAS: "roas",
+      "CPA/CPO": "cpa_cpo",
+      "NC ROAS": "nc_roas",
+      NCAC: "ncac",
+      NVP: "nvp",
+    },
+    aggregation: {
+      spend: "sum",
+      conversions: "sum",
+      revenue: "sum",
+      roas: "derived", // Σrevenue / Σspend — never the mean of daily ratios
+      cpa_cpo: "derived", // Σspend / Σsales
+      nc_roas: "last", // components not in the tracker
+      ncac: "last",
+      nvp: "last",
+    },
+    ignoredTabs: ["Instructions", "Assigned Media Buyer"],
+    dryRunTolerancePct: 0.5,
+    fixturePath: "supabase/fixtures/tracker.json",
+  },
+  copy: {
+    status: { drafted: "Drafted", reviewed: "Reviewed", sent: "Sent" },
+    actionByStatus: {
+      drafted: "Review draft",
+      reviewed: "Send",
+      sent: "View sent",
+    },
+    sourceLabel: { googleAds: "Google Ads", tracker: "Tracker" },
+    cadenceLabel: {
+      daily: "Daily",
+      weekly: "Weekly",
+      "weekly-lite": "Weekly-lite",
+      monthly: "Monthly",
+    },
+    channelLabel: { whatsapp: "WhatsApp", email: "Email" },
+    dismissReasonPlaceholder: "Why are you dismissing this? (required)",
+    splitView: {
+      draftLabel: "Draft — select any sentence to see its evidence",
+      evidenceLabel: "Evidence · this week",
+      clearLabel: "Clear · Esc",
+      editDraft: "Edit draft",
+      saveDraft: "Save draft",
+      markReviewed: "Mark reviewed",
+      backToDraft: "Back to draft",
+      send: "Send",
+      sentToastPrefix: "Sent — pinned to", // + " {client}'s timeline"
+      copy: "Copy",
+      copiedToastPrefix: "Copied for", // + " {tone}"
+      previewShow: "Preview",
+      previewHide: "Hide preview",
+      paragraphCountError:
+        "Keep the same number of paragraphs — each maps to a claim. Structural editing comes later.",
+      emailSignoff: "Any questions, just reply here — happy to jump on a call.",
+      signature: "— B",
+    },
+    daily: {
+      bandTitle: "Yesterday",
+      compiledAt: "compiled",
+      confirm: "Confirm",
+      confirmed: "Confirmed",
+      confirmedToast: "Confirmed",
+      edit: "Edit numbers",
+      overridePlaceholder: "What did you change, and why? (required)",
+      overrideRequired: "Changing a pulled number requires a reason.",
+      recompile: "Re-run compile",
+      allConfirmed: "All confirmed — nothing waiting on you.",
+      noRows: "Nothing compiled yet",
+      working: "Working…",
+      cooldown: "Just ran — give it a moment",
+      goToTracker: "The row needs filling in the tracker.",
+      blockedFromClient: "Internal only — this client's profile forbids a daily note.",
+      goesToClient: "Cleared for a daily note to this client.",
+      unavailableNote: "Not available",
+    },
+    library: {
+      title: "Library",
+      searchPlaceholder: "Search everything you've sent…",
+      allClients: "All clients",
+      allTypes: "All types",
+      empty: "Nothing archived yet",
+      emptyBody:
+        "Commentary, answers, and Loom briefs land here as you send them — searchable across every client.",
+      noResults: "Nothing matches those filters",
+      noResultsBody: "Try a broader search or clear a filter.",
+      openLive: "Open",
+    },
+    artifactTypeLabel: {
+      commentary: "Commentary",
+      answer: "Answer",
+      loom_brief: "Loom brief",
+    },
+    answerDesk: {
+      title: "Answer Desk",
+      pickClient: "Pick a client to open their desk",
+      pickClientBody:
+        "The desk is always scoped to one client's data — answers are grounded, never general.",
+      inputPlaceholder: "Ask, or paste a client's question…",
+      answerButton: "Answer",
+      supportingData: "Supporting data",
+      emptyThread: "No questions yet",
+      emptyThreadBody:
+        "Paste the next question this client sends you — the answer comes back grounded in their own numbers.",
+      answeredToast: "Answered",
+      waitingBadge: "Waiting",
+    },
+    loom: {
+      title: "Loom brief",
+      subtitle: "Glance at this before you hit record — don't read it aloud.",
+      riskLabel: "Risk",
+      winLabel: "Win",
+      copyAsText: "Copy as text",
+      copiedToast: "Copied as text",
+      stopsHere:
+        "Record and send from wherever you usually do — Relay stops here.",
+      openBrief: "Loom brief",
+      oneSentenceError: "Keep it to one sentence — the brief stays glanceable.",
+    },
+    actions: {
+      save: "Save",
+      cancel: "Cancel",
+      edit: "Edit",
+      remove: "Remove",
+      saved: "Saved",
+    },
+    sensitivityTypeLabel: {
+      framing: "Framing",
+      cadence: "Cadence",
+      "metric-avoidance": "Metric avoidance",
+      tone: "Tone",
+    },
+    stakeholderGetsLabel: {
+      short: "Short version",
+      full: "Full version",
+      deck: "Deck",
+    },
+    today: {
+      greeting: "Here's your week",
+      waitingTitle: "Waiting on you",
+      flagsTitle: "Flags",
+      dueTitle: "Due this week",
+      dueEmpty: "Nothing due",
+      dueEmptyBody:
+        "No outstanding drafts and nothing scheduled for this week. Drafts appear here as the week's data lands.",
+      emptyTitle: "No clients connected yet",
+      emptyBody: "Connect a client to see your week take shape.",
+      emptyCta: "Connect a client",
+    },
+  },
+});
+
+// --- Formatters (reference the validated config above) ----------------------
+
+const localeFor = (currency: Currency): string =>
+  config.currency.locale[currency] ?? config.currency.locale[config.currency.default];
+
+/** Full currency, e.g. $26.40. Per-client currency; USD default. */
+export function formatCurrency(value: number, currency: Currency = "USD"): string {
+  return new Intl.NumberFormat(localeFor(currency), {
+    style: "currency",
+    currency,
+  }).format(value);
+}
+
+/** Compact currency, e.g. $39.8K, for large evidence values. */
+export function formatCompactCurrency(
+  value: number,
+  currency: Currency = "USD",
+): string {
+  return new Intl.NumberFormat(localeFor(currency), {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+/** A period as "Jul 6–12" (uses the stored label when present). */
+export function formatPeriod(start: string, end: string, label?: string): string {
+  if (label) return label;
+  const s = parseISO(start);
+  const e = parseISO(end);
+  const sameMonth = format(s, "MMM") === format(e, "MMM");
+  return sameMonth
+    ? `${format(s, "MMM d")}–${format(e, "d")}`
+    : `${format(s, "MMM d")} – ${format(e, "MMM d")}`;
+}
+
+/** "as of" timestamp for evidence freshness footers, in the working timezone. */
+export function formatAsOf(iso: string): string {
+  return format(parseISO(iso), "MMM d, h:mmaaa");
+}
+
+/** Age of an item relative to now (e.g. "2 hours"). Deterministic in pilot
+ *  clock mode; real elapsed time otherwise. See lib/clock.ts. */
+export function formatAge(iso: string): string {
+  return formatDistanceStrict(parseISO(iso), now());
+}
+
+type CadenceLike = { primary: "daily" | "weekly" | "weekly-lite" | "monthly" };
+
+/** "Weekly · WhatsApp" style cadence + channel line for client rows. */
+export function formatCadenceLine(
+  cadence: CadenceLike,
+  channel: "whatsapp" | "email",
+): string {
+  return `${config.copy.cadenceLabel[cadence.primary]} · ${config.copy.channelLabel[channel]}`;
+}

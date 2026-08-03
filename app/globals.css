@@ -1,42 +1,140 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import "tailwindcss";
+
+/* ============================================================================
+   Relay theme — THE ONLY place raw values (hex, px, font families) live.
+   Components reference semantic tokens only (bg-paper, text-ink, font-display…).
+   Figma MCP transition contract (design.md §6): a palette/typeface change from
+   Figma is a single-block edit here, not a component refactor. Do not inline a
+   hex anywhere else in the codebase.
+   ========================================================================== */
+
+@theme {
+  /* --- Color: Relay semantic palette (design.md §2) --- */
+  --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */
+  --color-surface: #ffffff; /* cards, panels */
+  --color-ink: #17201c; /* primary text */
+  --color-ink-soft: #5a665f; /* secondary text, labels */
+  --color-line: #e3e7e4; /* borders, dividers */
+  --color-verdigris: #146b54; /* accent: evidence links, primary actions, sent */
+  --color-verdigris-wash: #ddede6; /* evidence highlight wash, selected states */
+  --color-flag: #a16207; /* flags, warnings, attention deltas */
+  --color-flag-wash: #f6edda; /* flag card background */
+  --color-negative: #9b3a2e; /* negative deltas, destructive actions */
+  --color-white: #ffffff; /* explicit white for on-accent foregrounds */
+
+  /* --- shadcn semantic aliases → mapped to Relay tokens (one source of truth).
+         shadcn primitives consume these names; we never let them own a raw hex. */
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-verdigris);
+  --color-primary-foreground: var(--color-white);
+  --color-secondary: var(--color-verdigris-wash);
+  --color-secondary-foreground: var(--color-verdigris);
+  --color-muted: var(--color-paper);
+  --color-muted-foreground: var(--color-ink-soft);
+  --color-accent: var(--color-verdigris-wash);
+  --color-accent-foreground: var(--color-verdigris);
+  --color-destructive: var(--color-negative);
+  --color-destructive-foreground: var(--color-white);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line);
+  --color-ring: var(--color-verdigris);
+
+  /* --- Type: three roles, three faces (design.md §2). next/font sets the
+         underlying --font-* variables on <body>. --- */
+  --font-display: var(--font-fraunces), Georgia, serif; /* client names, titles, evidence values */
+  --font-narrative: var(--font-newsreader), Georgia, serif; /* draft prose ONLY */
+  --font-ui: var(--font-archivo), system-ui, sans-serif; /* all chrome */
+
+  /* Type scale (rem): 12 / 13 / 14(UI base) / 16 / 18(narrative body) / 22 / 28 / 36 */
+  --text-12: 0.75rem;
+  --text-12--line-height: 1.4;
+  --text-13: 0.8125rem;
+  --text-13--line-height: 1.4;
+  --text-14: 0.875rem;
+  --text-14--line-height: 1.5;
+  --text-16: 1rem;
+  --text-16--line-height: 1.5;
+  --text-18: 1.125rem; /* narrative body */
+  --text-18--line-height: 1.65; /* drafts read like prose, not a form field */
+  --text-22: 1.375rem;
+  --text-22--line-height: 1.35;
+  --text-28: 1.75rem;
+  --text-28--line-height: 1.2;
+  --text-36: 2.25rem;
+  --text-36--line-height: 1.1;
+
+  /* --- Radius (design.md §2): 10 cards / 8 buttons+inputs / 999 chips.
+         shadcn utilities (rounded-md/lg) are re-based onto these steps. --- */
+  --radius: 8px; /* base radius consumed by shadcn primitives (e.g. sonner) */
+  --radius-sm: 6px;
+  --radius-md: 8px; /* buttons, inputs */
+  --radius-lg: 10px; /* cards, dialogs */
+  --radius-xl: 12px;
+
+  /* --- Named sizes (semantic, so they survive the Figma swap). --- */
+  --spacing-rule: 3px; /* the linked-evidence left rule (design.md §3) */
+
+  /* Centered reading-column widths (design.md §4). */
+  --container-column: 720px; /* Today, and general centered content */
+  --container-thread: 680px; /* Answer Desk thread (used from Phase 5) */
+
+  /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
+  --spacing-dialog-cap: 85svh;
+
+  /* --- Elevation: borders over shadows; one shadow token only. --- */
+  --shadow-raised: 0 1px 3px rgb(23 32 28 / 0.07);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Hairline 1.5px border/underline weight (empty-state border, claim underline).
+   A design value, so it lives here — not as an arbitrary border-[1.5px] class. */
+@utility border-hair {
+  border-width: 1.5px;
+}
+
+/* The claim affordance (design.md §3 ClaimSpan): dotted 1.5px underline in
+   verdigris at 45% opacity; hover/selected raise to 100%. Border-bottom, not
+   text-decoration, so the dots sit consistently under multi-line spans. */
+@utility claim-underline {
+  border-bottom: 1.5px dotted --alpha(var(--color-verdigris) / 45%);
+}
+@utility claim-underline-strong {
+  border-bottom: 1.5px dotted var(--color-verdigris);
+}
+
+/* Base layer — the editorial desk canvas. */
+@layer base {
+  * {
+    border-color: var(--color-line);
+    box-sizing: border-box;
   }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Focus ring: 2px verdigris outline offset 2 (design.md §5). */
+  :focus-visible {
+    outline: 2px solid var(--color-verdigris);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

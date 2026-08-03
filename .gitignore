@@ -28,6 +28,12 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# credentials — service-account key JSON and anything else secret.
+# Key material lives here as files, never in tracked config.
+/secrets/
+*.key.json
+*-credentials.json
+
 # vercel
 .vercel
 

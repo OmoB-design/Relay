@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Relay
 
-## Getting Started
+A client-comms intelligence layer for media buying agencies. Relay sits between
+**Google Ads + the agency's daily KPI tracker** and the client relationship,
+turning performance data into communication-ready material: weekly commentary
+drafts, Loom recording briefs, grounded answers to client questions, and an
+interpreted per-client timeline.
 
-First, run the development server:
+**Product principle:** AI handles 90% of the data prep so the buyer owns 100% of
+the client relationship. No auto-send, ever. No unsourced sentence ships — every
+factual claim links to the evidence behind it.
+
+## Stack
+
+- **Next.js 14** (App Router) + **TypeScript** (strict)
+- **Tailwind v4** — theme via `@theme` in `app/globals.css` (no `tailwind.config.ts`)
+- **shadcn/ui** primitives, themed to Relay tokens · **lucide-react** icons · **motion/react** animation
+- **Supabase** (Postgres) — typed client, seeded from `supabase/`
+- **zod** domain model · **date-fns** · hand-drawn SVG sparklines (no charting lib)
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `.env.local` (git-ignored) with your Supabase project credentials:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Load the schema + seed into the project (Supabase SQL Editor, in order):
 
-## Learn More
+1. `supabase/schema.sql` — tables, enums, and the integrity CHECK constraints
+2. `supabase/seed.sql` — three seed clients and their data
+3. `supabase/migrations/0002_voice_and_whatsapp.sql`
+4. `supabase/migrations/0003_loom.sql`
 
-To learn more about Next.js, take a look at the following resources:
+Then:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev     # http://localhost:3000 (opens on /today)
+npm run build   # production build
+npm run lint    # eslint
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## The app
 
-## Deploy on Vercel
+| Route | What |
+|---|---|
+| `/today` | Daily queue: waiting questions, flags (dismiss-with-reason), narratives due |
+| `/clients` · `/clients/[id]` | Client index → workspace: **Profile** (Client Graph, editable), **Timeline** (pinned-snapshot history), **Narratives** |
+| `/clients/[id]/narratives/[nid]` | **NarrativeSplitView** — the flagship claim↔evidence stitch; drafted → reviewed → sent |
+| `/clients/[id]/narratives/[nid]/loom` | **Loom brief** — recording-prep artifact |
+| `/answer-desk` | Client-scoped grounded Q&A |
+| `/library` | Cross-client searchable archive |
+| `/styleguide` | Component/token reference (dev only) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **`lib/data.ts`** is the single data-access seam — every screen reads/writes
+  through it; nothing touches Supabase directly. Reads zod-parse at the boundary.
+- **`lib/config.ts`** holds every tunable (durations, polarity, page sizes,
+  locale, all repeated copy), zod-validated. No magic numbers elsewhere.
+- **`app/globals.css`** is the only place raw values (hex, fonts, radii) live —
+  a Figma token swap is a single-block edit.
+- **Integrity is enforced in the database**, not just the app: a `fact` claim /
+  Loom headline without evidence, or a dismissed flag without a reason, is
+  rejected by a Postgres `CHECK`.
+
+### Demo reset
+
+Re-running `supabase/seed.sql` resets everything (idempotent). To reset only the
+narrative demo lifecycle (Northbrook *drafted*, Birkenstock *reviewed*, Switchup
+*sent*) while preserving captured voice diffs, run `supabase/reset-demo.sql`.
+
+## Data sources
+
+Google Ads + the agency tracker (Google Sheets) **only** — Meta is out of scope.
+Phases 0–6 run entirely on seed data. Tracker ingestion (Phase 7, `googleapis`)
+and AI generation (Phase 8, `@anthropic-ai/sdk`, needs `ANTHROPIC_API_KEY`) are
+the remaining live-integration phases.
+
+## Before the pilot goes live (security)
+
+Row-level security is **off** during seed-data development. **Turn RLS on — with
+auth policies — before either:** (a) a real user/auth model replaces the single
+demo buyer, or (b) the pilot is deployed with real agency data on a public URL.
+The anon key ships to the browser and currently permits writes; that's fine for
+a local single-operator demo, not for real client data in production.
+
+See `docs/demo-script.md` for the 5-minute agency walkthrough.
