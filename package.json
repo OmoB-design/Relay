@@ -15,6 +15,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "diff": "^9.0.0",
+    "geist": "^1.7.2",
     "googleapis": "^173.0.0",
     "lucide-react": "^1.24.0",
     "motion": "^12.42.2",

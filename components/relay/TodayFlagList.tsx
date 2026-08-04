@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FlagCard } from "@/components/relay/FlagCard";
 import { dismissFlagAction } from "@/app/(app)/today/actions";
+import { config } from "@/lib/config";
 import type { Flag } from "@/lib/types";
 
 /* Client wrapper for Today's flags.
@@ -41,6 +42,7 @@ export function TodayFlagList({
           key={flag.id}
           flag={flag}
           clientName={clientName}
+          clientLogo={config.clientLogos[clientName]}
           onDismiss={(reason) => dismissFlagAction(flag.id, reason)}
           onEditSend={() => editAndSend(flag, clientName)}
         />

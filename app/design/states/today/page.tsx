@@ -1,0 +1,549 @@
+import Link from "next/link";
+import { CatalogueHeader, Group, Slug, Spec } from "@/app/design/_ui";
+import { config } from "@/lib/config";
+import {
+  specClients,
+  specEntries,
+  specFlagItems,
+  specFlags,
+  specNarratives,
+  specWaiting,
+} from "@/lib/design/specimens";
+import {
+  DailyDigestBand,
+  type DigestEntry,
+} from "@/components/relay/DailyDigestBand";
+import { DueRow, type DueClient } from "@/components/relay/DueRow";
+import { EmptyState } from "@/components/relay/EmptyState";
+import { FlagCard } from "@/components/relay/FlagCard";
+import { TodayFlagList } from "@/components/relay/TodayFlagList";
+import { WaitingRow } from "@/components/relay/WaitingRow";
+import { Button } from "@/components/ui/button";
+
+/* ============================================================================
+   Today — the complete state catalogue.
+
+   Every state Today can be in, each in its own frame with a stable slug. These
+   are the frames to design. A screen is not covered until every slug below has
+   a Figma counterpart; a design that only handles `today/populated` will break
+   the first morning the tracker is late.
+
+   Specimens render the REAL components against fixtures from
+   lib/design/specimens.ts. Nothing here reads or writes production data.
+   ========================================================================== */
+
+const t = config.copy.today;
+
+/** Today's section heading, replicated so a frame shows its own context. */
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-3" aria-label={title}>
+      <h2 className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function List({ children }: { children: React.ReactNode }) {
+  return (
+    <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+      {children}
+    </ul>
+  );
+}
+
+/** The catalogue shows the same marks the app does, including the one client
+ *  deliberately left without a logo so the initials fallback stays visible. */
+const withLogos = (entries: DigestEntry[]): DigestEntry[] =>
+  entries.map((e) => ({ ...e, logo: config.clientLogos[e.client.name] }));
+
+const dueClients: Record<string, DueClient> = {
+  northbrook: {
+    id: specClients.northbrook.id,
+    name: "Northbrook",
+    cadence: { primary: "weekly", anchorDay: "mon" },
+    channel: "whatsapp",
+  },
+  birkenstock: {
+    id: specClients.birkenstock.id,
+    name: "Birkenstock",
+    cadence: { primary: "weekly-lite", secondary: "monthly" },
+    channel: "email",
+  },
+  switchup: {
+    id: specClients.switchup.id,
+    name: "Switchup",
+    cadence: { primary: "weekly" },
+    channel: "email",
+  },
+};
+
+const SLUGS = [
+  ["today/page-header", "today/pilot-clock", "today/first-run"],
+  [
+    "digest/mixed",
+    "digest/staged",
+    "digest/confirmed",
+    "digest/edited",
+    "digest/partial",
+    "digest/absences",
+    "digest/not-compiled",
+    "digest/absent",
+    "digest/stale",
+    "digest/all-confirmed",
+    "digest/empty",
+  ],
+  ["flags/open-list", "flags/with-draft", "flags/no-draft", "flags/dismissing", "flags/dismissed", "flags/resolved", "flags/none"],
+  ["waiting/list", "waiting/none"],
+  ["due/all", "due/drafted", "due/reviewed", "due/sent", "due/empty"],
+];
+
+export default function TodayStatesPage() {
+  return (
+    <>
+      <CatalogueHeader title="Today — every state" count="3 of 3">
+        Twenty-eight frames. Today has four sections and each has its own
+        absence and progress states, so the real matrix is much wider than the
+        happy path. Design every slug listed here; annotate each Figma frame
+        with its slug and the mapping back to code is unambiguous.
+      </CatalogueHeader>
+
+      <div className="rounded-lg border border-line bg-surface p-6">
+        <h2 className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+          Coverage checklist
+        </h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {SLUGS.flat().map((s) => (
+            <a key={s} href={`#${s}`}>
+              <Slug id={s} />
+            </a>
+          ))}
+        </div>
+        <p className="mt-4 max-w-column font-ui text-12 text-ink-soft">
+          Frames marked with an amber note contain an interactive state you have
+          to click into — the component owns that state internally, so the
+          catalogue shows the control rather than faking the result.
+        </p>
+      </div>
+
+      {/* ---------------------------------------------------------------- */}
+      <Group
+        id="page"
+        title="Page level"
+        blurb="The frame around everything, and the two states that replace the whole page."
+      >
+        <Spec
+          id="today/page-header"
+          title="Page header"
+          when="Always"
+          onPaper
+        >
+          <header className="mx-auto max-w-column">
+            <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+              Monday, July 13
+            </p>
+            <h1 className="mt-1 font-display text-28 text-ink">{t.greeting}</h1>
+          </header>
+        </Spec>
+
+        <Spec
+          id="today/pilot-clock"
+          title="Demo clock pinned"
+          when="RELAY_PILOT_NOW is set — a frozen date must never look like a bug"
+          onPaper
+        >
+          <header className="mx-auto max-w-column">
+            <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+              Monday, July 13
+            </p>
+            <h1 className="mt-1 font-display text-28 text-ink">{t.greeting}</h1>
+            <p className="mt-2 font-ui text-12 text-flag">
+              Demo clock — pinned to Monday, July 13. Unset RELAY_PILOT_NOW for
+              the real date.
+            </p>
+          </header>
+        </Spec>
+
+        <Spec
+          id="today/first-run"
+          title="First run — no clients at all"
+          when="Zero clients connected. Replaces the entire page body."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <EmptyState
+              title={t.emptyTitle}
+              action={
+                <Button asChild size="sm">
+                  <Link href="/clients">{t.emptyCta}</Link>
+                </Button>
+              }
+            >
+              {t.emptyBody}
+            </EmptyState>
+          </div>
+        </Spec>
+      </Group>
+
+      {/* ---------------------------------------------------------------- */}
+      <Group
+        id="digest"
+        title="Yesterday's numbers — the digest band"
+        blurb="The most time-critical thing on the page: one row per client, staged overnight, waiting for a human. Confirming IS reviewing."
+      >
+        <Spec
+          id="digest/mixed"
+          title="A real Monday — four clients, mixed statuses"
+          when="The state to design first. Two waiting, two done."
+          note="Click a client row to expand all eight metrics. Click Edit on a staged row to reach digest/editing."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.mixed)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/staged"
+          title="Staged — waiting for confirmation"
+          when="The compile ran; nobody has looked yet. Confirm is primary."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.staged)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/confirmed"
+          title="Confirmed"
+          when="A human accepted the numbers as-is. No action remains."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.confirmed)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/edited"
+          title="Confirmed with corrections"
+          when="The buyer changed a number. The reason is part of the permanent record."
+          note="Expand the row to see the override reason line."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.edited)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/partial"
+          title="Some metrics unavailable"
+          when="The source returned nothing for a metric. Shows n/a with a reason on hover — never a stand-in zero."
+          note="Expand to see the three n/a cells and the reason line beneath."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.partial)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/absences"
+          title="All three absences side by side"
+          when="The comparison that matters most — three different problems needing three different responses."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.allProblems)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/not-compiled"
+          title="Not compiled yet"
+          when="Relay hasn't looked. Fixed by re-running the compile → clock icon, ink-soft."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.notCompiled)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/absent"
+          title="Tracker row missing"
+          when="Relay looked and the row wasn't there. Fixed in the sheet, not in Relay → alert icon, flag colour, plus a pointer to the tracker."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.absent)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/stale"
+          title="Stale — newest row is an older day"
+          when="Something upstream stopped. Reported as absent, never as zero."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.stale)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/all-confirmed"
+          title="All confirmed — the morning is done"
+          when="Nothing left waiting. The closing line is the reward."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.allConfirmed)} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="digest/empty"
+          title="No rows at all"
+          when="Clients exist but no compile has ever run."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <DailyDigestBand entries={withLogos(specEntries.empty)} />
+          </div>
+        </Spec>
+      </Group>
+
+      {/* ---------------------------------------------------------------- */}
+      <Group
+        id="flags"
+        title="Flags"
+        blurb="Proactive detection. Dismissal always captures a reason; the engine retracts anything whose condition stops holding, and can re-open it later."
+      >
+        <Spec
+          id="flags/open-list"
+          title="The open queue"
+          when="Open flags only — resolved and dismissed never appear here."
+          note="Live wiring: Dismiss opens reason capture; Edit & send copies the draft note. Actions point at fixture ids and will fail harmlessly."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <Section title={t.flagsTitle}>
+              <TodayFlagList items={specFlagItems.all} />
+            </Section>
+          </div>
+        </Spec>
+
+        <Spec
+          id="flags/with-draft"
+          title="Open, with a pre-drafted heads-up"
+          when="A draft note exists → both Dismiss and Edit & send."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <FlagCard flag={specFlags.withDraft} clientName="Birkenstock" />
+          </div>
+        </Spec>
+
+        <Spec
+          id="flags/no-draft"
+          title="Open, no draft note"
+          when="No note to send → Dismiss only. The button never leads nowhere."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <FlagCard flag={specFlags.noDraft} clientName="Northbrook" />
+          </div>
+        </Spec>
+
+        <Spec
+          id="flags/dismissing"
+          title="Dismiss — reason capture"
+          when="Dismissal is an audit event. An empty reason blocks the submit."
+          note="Click Dismiss on the card below to open the textarea, then try to confirm with it empty to see the validation state."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <TodayFlagList items={specFlagItems.one} />
+          </div>
+        </Spec>
+
+        <Spec
+          id="flags/dismissed"
+          title="Dismissed"
+          when="A human decided this doesn't matter. The engine never overrides it."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <FlagCard flag={specFlags.dismissed} clientName="Switchup" />
+          </div>
+        </Spec>
+
+        <Spec
+          id="flags/resolved"
+          title="Resolved — engine-retracted"
+          when="The condition stopped holding. Leaves the queue on its own; re-opens if it recurs."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <FlagCard flag={specFlags.resolved} clientName="Northbrook" />
+          </div>
+        </Spec>
+
+        <Spec
+          id="flags/none"
+          title="No open flags"
+          when="The section collapses entirely — the absence of urgency is itself information. There is deliberately no empty state here."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <p className="font-ui text-13 text-ink-soft">
+              Nothing renders. Design the gap, not a placeholder.
+            </p>
+          </div>
+        </Spec>
+      </Group>
+
+      {/* ---------------------------------------------------------------- */}
+      <Group
+        id="waiting"
+        title="Waiting on you"
+        blurb="Unanswered client questions. Like Flags, this section disappears when empty rather than showing a zero-state."
+      >
+        <Spec
+          id="waiting/list"
+          title="Questions waiting"
+          when="One or more unanswered threads. Age is the point of the row."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <Section title={t.waitingTitle}>
+              <List>
+                {specWaiting.map((w) => (
+                  <WaitingRow
+                    key={w.question}
+                    clientId={specClients.switchup.id}
+                    clientName={w.clientName}
+                    question={w.question}
+                    age={w.age}
+                  />
+                ))}
+              </List>
+            </Section>
+          </div>
+        </Spec>
+
+        <Spec
+          id="waiting/none"
+          title="Nothing waiting"
+          when="Section collapses entirely."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <p className="font-ui text-13 text-ink-soft">
+              Nothing renders. Design the gap.
+            </p>
+          </div>
+        </Spec>
+      </Group>
+
+      {/* ---------------------------------------------------------------- */}
+      <Group
+        id="due"
+        title="Due this week"
+        blurb="Outstanding work of any age, plus anything sent in the last 7 days. Oldest first within status, capped at 25."
+      >
+        <Spec
+          id="due/all"
+          title="All three pipeline states together"
+          when="The usual case. Each row's action is determined by its status."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <Section title={t.dueTitle}>
+              <List>
+                <DueRow
+                  narrative={specNarratives.drafted}
+                  client={dueClients.northbrook}
+                />
+                <DueRow
+                  narrative={specNarratives.reviewed}
+                  client={dueClients.birkenstock}
+                />
+                <DueRow
+                  narrative={specNarratives.sent}
+                  client={dueClients.switchup}
+                />
+              </List>
+            </Section>
+          </div>
+        </Spec>
+
+        <Spec
+          id="due/drafted"
+          title="Drafted"
+          when="Relay wrote it; nobody has read it. Action: Review draft (primary)."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <List>
+              <DueRow
+                narrative={specNarratives.drafted}
+                client={dueClients.northbrook}
+              />
+            </List>
+          </div>
+        </Spec>
+
+        <Spec
+          id="due/reviewed"
+          title="Reviewed"
+          when="A human approved it; it hasn't gone out. Action: Send (primary)."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <List>
+              <DueRow
+                narrative={specNarratives.reviewed}
+                client={dueClients.birkenstock}
+              />
+            </List>
+          </div>
+        </Spec>
+
+        <Spec
+          id="due/sent"
+          title="Sent"
+          when="Done. Action drops to secondary weight: View sent (outline)."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <List>
+              <DueRow
+                narrative={specNarratives.sent}
+                client={dueClients.switchup}
+              />
+            </List>
+          </div>
+        </Spec>
+
+        <Spec
+          id="due/empty"
+          title="Nothing due"
+          when="No outstanding drafts and nothing sent recently. This section DOES get a zero-state, unlike Flags and Waiting."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <Section title={t.dueTitle}>
+              <EmptyState title={t.dueEmpty}>{t.dueEmptyBody}</EmptyState>
+            </Section>
+          </div>
+        </Spec>
+      </Group>
+    </>
+  );
+}

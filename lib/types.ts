@@ -294,6 +294,12 @@ export type Flag = z.infer<typeof FlagSchema>;
  *  A value is `undefined` when Relay couldn't get it — never a stand-in zero;
  *  `unavailable` says why. `sales` stays fractional (Google Ads reports
  *  fractional conversions and rounding before deriving CPO drifts ~0.5%). */
+/** The key under `unavailable` meaning "Relay read the source and this client
+ *  had no row at all" — distinct from a single metric being absent. Lives here
+ *  rather than with the compile because the data layer reads it too, and the
+ *  compile already depends on the data layer. */
+export const ROW_ABSENT_KEY = "_row";
+
 export const DailyMetricsSchema = z.object({
   spend: z.number().optional(),
   sales: z.number().optional(),

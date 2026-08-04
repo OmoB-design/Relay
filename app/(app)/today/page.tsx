@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { config, formatAge, formatCadenceLine } from "@/lib/config";
+import { config, formatAge } from "@/lib/config";
 import { isPilotClock, now } from "@/lib/clock";
 import {
   getClients,
@@ -9,12 +9,14 @@ import {
   getOpenFlags,
   getWaitingThreads,
 } from "@/lib/data";
-import { ROW_ABSENT_KEY, yesterdayFor } from "@/lib/daily/compile";
+import { yesterdayFor } from "@/lib/daily/compile";
+import { ROW_ABSENT_KEY } from "@/lib/types";
 import {
   DailyDigestBand,
   type DigestEntry,
 } from "@/components/relay/DailyDigestBand";
-import { StatusStepper } from "@/components/relay/StatusStepper";
+import { DueRow } from "@/components/relay/DueRow";
+import { WaitingRow } from "@/components/relay/WaitingRow";
 import { EmptyState } from "@/components/relay/EmptyState";
 import { TodayFlagList } from "@/components/relay/TodayFlagList";
 import { Button } from "@/components/ui/button";
@@ -71,10 +73,12 @@ export default async function TodayPage({
   const digest: DigestEntry[] = clients.map((client) => {
     const match = dailyRows.find((d) => d.client.id === client.id);
     const expected = yesterdayFor(client);
+    const logo = config.clientLogos[client.name];
 
     if (!match) {
       return {
         client,
+        logo,
         problem: {
           kind: "notCompiled",
           message: `Not compiled for ${expected} yet.`,
@@ -84,6 +88,7 @@ export default async function TodayPage({
     if (match.row.date !== expected) {
       return {
         client,
+        logo,
         problem: {
           kind: "stale",
           message: `Newest row is ${match.row.date}, not ${expected}. Relay reports this as absent, never as zero.`,
@@ -93,8 +98,8 @@ export default async function TodayPage({
     // A row staged with no metrics means Relay looked and found nothing.
     const absent = match.row.unavailable[ROW_ABSENT_KEY];
     return absent
-      ? { client, problem: { kind: "absent", message: absent } }
-      : { client, row: match.row };
+      ? { client, logo, problem: { kind: "absent", message: absent } }
+      : { client, logo, row: match.row };
   });
 
   const today = format(now(), "EEEE, MMMM d");
@@ -141,24 +146,13 @@ export default async function TodayPage({
             <Section title={t.waitingTitle}>
               <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
                 {waiting.map(({ thread, clientName }) => (
-                  <li key={thread.id}>
-                    <Link
-                      href={`/answer-desk?client=${thread.clientId}`}
-                      className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-paper"
-                    >
-                      <span className="min-w-0">
-                        <span className="block font-display text-16 text-ink">
-                          {clientName}
-                        </span>
-                        <span className="block truncate font-ui text-14 text-ink-soft">
-                          {thread.question}
-                        </span>
-                      </span>
-                      <span className="shrink-0 whitespace-nowrap font-ui text-12 text-ink-soft">
-                        {formatAge(thread.createdAt)} ago
-                      </span>
-                    </Link>
-                  </li>
+                  <WaitingRow
+                    key={thread.id}
+                    clientId={thread.clientId}
+                    clientName={clientName}
+                    question={thread.question}
+                    age={formatAge(thread.createdAt)}
+                  />
                 ))}
               </ul>
             </Section>
@@ -179,39 +173,11 @@ export default async function TodayPage({
             ) : (
               <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
                 {due.map(({ narrative, client }) => (
-                  <li
+                  <DueRow
                     key={narrative.id}
-                    className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-                  >
-                    <span className="min-w-0">
-                      <Link
-                        href={`/clients/${client.id}`}
-                        className="font-display text-16 text-ink hover:text-verdigris"
-                      >
-                        {client.name}
-                      </Link>
-                      <span className="block font-ui text-13 text-ink-soft">
-                        {formatCadenceLine(client.cadence, client.channel)} ·{" "}
-                        {narrative.week.label}
-                      </span>
-                    </span>
-                    <span className="flex items-center gap-3">
-                      <StatusStepper status={narrative.status} compact />
-                      <Button
-                        asChild
-                        size="sm"
-                        variant={
-                          narrative.status === "sent" ? "outline" : "default"
-                        }
-                      >
-                        <Link
-                          href={`/clients/${client.id}/narratives/${narrative.id}`}
-                        >
-                          {config.copy.actionByStatus[narrative.status]}
-                        </Link>
-                      </Button>
-                    </span>
-                  </li>
+                    narrative={narrative}
+                    client={client}
+                  />
                 ))}
               </ul>
             )}

@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Regenerated tracker CSVs for refreshing the live sheet (scripts/make-sheet-csv.ts)
+relay/supabase/fixtures/sheet/
+supabase/fixtures/sheet/

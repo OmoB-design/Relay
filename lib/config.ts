@@ -87,6 +87,11 @@ const ConfigSchema = z.object({
      *  single day is judged against them. Assumes weekly, which is every
      *  seeded target; an explicit KPI `targetPeriod` is the proper fix. */
     dailyTargetDivisor: z.number().int().positive(),
+    /** How far a client's newest DATA row may fall behind yesterday before its
+     *  source counts as stopped, at which point its engine anomaly flags are
+     *  suppressed from the queue — not resolved. They may well still be true;
+     *  nobody can tell, and "resolved" would claim otherwise. */
+    staleSourceDays: z.number().int().nonnegative(),
   }),
 
   /** Tracker ingestion (Phase 7, AGENCY.md §1/§3). Read-only Google Sheets. */
@@ -113,6 +118,13 @@ const ConfigSchema = z.object({
     /** Local fixture used when no live workbook is configured. */
     fixturePath: z.string(),
   }),
+
+  /** Client marks. PROVISIONAL: the mockups use Shopify's logo, but a client's
+   *  `sourceOfTruth` is only ever Google Ads or Triple Whale, so the glyph is
+   *  standing in for either a brand avatar or a source mark — undecided. Keyed
+   *  by client name; anything absent falls back to initials, which is the shape
+   *  the real component needs anyway since no agency has a logo for every client. */
+  clientLogos: z.record(z.string(), z.string()),
 
   /** Repeated UI copy (CLAUDE.md UI writing rules — sentence case, plain verbs). */
   copy: z.object({
@@ -141,6 +153,9 @@ const ConfigSchema = z.object({
       email: z.string(),
     }),
     dismissReasonPlaceholder: z.string(),
+    dismissReasonRequired: z.string(),
+    dismissedPrefix: z.string(),
+    resolvedNote: z.string(),
     splitView: z.object({
       draftLabel: z.string(),
       evidenceLabel: z.string(),
@@ -171,6 +186,11 @@ const ConfigSchema = z.object({
       recompile: z.string(),
       allConfirmed: z.string(),
       noRows: z.string(),
+      noRowsBody: z.string(),
+      editedPrefix: z.string(),
+      chipNotCompiled: z.string(),
+      chipAbsent: z.string(),
+      chipStale: z.string(),
       working: z.string(),
       cooldown: z.string(),
       goToTracker: z.string(),
@@ -223,6 +243,9 @@ const ConfigSchema = z.object({
       edit: z.string(),
       remove: z.string(),
       saved: z.string(),
+      dismiss: z.string(),
+      confirmDismiss: z.string(),
+      editSend: z.string(),
     }),
     sensitivityTypeLabel: z.object({
       framing: z.string(),
@@ -308,6 +331,11 @@ export const config: Config = ConfigSchema.parse({
     sustainedDriftDays: 3,
     sustainedDriftMinPct: 5,
     dailyTargetDivisor: 7,
+    /** How far a client's newest DATA row may fall behind yesterday before its
+     *  source counts as stopped. One missing day is a buyer filling in late;
+     *  three or more is a dead source, and metric flags raised from data that
+     *  old can no longer be evaluated either way. */
+    staleSourceDays: 2,
   },
   ingestion: {
     sourceOfTruthPrefix: "Source of truth:",
@@ -339,6 +367,13 @@ export const config: Config = ConfigSchema.parse({
     dryRunTolerancePct: 0.5,
     fixturePath: "supabase/fixtures/tracker.json",
   },
+  clientLogos: {
+    Northbrook: "/logos/shopify.svg",
+    Birkenstock: "/logos/shopify.svg",
+    Switchup: "/logos/shopify.svg",
+    // Huggers deliberately has none — the initials fallback stays on screen.
+  },
+
   copy: {
     status: { drafted: "Drafted", reviewed: "Reviewed", sent: "Sent" },
     actionByStatus: {
@@ -355,6 +390,9 @@ export const config: Config = ConfigSchema.parse({
     },
     channelLabel: { whatsapp: "WhatsApp", email: "Email" },
     dismissReasonPlaceholder: "Why are you dismissing this? (required)",
+    dismissReasonRequired: "A reason is required before dismissing.",
+    dismissedPrefix: "Dismissed —",
+    resolvedNote: "The condition no longer holds as of the latest compile.",
     splitView: {
       draftLabel: "Draft — select any sentence to see its evidence",
       evidenceLabel: "Evidence · this week",
@@ -386,6 +424,12 @@ export const config: Config = ConfigSchema.parse({
       recompile: "Re-run compile",
       allConfirmed: "All confirmed — nothing waiting on you.",
       noRows: "Nothing compiled yet",
+      noRowsBody:
+        "Run the compile to stage yesterday's numbers for every client.",
+      editedPrefix: "Edited on confirm —",
+      chipNotCompiled: "Needs compilation",
+      chipAbsent: "No data found in the sheet",
+      chipStale: "Newest row is an older day",
       working: "Working…",
       cooldown: "Just ran — give it a moment",
       goToTracker: "The row needs filling in the tracker.",
@@ -442,6 +486,9 @@ export const config: Config = ConfigSchema.parse({
       edit: "Edit",
       remove: "Remove",
       saved: "Saved",
+      dismiss: "Dismiss",
+      confirmDismiss: "Confirm dismiss",
+      editSend: "Edit & send",
     },
     sensitivityTypeLabel: {
       framing: "Framing",

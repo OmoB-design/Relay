@@ -20,6 +20,15 @@ import type { TrackerRow } from "@/lib/ingestion/types";
 
 const f = config.flags;
 
+/* THE DEDUPE KEY IS DELIBERATELY DATE-FREE.
+   `client:metric:detector` identifies a CONDITION, not an occurrence. A cost per
+   order that sits above target for six days is one thing the buyer needs to know
+   about, not six — it raises once, stays open while it holds, retracts when it
+   stops, and re-opens if it comes back.
+
+   It used to carry the date. Nothing caught it because the engine had only ever
+   been run one day at a time; the first 14-day backfill produced 57 open flags
+   for about a dozen real conditions. */
 export type DetectedFlag = {
   clientId: string;
   metricKey: MetricKey;
@@ -132,7 +141,7 @@ export function detectFlags(input: {
               ? ` for the period, so ${val(metric, dailyTarget)} for a single day`
               : "") +
             `; anything more than ${f.targetBreachPct}% the wrong side of it is flagged for a look.`,
-          dedupeKey: `${client.id}:${metric}:target:${onDate}`,
+          dedupeKey: `${client.id}:${metric}:target`,
           createdAt: `${onDate}T${String(config.daily.pullHour).padStart(2, "0")}:30:00+04:00`,
         });
       }
@@ -154,7 +163,7 @@ export function detectFlags(input: {
           diagnostic:
             `${val(metric, value)} vs a ${baseline.length}-day average of ${val(metric, avg)}. ` +
             `Single-day moves beyond ${f.daySwingPct}% are surfaced before a client notices.`,
-          dedupeKey: `${client.id}:${metric}:swing:${onDate}`,
+          dedupeKey: `${client.id}:${metric}:swing`,
           createdAt: `${onDate}T${String(config.daily.pullHour).padStart(2, "0")}:30:00+04:00`,
         });
       }
@@ -190,7 +199,7 @@ export function detectFlags(input: {
             `Consecutive daily moves against target from ${day(from.date)} to ${day(onDate)}, ` +
             `now ${pretty(Math.abs(offNorm))}% below its usual ${val(metric, norm)}. ` +
             "A steady drift is easier to miss than a spike — and cheaper to fix early.",
-          dedupeKey: `${client.id}:${metric}:drift:${onDate}`,
+          dedupeKey: `${client.id}:${metric}:drift`,
           createdAt: `${onDate}T${String(config.daily.pullHour).padStart(2, "0")}:30:00+04:00`,
         });
       }

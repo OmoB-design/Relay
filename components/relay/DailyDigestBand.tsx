@@ -4,65 +4,91 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
-import { Check, ChevronDown, CircleAlert, Clock, RefreshCw } from "lucide-react";
+import {
+  ChevronRight,
+  CircleAlert,
+  Clock,
+  Inbox,
+  RefreshCw,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { config, formatCurrency } from "@/lib/config";
+import { config } from "@/lib/config";
+import { formatMetric, metricLabel } from "@/lib/metrics";
 import type { DailyMetrics, DailyRow, ClientProfile } from "@/lib/types";
+import { ClientAvatar } from "@/components/relay/ClientAvatar";
+import { MetricField } from "@/components/relay/MetricField";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { EmptyState } from "@/components/relay/EmptyState";
 import {
   confirmDailyRowAction,
   recompileAction,
 } from "@/app/(app)/today/daily-actions";
 
-/* The morning band (Phase 7.5a) — the first thing on Today, because it's the
-   most time-critical thing in a buyer's morning.
+/* The morning band — Figma component set "Digest" (node 309:17116), 20 variants
+   across two axes: the row's state (staged · confirmed · edit · partial ·
+   not-compiled · absent · stale) and how far it is open (closed · open ·
+   edit numbers · selected · active), plus the band-level mixed / all-confirmed /
+   empty.
 
-   One row per client: yesterday's numbers, source-stamped, staged and waiting.
-   Confirming IS reviewing. Editing captures a reason. A client Relay couldn't
-   reach says so plainly and never renders an absent figure as zero.          */
+   One card per client rather than a divided list, per the frames.
+
+   THE CONFIRM AFFORDANCE lives in the row header and is present whether the row
+   is collapsed or expanded, so a buyer who opens a row to read it can still
+   accept it without going through the edit form. `Edit numbers` is the footer
+   action, only while open. That resolves an ambiguity in the first frames, where
+   the expanded state had no way to confirm.                                   */
 
 const dc = config.copy.daily;
 
 type MetricKey = keyof DailyMetrics;
 
-const METRICS: { key: MetricKey; label: string; kind: "money" | "count" | "ratio" | "percent" }[] = [
-  { key: "spend", label: "Spend", kind: "money" },
-  { key: "sales", label: "Sales", kind: "count" },
-  { key: "revenue", label: "Revenue", kind: "money" },
-  { key: "roas", label: "ROAS", kind: "ratio" },
-  { key: "cpa_cpo", label: "CPA/CPO", kind: "money" },
-  { key: "nc_roas", label: "NC ROAS", kind: "ratio" },
-  { key: "ncac", label: "NCAC", kind: "money" },
-  { key: "nvp", label: "NVP", kind: "percent" },
+/** The tracker's eight, in the frames' order. Labels and formatting come from
+ *  lib/metrics.ts so the band, the flags engine and the ingest all agree. */
+const METRICS: MetricKey[] = [
+  "spend",
+  "sales",
+  "revenue",
+  "roas",
+  "cpa_cpo",
+  "nc_roas",
+  "ncac",
+  "nvp",
 ];
 
-function display(kind: string, value: number | undefined): string {
-  if (value === undefined) return "—";
-  if (kind === "money") return formatCurrency(value);
-  if (kind === "ratio") return `${value.toFixed(2)}x`;
-  if (kind === "percent") return `${Math.round(value * 100) / 100}%`;
-  return new Intl.NumberFormat("en-US").format(Math.round(value));
-}
-
-/** Three distinct absences, because each needs a different response from the
- *  buyer. Rendering them identically was a real gap: at 08:00 "we haven't
- *  looked yet" and "the tracker row is missing" call for opposite actions. */
 export type DigestProblem = {
   kind: "notCompiled" | "absent" | "stale";
   message: string;
 };
 
 export type DigestEntry = {
-  client: Pick<ClientProfile, "id" | "name" | "sourceOfTruth" | "dailyToClient">;
+  client: Pick<
+    ClientProfile,
+    "id" | "name" | "sourceOfTruth" | "dailyToClient"
+  >;
   row?: DailyRow;
   problem?: DigestProblem;
+  /** Path under /public. Absent → the avatar falls back to initials. */
+  logo?: string;
+};
+
+const CARD =
+  "overflow-hidden rounded-18 border-fig border-border bg-surface-primary shadow-card";
+const PANEL =
+  "flex flex-col overflow-hidden rounded-14 border-fig-thin border-border bg-panel";
+
+const display = (key: MetricKey, value: number | undefined): string =>
+  value === undefined ? "—" : formatMetric(key, value);
+
+/** Status chips on an absent row — the frames name the problem before the
+ *  sentence explains it. */
+const PROBLEM_CHIP: Record<DigestProblem["kind"], string> = {
+  notCompiled: dc.chipNotCompiled,
+  absent: dc.chipAbsent,
+  stale: dc.chipStale,
 };
 
 function ClientRow({ entry }: { entry: DigestEntry }) {
-  const { client, row, problem } = entry;
+  const { client, row, problem, logo } = entry;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -71,29 +97,50 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // A client with no usable row — stated plainly, never rendered as a zero.
-  if (!row) {
-    const notCompiled = problem?.kind === "notCompiled";
+  /* No usable row. Three different problems needing three different responses,
+     so they get three different treatments — at 08:00 "we haven't looked yet"
+     and "the tracker row is missing" call for opposite actions. */
+  if (!row || problem) {
+    const kind = problem?.kind ?? "notCompiled";
+    const Icon = kind === "notCompiled" ? Clock : CircleAlert;
     return (
-      <li className="flex items-start gap-3 border-hair border-dashed border-line px-4 py-3">
-        {notCompiled ? (
-          <Clock size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-soft" />
-        ) : (
-          <CircleAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-flag" />
-        )}
-        <span className="min-w-0 flex-1">
-          <span className="block font-display text-16 text-ink">{client.name}</span>
-          <span className="block font-ui text-13 text-ink-soft">
-            {problem?.message}
-          </span>
-          {/* "Relay hasn't looked" is fixed by re-running; "the row isn't in
-              the tracker" is fixed in the sheet. Say which. */}
-          {problem?.kind === "absent" && (
-            <span className="mt-1 block font-ui text-12 text-ink-soft">
-              {dc.goToTracker}
-            </span>
-          )}
-        </span>
+      <li className={CARD}>
+        <div className="p-1">
+          <div className={cn(PANEL, "gap-2 px-2 py-2")}>
+            <div className="flex items-center gap-2">
+              <ClientAvatar name={client.name} logo={logo} />
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-geist text-fig-body fig-w450 text-heading-01">
+                    {client.name}
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-geist text-fig-caption-2",
+                      kind === "notCompiled"
+                        ? "bg-surface-foreground-01 text-heading-06"
+                        : "bg-yellow-100 text-yellow-700",
+                    )}
+                  >
+                    <Icon size={10} aria-hidden="true" />
+                    {PROBLEM_CHIP[kind]}
+                  </span>
+                </span>
+                <span className="font-geist text-fig-caption-1 text-heading-05">
+                  {problem?.message}
+                  {/* "Relay hasn't looked" is fixed by re-running; "the row
+                      isn't in the tracker" is fixed in the sheet. Say which. */}
+                  {kind === "absent" && (
+                    <>
+                      {" · "}
+                      <span className="text-heading-06">{dc.goToTracker}</span>
+                    </>
+                  )}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
       </li>
     );
   }
@@ -101,13 +148,16 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   const confirmed = row.status === "confirmed";
   const sourceChip =
     row.source === "Tracker" && row.sourceOfTruth
-      ? `Tracker · ${row.sourceOfTruth}`
+      ? `${row.source} · ${row.sourceOfTruth}`
       : row.source;
 
   function beginEdit() {
     setDraft(
       Object.fromEntries(
-        METRICS.map((m) => [m.key, row!.metrics[m.key] !== undefined ? String(row!.metrics[m.key]) : ""]),
+        METRICS.map((m) => [
+          m,
+          row!.metrics[m] !== undefined ? String(row!.metrics[m]) : "",
+        ]),
       ),
     );
     setEditing(true);
@@ -119,9 +169,10 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
     const metrics: DailyMetrics | undefined = withEdits
       ? (Object.fromEntries(
           METRICS.map((m) => {
-            const raw = draft[m.key];
-            const n = raw === undefined || raw.trim() === "" ? undefined : Number(raw);
-            return [m.key, Number.isFinite(n) ? n : undefined];
+            const raw = draft[m];
+            const n =
+              raw === undefined || raw.trim() === "" ? undefined : Number(raw);
+            return [m, Number.isFinite(n) ? n : undefined];
           }),
         ) as DailyMetrics)
       : undefined;
@@ -145,139 +196,166 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   const reasonValid = reason.trim().length > 0;
 
   return (
-    <li className="px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-label={`${open ? "Hide" : "Show"} all metrics for ${client.name}`}
-          className="flex min-w-0 flex-1 items-center gap-2 text-left"
-        >
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            className={cn("shrink-0 text-ink-soft transition-transform", open && "rotate-180")}
-          />
-          <span className="min-w-0">
-            <span className="flex flex-wrap items-baseline gap-x-2">
-              <span className="font-display text-16 text-ink">{client.name}</span>
-              <span className="inline-flex items-center rounded-full border border-line bg-paper px-2 py-0.5 font-ui text-12 text-ink-soft">
-                {sourceChip}
-              </span>
-              {confirmed && (
-                <span className="inline-flex items-center gap-1 font-ui text-12 text-verdigris">
-                  <Check size={12} aria-hidden="true" /> {dc.confirmed}
+    <li className={CARD}>
+      <div className="p-1">
+        <div className={PANEL}>
+          {/* Header — identity, source, the two numbers a buyer scans first,
+              and the one action that advances the row. */}
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-2 px-2 py-2",
+              open && "divider-b border-border pb-3",
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-label={`${open ? "Hide" : "Show"} all metrics for ${client.name}`}
+              className="flex min-w-0 flex-1 items-center gap-2 text-left"
+            >
+              <ClientAvatar name={client.name} logo={logo} />
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-geist text-fig-body fig-w450 text-heading-01">
+                    {client.name}
+                  </span>
+                  <span className="inline-flex items-center rounded-full border-fig-thin border-border bg-surface-primary px-1.5 py-0.5 font-geist text-fig-caption-2 text-heading-06">
+                    {sourceChip}
+                  </span>
+                  {confirmed && (
+                    <span className="inline-flex items-center rounded-full bg-green-50 px-1.5 py-0.5 font-geist text-fig-caption-2 text-green-500">
+                      {dc.confirmed}
+                    </span>
+                  )}
                 </span>
-              )}
-            </span>
-            {/* The two numbers a buyer scans first. */}
-            <span className="block font-ui text-13 text-ink-soft">
-              Spend {display("money", row.metrics.spend)} · Sales{" "}
-              {display("count", row.metrics.sales)} · CPA/CPO{" "}
-              {display("money", row.metrics.cpa_cpo)}
-            </span>
-          </span>
-        </button>
+                <span className="mt-0.5 block font-geist text-fig-caption-1 text-heading-05">
+                  {metricLabel("spend")} {display("spend", row.metrics.spend)}
+                  {" · "}
+                  {metricLabel("sales")} {display("sales", row.metrics.sales)}
+                  {" · "}
+                  {metricLabel("cpa_cpo")}{" "}
+                  {display("cpa_cpo", row.metrics.cpa_cpo)}
+                </span>
+              </span>
+            </button>
 
-        {!confirmed && !editing && (
-          <Button size="sm" onClick={() => submit(false)} disabled={pending}>
-            {pending ? dc.working : dc.confirm}
-          </Button>
-        )}
+            {!confirmed && !editing ? (
+              <Button
+                size="fig"
+                variant={pending ? "working" : "secondary"}
+                onClick={() => submit(false)}
+                disabled={pending}
+              >
+                {pending ? dc.working : dc.confirm}
+              </Button>
+            ) : (
+              !editing && (
+                <ChevronRight
+                  size={16}
+                  aria-hidden="true"
+                  className={cn(
+                    "shrink-0 text-caption-1 transition-transform",
+                    open && "rotate-90",
+                  )}
+                />
+              )
+            )}
+          </div>
+
+          {open && (
+            <div className="flex flex-col gap-2 px-2 pb-3 pt-2">
+              <dl className="grid grid-cols-2 gap-x-2 gap-y-1 sm:grid-cols-4">
+                {METRICS.map((m) => (
+                  <div key={m} className="contents">
+                    <MetricField
+                      label={metricLabel(m).toUpperCase()}
+                      value={display(m, row.metrics[m])}
+                      unavailable={row.unavailable[m]}
+                      editing={editing}
+                      draft={draft[m]}
+                      onChange={(next) =>
+                        setDraft((d) => ({ ...d, [m]: next }))
+                      }
+                    />
+                  </div>
+                ))}
+              </dl>
+
+              {/* Why a metric is missing, said out loud rather than left blank. */}
+              {Object.entries(row.unavailable).length > 0 && !editing && (
+                <p className="px-2 font-geist text-fig-caption-1 text-heading-05">
+                  {Object.values(row.unavailable)[0]}
+                </p>
+              )}
+
+              <p className="px-2 font-geist text-fig-caption-1 text-heading-06">
+                {client.dailyToClient ? dc.goesToClient : dc.blockedFromClient}
+              </p>
+
+              {row.edited && row.overrideReason && !editing && (
+                <p className="px-2 font-geist text-fig-caption-1 text-caption-1">
+                  {dc.editedPrefix} {row.overrideReason}
+                </p>
+              )}
+
+              {editing && (
+                <div className="flex flex-col gap-1.5 px-2">
+                  <Textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder={dc.overridePlaceholder}
+                    aria-label="Reason for changing the numbers"
+                    aria-invalid={!reasonValid}
+                    className={cn(
+                      "min-h-16 rounded-12 bg-surface-primary px-2 py-2 font-geist text-fig-caption-1 text-heading-02 md:text-fig-caption-1 placeholder:text-caption-1",
+                      !reasonValid && "border-red-600 ring-invalid",
+                    )}
+                  />
+                  {!reasonValid && (
+                    <p className="font-geist text-fig-caption-2 text-red-700">
+                      {dc.overrideRequired}
+                    </p>
+                  )}
+                  {error && (
+                    <p className="font-geist text-fig-caption-2 text-red-700">
+                      {error}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Footer actions sit outside the panel, as in the frames. */}
       {open && (
-        <div className="mt-3 flex flex-col gap-3 pl-6">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
-            {METRICS.map((m) => {
-              const unavailable = row.unavailable[m.key];
-              return (
-                <div key={m.key}>
-                  <dt className="font-ui text-12 uppercase tracking-wide text-ink-soft">
-                    {m.label}
-                  </dt>
-                  <dd>
-                    {editing ? (
-                      <Input
-                        inputMode="decimal"
-                        value={draft[m.key] ?? ""}
-                        onChange={(e) =>
-                          setDraft((d) => ({ ...d, [m.key]: e.target.value }))
-                        }
-                        aria-label={m.label}
-                        className="h-8"
-                      />
-                    ) : unavailable ? (
-                      <span
-                        className="font-ui text-13 text-ink-soft"
-                        title={unavailable}
-                      >
-                        n/a
-                      </span>
-                    ) : (
-                      <span className="font-display text-16 text-ink">
-                        {display(m.kind, row.metrics[m.key])}
-                      </span>
-                    )}
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
-
-          {/* Why a metric is missing, said out loud rather than left blank. */}
-          {Object.entries(row.unavailable).length > 0 && !editing && (
-            <p className="font-ui text-12 text-ink-soft">
-              {Object.values(row.unavailable)[0]}
-            </p>
-          )}
-
-          <p className="font-ui text-12 text-ink-soft">
-            {client.dailyToClient ? dc.goesToClient : dc.blockedFromClient}
-          </p>
-
-          {row.edited && row.overrideReason && (
-            <p className="font-ui text-12 text-ink-soft">
-              Edited on confirm — {row.overrideReason}
-            </p>
-          )}
-
-          {editing && (
-            <div className="flex flex-col gap-2">
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder={dc.overridePlaceholder}
-                aria-label="Reason for changing the numbers"
-                aria-invalid={!reasonValid}
-                className="min-h-16 bg-surface"
-              />
-              {!reasonValid && (
-                <p className="font-ui text-12 text-negative">{dc.overrideRequired}</p>
-              )}
-              {error && <p className="font-ui text-12 text-negative">{error}</p>}
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => submit(true)}
-                  disabled={pending || !reasonValid}
-                >
-                  {pending ? dc.working : dc.confirm}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-                  {config.copy.actions.cancel}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {!editing && !confirmed && (
-            <div>
-              <Button size="sm" variant="outline" onClick={beginEdit}>
+        <div className="flex items-center justify-end gap-1.5 p-2.5">
+          {editing ? (
+            <>
+              <Button
+                size="fig"
+                variant="ghost"
+                onClick={() => setEditing(false)}
+              >
+                {config.copy.actions.cancel}
+              </Button>
+              <Button
+                size="fig"
+                variant={pending ? "working" : "default"}
+                onClick={() => submit(true)}
+                disabled={pending || !reasonValid}
+              >
+                {pending ? dc.working : dc.confirm}
+              </Button>
+            </>
+          ) : (
+            !confirmed && (
+              <Button size="fig" onClick={beginEdit}>
                 {dc.edit}
               </Button>
-            </div>
+            )
           )}
         </div>
       )}
@@ -301,58 +379,79 @@ export function DailyDigestBand({ entries }: { entries: DigestEntry[] }) {
 
   const date = entries.find((e) => e.row)?.row?.date;
   const compiledAt = entries.find((e) => e.row)?.row?.compiledAt;
-  const waiting = entries.filter((e) => e.row && e.row.status === "staged").length;
+  const usable = entries.filter((e) => e.row && !e.problem).length;
+  const waiting = entries.filter(
+    (e) => e.row && !e.problem && e.row.status === "staged",
+  ).length;
+  // "All confirmed" is a reward for finishing, not the default when there is
+  // nothing to finish. With every client absent, zero staged rows is a problem
+  // report — saying the morning is done would be false.
+  const allDone = usable > 0 && waiting === 0;
 
   function recompile() {
     if (cooling || pending) return;
     startTransition(async () => {
       await recompileAction();
-      setCooldownUntil(Date.now() + config.daily.recompileCooldownSeconds * 1000);
+      setCooldownUntil(
+        Date.now() + config.daily.recompileCooldownSeconds * 1000,
+      );
       setNowTick(Date.now());
-      toast("Compiled");
+      toast(dc.confirmedToast);
       router.refresh();
     });
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+    <section className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <h2 className="font-geist text-fig-body fig-w450 text-heading-06">
           {dc.bandTitle}
-          {date && `, ${format(parseISO(date), "EEE MMM d")}`} — {entries.length}{" "}
-          {entries.length === 1 ? "client" : "clients"}
+          {date && `, ${format(parseISO(date), "EEE MMM d")}`}
+          {" — "}
+          {entries.length} {entries.length === 1 ? "client" : "clients"}
           {compiledAt &&
-            ` · ${dc.compiledAt} ${format(parseISO(compiledAt), "HH:mm")}`}
+            ` • ${dc.compiledAt} ${format(parseISO(compiledAt), "HH:mm")}`}
         </h2>
         <Button
-          size="sm"
+          size="fig-compile"
           variant="ghost"
           onClick={recompile}
           disabled={pending || cooling}
           title={cooling ? dc.cooldown : undefined}
         >
           <RefreshCw
-            size={14}
             aria-hidden="true"
-            className={cn(pending && "animate-spin")}
+            className={cn("size-3", pending && "animate-spin")}
           />{" "}
           {pending ? dc.working : cooling ? dc.cooldown : dc.recompile}
         </Button>
       </div>
 
       {entries.length === 0 ? (
-        <EmptyState title={dc.noRows}>
-          Run the compile to stage yesterday&apos;s numbers for every client.
-        </EmptyState>
+        <div
+          className={cn(CARD, "flex flex-col items-center gap-2 px-6 py-10")}
+        >
+          <span className="flex size-8 items-center justify-center rounded-8 border-fig border-border">
+            <Inbox size={14} aria-hidden="true" className="text-heading-06" />
+          </span>
+          <p className="font-geist text-fig-body fig-medium text-heading-01">
+            {dc.noRows}
+          </p>
+          <p className="text-center font-geist text-fig-caption-1 text-heading-05">
+            {dc.noRowsBody}
+          </p>
+        </div>
       ) : (
         <>
-          <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          <ul className="flex flex-col gap-2">
             {entries.map((entry) => (
               <ClientRow key={entry.client.id} entry={entry} />
             ))}
           </ul>
-          {waiting === 0 && (
-            <p className="font-ui text-13 text-ink-soft">{dc.allConfirmed}</p>
+          {allDone && (
+            <p className="px-1 font-geist text-fig-caption-1 text-caption-1">
+              {dc.allConfirmed}
+            </p>
           )}
         </>
       )}

@@ -7,6 +7,17 @@
 -- corpus is real data), flags, profile edits (KPIs, sensitivities, etc.).
 -- ============================================================================
 
+-- ----------------------------------------------------------------------------
+-- CALENDAR. Everything below is authored against ONE week: Mon 6 - Sun 12 Jul
+-- 2026. That stays fixed on purpose, so this file remains a readable, diffable
+-- record of the demo and lines up with lib/seed.ts.
+--
+-- It is NOT what the app should show. Run supabase/rebase-demo.sql afterwards to
+-- move the whole dataset onto the most recently completed Mon-Sun week, then
+-- `npx tsx scripts/backfill-daily.ts` to stage the trailing daily window. The
+-- rebase is idempotent and shifts by whole weeks, so weekday alignment holds.
+-- ----------------------------------------------------------------------------
+
 -- Narrative lifecycle back to seed shape
 update narratives set status = 'drafted', reviewed_at = null, sent_at = null,
   whatsapp_variant =

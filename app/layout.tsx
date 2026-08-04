@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Newsreader, Archivo } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -41,8 +42,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {/* Geist is the redesign's single family, loaded from Vercel's official
+          package (local files, no Google Fonts round trip). The three original
+          faces stay until the screens still using them are redesigned. */}
       <body
-        className={`${fraunces.variable} ${newsreader.variable} ${archivo.variable}`}
+        className={`${GeistSans.variable} ${fraunces.variable} ${newsreader.variable} ${archivo.variable}`}
       >
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />

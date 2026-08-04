@@ -8,8 +8,14 @@ import {
 } from "@/lib/data";
 import { readWorkbook } from "@/lib/ingestion/read";
 import { parseWorkbook } from "@/lib/ingestion/parse";
+import { rebaseTabs } from "@/lib/demo/rebaseTracker";
 import type { TrackerTab } from "@/lib/ingestion/types";
-import type { ClientProfile, DailyMetrics, MetricKey } from "@/lib/types";
+import {
+  ROW_ABSENT_KEY,
+  type ClientProfile,
+  type DailyMetrics,
+  type MetricKey,
+} from "@/lib/types";
 import { detectFlags, type DetectedFlag } from "@/lib/daily/flags";
 
 /* ============================================================================
@@ -27,7 +33,6 @@ import { detectFlags, type DetectedFlag } from "@/lib/daily/flags";
 
 /** Key under which a whole-row absence reason is stored, so the UI can tell
  *  "we looked and there was nothing" apart from "one metric is missing". */
-export const ROW_ABSENT_KEY = "_row";
 
 const TRACKED: MetricKey[] = [
   "spend",
@@ -112,7 +117,9 @@ export async function compileDaily(options?: {
   at?: Date;
 }): Promise<CompileResult> {
   const { workbook, source } = await readWorkbook();
-  const tabs = parseWorkbook(workbook);
+  // The fixture is authored against the seed week; rebase it onto the current
+  // calendar so "yesterday" always has a row. The live sheet passes through.
+  const tabs = rebaseTabs(parseWorkbook(workbook), source);
   const byName = new Map(tabs.map((t) => [t.tabName.toLowerCase(), t] as const));
   const clients = await getClients();
 
@@ -183,7 +190,6 @@ export async function compileDaily(options?: {
     // stale warning behind.
     const resolved = await resolveStaleFlags({
       clientId: client.id,
-      date,
       activeKeys: detected.map((d) => d.dedupeKey),
     });
 

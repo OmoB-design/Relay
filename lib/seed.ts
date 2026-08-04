@@ -12,6 +12,11 @@ import {
   type Narrative,
   type TimelineEntry,
 } from "@/lib/types";
+import {
+  labelFor,
+  shiftDay as sd,
+  shiftStamp as st,
+} from "@/lib/demo/calendar";
 
 /* ============================================================================
    In-process seed — the SAME content as supabase/seed.sql, but validated
@@ -23,6 +28,19 @@ import {
    client fully and the others at profile depth. lib/data.ts is the single seam
    that flips to Supabase once env vars exist.
    ========================================================================== */
+
+/** A period, with its label regenerated from the SHIFTED dates. `missing` names
+ *  days the tracker never supplied, so the label still says so after a shift. */
+function per(start: string, end: string, missing?: [string, string]) {
+  const shifted = { start: sd(start), end: sd(end) };
+  const label = labelFor(shifted.start, shifted.end);
+  return {
+    ...shifted,
+    label: missing
+      ? `${label} (${labelFor(sd(missing[0]), sd(missing[1]))} missing)`
+      : label,
+  };
+}
 
 const NORTHBROOK = "11111111-0000-4000-8000-000000000001";
 const BIRKENSTOCK = "11111111-0000-4000-8000-000000000002";
@@ -47,7 +65,7 @@ export const clientProfiles: ClientProfile[] = ClientProfileSchema.array().parse
         platform: "Google Ads",
         externalId: "731-556-2214",
         health: "green",
-        lastSyncAt: "2026-07-12T23:59:00+04:00",
+        lastSyncAt: st("2026-07-12T23:59:00+04:00"),
       },
     ],
     kpis: [
@@ -81,7 +99,7 @@ export const clientProfiles: ClientProfile[] = ClientProfileSchema.array().parse
         platform: "Google Ads",
         externalId: "604-118-9932",
         health: "amber",
-        lastSyncAt: "2026-07-09T23:59:00+04:00",
+        lastSyncAt: st("2026-07-09T23:59:00+04:00"),
       },
     ],
     kpis: [
@@ -112,7 +130,7 @@ export const clientProfiles: ClientProfile[] = ClientProfileSchema.array().parse
         platform: "Google Ads",
         externalId: "220-871-5540",
         health: "green",
-        lastSyncAt: "2026-07-12T23:59:00+04:00",
+        lastSyncAt: st("2026-07-12T23:59:00+04:00"),
       },
     ],
     kpis: [
@@ -133,8 +151,8 @@ export const snapshots: EvidenceSnapshot[] = EvidenceSnapshotSchema.array().pars
   {
     id: SNAP_NB,
     clientId: NORTHBROOK,
-    period: { start: "2026-07-06", end: "2026-07-12", label: "Jul 6–12" },
-    asOf: "2026-07-12T23:59:00+04:00",
+    period: per("2026-07-06", "2026-07-12"),
+    asOf: st("2026-07-12T23:59:00+04:00"),
     items: [
       { id: "E1", snapshotId: SNAP_NB, source: "Google Ads", metricKey: "spend", metricLabel: "Performance Max spend", value: 39800, valueDisplay: "$39.8K", deltaPct: 21, deltaLabel: "+21%", polarity: "neutral", note: "prospecting scale-up", series: [5100, 5300, 5500, 5700, 5900, 6100, 6200] },
       { id: "E2", snapshotId: SNAP_NB, source: "Google Ads", metricKey: "spend", metricLabel: "Search spend (brand)", value: 14800, valueDisplay: "$14.8K", deltaPct: 9, deltaLabel: "+9%", polarity: "neutral", note: "steady", series: [2000, 2050, 2100, 2150, 2150, 2150, 2200] },
@@ -148,8 +166,8 @@ export const snapshots: EvidenceSnapshot[] = EvidenceSnapshotSchema.array().pars
   {
     id: SNAP_BK,
     clientId: BIRKENSTOCK,
-    period: { start: "2026-07-06", end: "2026-07-09", label: "Jul 6–9 (Jul 10–11 missing)" },
-    asOf: "2026-07-09T23:59:00+04:00",
+    period: per("2026-07-06", "2026-07-09", ["2026-07-10", "2026-07-11"]),
+    asOf: st("2026-07-09T23:59:00+04:00"),
     items: [
       { id: "G1", snapshotId: SNAP_BK, source: "Tracker", sourceOfTruth: "Triple Whale", metricKey: "nc_roas", metricLabel: "NC ROAS", value: 2.35, valueDisplay: "2.35x", deltaPct: 7, deltaLabel: "+7% · target 2.2", polarity: "higher_is_better", note: "ahead of target", series: [2.2, 2.3, 2.4, 2.35] },
       { id: "G2", snapshotId: SNAP_BK, source: "Tracker", sourceOfTruth: "Triple Whale", metricKey: "ncac", metricLabel: "NCAC", value: 43.5, valueDisplay: "$43.50", deltaPct: 6, deltaLabel: "+6% · target $41", polarity: "lower_is_better", note: "drifting above target", series: [41.0, 42.2, 43.1, 43.5] },
@@ -160,8 +178,8 @@ export const snapshots: EvidenceSnapshot[] = EvidenceSnapshotSchema.array().pars
   {
     id: SNAP_SU,
     clientId: SWITCHUP,
-    period: { start: "2026-06-29", end: "2026-07-05", label: "Jun 29 – Jul 5" },
-    asOf: "2026-07-05T23:59:00+04:00",
+    period: per("2026-06-29", "2026-07-05"),
+    asOf: st("2026-07-05T23:59:00+04:00"),
     items: [
       { id: "H1", snapshotId: SNAP_SU, source: "Google Ads", metricKey: "roas", metricLabel: "Blended ROAS", value: 3.15, valueDisplay: "3.15x", deltaPct: 5, deltaLabel: "+5% · target 3.0", polarity: "higher_is_better", note: "continuing upward trajectory", series: [2.9, 3.0, 3.05, 3.1, 3.15, 3.15, 3.15] },
       { id: "H2", snapshotId: SNAP_SU, source: "Google Ads", metricKey: "aov", metricLabel: "AOV", value: 98.4, valueDisplay: "$98.40", deltaPct: 2, deltaLabel: "+2% · target $96", polarity: "higher_is_better", note: "modestly above target", series: [95, 96, 97, 98, 98, 99, 98] },
@@ -175,7 +193,7 @@ export const narratives: Narrative[] = NarrativeSchema.array().parse([
     id: "11111111-0000-4000-8000-0000000000b1",
     clientId: NORTHBROOK,
     snapshotId: SNAP_NB,
-    week: { start: "2026-07-06", end: "2026-07-12", label: "Jul 6–12" },
+    week: per("2026-07-06", "2026-07-12"),
     status: "drafted",
     channel: "whatsapp",
     emailGreeting: "Hi Dana,",
@@ -193,11 +211,11 @@ export const narratives: Narrative[] = NarrativeSchema.array().parse([
     id: "11111111-0000-4000-8000-0000000000b2",
     clientId: BIRKENSTOCK,
     snapshotId: SNAP_BK,
-    week: { start: "2026-07-06", end: "2026-07-09", label: "Jul 6–9" },
+    week: per("2026-07-06", "2026-07-09"),
     status: "reviewed",
     channel: "email",
     emailGreeting: "Hi Lina,",
-    reviewedAt: "2026-07-10T09:00:00+04:00",
+    reviewedAt: st("2026-07-10T09:00:00+04:00"),
     claims: [
       { id: "66666666-0000-4000-8000-000000000011", narrativeId: "11111111-0000-4000-8000-0000000000b2", order: 1, kind: "fact", text: "New-customer ROAS came in at 2.35 for the week, ahead of the 2.2 target.", evidenceRefs: [{ snapshotId: SNAP_BK, itemId: "G1" }] },
       { id: "66666666-0000-4000-8000-000000000012", narrativeId: "11111111-0000-4000-8000-0000000000b2", order: 2, kind: "fact", text: "New customers made up 58% of orders, with the mix holding steady week on week.", evidenceRefs: [{ snapshotId: SNAP_BK, itemId: "G4" }] },
@@ -210,12 +228,12 @@ export const narratives: Narrative[] = NarrativeSchema.array().parse([
     id: "11111111-0000-4000-8000-0000000000b3",
     clientId: SWITCHUP,
     snapshotId: SNAP_SU,
-    week: { start: "2026-06-29", end: "2026-07-05", label: "Jun 29 – Jul 5" },
+    week: per("2026-06-29", "2026-07-05"),
     status: "sent",
     channel: "email",
     emailGreeting: "Hi Rowan,",
-    reviewedAt: "2026-07-06T08:30:00+04:00",
-    sentAt: "2026-07-06T09:00:00+04:00",
+    reviewedAt: st("2026-07-06T08:30:00+04:00"),
+    sentAt: st("2026-07-06T09:00:00+04:00"),
     claims: [
       { id: "66666666-0000-4000-8000-000000000021", narrativeId: "11111111-0000-4000-8000-0000000000b3", order: 1, kind: "fact", text: "Blended ROAS closed the week at 3.15, ahead of the 3.0 benchmark and continuing the upward trajectory from the prior fortnight.", evidenceRefs: [{ snapshotId: SNAP_SU, itemId: "H1" }] },
       { id: "66666666-0000-4000-8000-000000000022", narrativeId: "11111111-0000-4000-8000-0000000000b3", order: 2, kind: "fact", text: "Average order value held firm at $98.40, modestly above the $96 target.", evidenceRefs: [{ snapshotId: SNAP_SU, itemId: "H2" }] },
@@ -236,7 +254,7 @@ export const flags: Flag[] = FlagSchema.array().parse([
     diagnostic: "Likely cause: new prospecting asset group widened reach faster than conversion volume. Similar incident May 18 recovered in 5 days after audience-signal tightening.",
     draftNote: "Heads-up on Birkenstock: new-customer acquisition cost has drifted to $47.60 over the last three days, about 16% above the $41 target. We think the new prospecting asset group widened reach faster than conversions caught up — same shape as the May 18 dip, which recovered in five days once we tightened the audience signals. Doing that now; will keep you posted.",
     status: "open",
-    createdAt: "2026-07-12T20:00:00+04:00",
+    createdAt: st("2026-07-12T20:00:00+04:00"),
   },
   {
     id: "11111111-0000-4000-8000-0000000000c2",
@@ -248,7 +266,7 @@ export const flags: Flag[] = FlagSchema.array().parse([
     diagnostic: "CPO variance flagged during the approved AOV test window; expected while basket size shifts.",
     status: "dismissed",
     dismissalReason: "Known — client approved AOV test, expect CPO noise through Jul 20.",
-    createdAt: "2026-07-08T11:00:00+04:00",
+    createdAt: st("2026-07-08T11:00:00+04:00"),
   },
   {
     id: "11111111-0000-4000-8000-0000000000c3",
@@ -259,7 +277,7 @@ export const flags: Flag[] = FlagSchema.array().parse([
     headline: "Tracker rows missing for Jul 10–11.",
     diagnostic: "Per agency rules, Relay never interpolates missing days — narratives will exclude those dates and say so.",
     status: "open",
-    createdAt: "2026-07-12T08:00:00+04:00",
+    createdAt: st("2026-07-12T08:00:00+04:00"),
   },
 ]);
 
@@ -268,11 +286,11 @@ export const answerThreads: AnswerThread[] = AnswerThreadSchema.array().parse([
     id: "11111111-0000-4000-8000-0000000000d3",
     clientId: SWITCHUP,
     question: "Can you confirm July is still tracking to the Q3 plan we set?",
-    createdAt: "2026-07-13T06:15:00+04:00",
+    createdAt: st("2026-07-13T06:15:00+04:00"),
   },
 ]);
 
 export const timeline: TimelineEntry[] = TimelineEntrySchema.array().parse([
-  { id: "77777777-0000-4000-8000-000000000003", clientId: NORTHBROOK, type: "commentary", date: "2026-06-29", summary: "CPCs starting to climb midweek — watching auction pressure." },
-  { id: "77777777-0000-4000-8000-000000000004", clientId: NORTHBROOK, type: "commentary", date: "2026-07-06", summary: "Deliberate scale-up: spend $54.6k, cost per order held at $26.40, orders 2,067.", snapshotId: SNAP_NB, refId: "11111111-0000-4000-8000-0000000000b1" },
+  { id: "77777777-0000-4000-8000-000000000003", clientId: NORTHBROOK, type: "commentary", date: sd("2026-06-29"), summary: "CPCs starting to climb midweek — watching auction pressure." },
+  { id: "77777777-0000-4000-8000-000000000004", clientId: NORTHBROOK, type: "commentary", date: sd("2026-07-06"), summary: "Deliberate scale-up: spend $54.6k, cost per order held at $26.40, orders 2,067.", snapshotId: SNAP_NB, refId: "11111111-0000-4000-8000-0000000000b1" },
 ]);

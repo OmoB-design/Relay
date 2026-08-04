@@ -3,6 +3,7 @@ import { getClients, getSnapshotsByIds, upsertSnapshot } from "@/lib/data";
 import type { EvidenceSnapshot, Period } from "@/lib/types";
 import { readWorkbook } from "@/lib/ingestion/read";
 import { parseWorkbook } from "@/lib/ingestion/parse";
+import { rebaseTabs } from "@/lib/demo/rebaseTracker";
 import { mapPeriod, snapshotIdFor } from "@/lib/ingestion/map";
 import { diffPassed, diffSnapshot, type DiffRow } from "@/lib/ingestion/diff";
 import type { FreshnessWarning, TrackerTab } from "@/lib/ingestion/types";
@@ -53,7 +54,7 @@ export async function runIngestion(options: {
 }): Promise<IngestionReport> {
   const { period, commit = false } = options;
   const { workbook, source } = await readWorkbook();
-  const tabs = parseWorkbook(workbook);
+  const tabs = rebaseTabs(parseWorkbook(workbook), source);
   const clients = await getClients();
 
   // Match a tab to a client by name — the agency's tab names are the clients.

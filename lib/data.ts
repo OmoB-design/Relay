@@ -1,9 +1,11 @@
-import { parseISO, subDays } from "date-fns";
+import { format, parseISO, subDays } from "date-fns";
 import { getSupabase } from "@/lib/supabase";
 import { now, nowIso } from "@/lib/clock";
 import { config } from "@/lib/config";
+import { yesterday } from "@/lib/demo/calendar";
 import { captureEditDiff } from "@/lib/voice";
 import {
+  ROW_ABSENT_KEY,
   AccountSchema,
   AnswerSchema,
   type Answer,
@@ -383,19 +385,75 @@ export type FlagWithClient = { flag: Flag; clientName: string };
 
 /** Open flags only — Today is "what needs attention"; dismissed flags live in
  *  the client Timeline with their reason (confirmed pattern). */
+/** Clients whose newest row carrying actual DATA has fallen more than
+ *  config.flags.staleSourceDays behind yesterday.
+ *
+ *  Deliberately ignores rows staged with ROW_ABSENT_KEY: a run of "Relay looked
+ *  and found nothing" rows would otherwise make the source look current right up
+ *  to yesterday while carrying no numbers at all. */
+async function clientsWithStaleSource(): Promise<Set<string>> {
+  const sb = getSupabase();
+  const cutoff = format(
+    subDays(parseISO(yesterday()), config.flags.staleSourceDays),
+    "yyyy-MM-dd",
+  );
+  // Anything on or after the cutoff is enough to call the source live, so only
+  // that window needs reading rather than the whole table.
+  const { data, error } = await sb
+    .from("daily_rows")
+    .select("client_id, date, unavailable")
+    .gte("date", cutoff);
+  throwIf(error);
+
+  const live = new Set<string>();
+  for (const row of data ?? []) {
+    const unavailable = (row.unavailable ?? {}) as Record<string, string>;
+    if (unavailable[ROW_ABSENT_KEY]) continue;
+    live.add(row.client_id);
+  }
+
+  const all = await sb.from("clients").select("id");
+  throwIf(all.error);
+  return new Set(
+    (all.data ?? []).map((c) => c.id).filter((id) => !live.has(id)),
+  );
+}
+
+/** Today's flag queue.
+ *
+ *  Suppresses — never resolves — engine anomaly flags for a client whose source
+ *  has stopped. Those flags are not resolved, they are UNEVALUABLE: the
+ *  condition that raised them may well still hold, and marking it resolved would
+ *  claim the problem went away when the truth is that nobody can see. So the row
+ *  is left exactly as it is and simply not shown; when data returns, the engine
+ *  either re-confirms it (same condition key, still open) or retracts it.
+ *
+ *  Two kinds are always shown: hand-authored flags, which have no dedupe key and
+ *  represent a human's judgement, and freshness flags, which are ABOUT the
+ *  staleness and so are the one thing still worth acting on. The digest band
+ *  carries the actionable message meanwhile — "the row needs filling in the
+ *  tracker". */
 export async function getOpenFlags(): Promise<FlagWithClient[]> {
   const sb = getSupabase();
-  const [flags, clients] = await Promise.all([
+  const [flags, clients, stale] = await Promise.all([
     sb.from("flags").select("*").eq("status", "open").order("created_at"),
     sb.from("clients").select("id, name"),
+    clientsWithStaleSource(),
   ]);
   throwIf(flags.error);
   throwIf(clients.error);
   const names = new Map((clients.data ?? []).map((c) => [c.id, c.name]));
-  return (flags.data ?? []).map((f) => ({
-    flag: mapFlag(f),
-    clientName: names.get(f.client_id) ?? "Unknown client",
-  }));
+  return (flags.data ?? [])
+    .filter(
+      (f) =>
+        !stale.has(f.client_id) ||
+        f.dedupe_key === null ||
+        f.kind === "freshness",
+    )
+    .map((f) => ({
+      flag: mapFlag(f),
+      clientName: names.get(f.client_id) ?? "Unknown client",
+    }));
 }
 
 /** Reason-capture enforced here AND by the DB CHECK (flag_dismissal_reason). */
@@ -907,7 +965,8 @@ export async function confirmDailyRow(input: {
  *  judgement — the data simply changed. */
 export async function resolveStaleFlags(input: {
   clientId: string;
-  date: string;
+  /** Every condition the engine still detects. Anything open and absent from
+   *  this list no longer holds and is retracted. */
   activeKeys: string[];
 }): Promise<number> {
   const sb = getSupabase();
@@ -919,9 +978,16 @@ export async function resolveStaleFlags(input: {
     .not("dedupe_key", "is", null);
   throwIf(error);
 
+  // Every open engine flag for this client, not just ones raised today. The old
+  // version filtered on a date suffix in the key, so yesterday's flag could
+  // never be retracted — it and the dated dedupe key defeated each other, and
+  // nothing ever left the queue.
+  //
+  // Seeded flags carry no dedupe_key and are excluded by the query above, so a
+  // hand-authored flag is never retracted by the engine. Neither is a dismissal:
+  // `status = 'open'` skips both dismissed and already-resolved rows.
   const active = new Set(input.activeKeys);
   const stale = (data ?? [])
-    .filter((f) => f.dedupe_key?.endsWith(`:${input.date}`))
     .filter((f) => !active.has(f.dedupe_key!))
     .map((f) => f.id);
   if (stale.length === 0) return 0;
