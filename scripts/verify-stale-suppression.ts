@@ -15,6 +15,7 @@
    Read-only. Writes nothing.                                                 */
 import { format, parseISO, subDays } from "date-fns";
 import { getSupabase } from "../lib/supabase";
+import { runWithServiceRole } from "../lib/supabase";
 import { getOpenFlags } from "../lib/data";
 import { config } from "../lib/config";
 import { yesterday } from "../lib/demo/calendar";
@@ -27,7 +28,7 @@ const check = (ok: boolean, label: string, detail = "") => {
 };
 
 async function main() {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const cutoff = format(
     subDays(parseISO(yesterday()), config.flags.staleSourceDays),
     "yyyy-MM-dd",
@@ -35,8 +36,14 @@ async function main() {
 
   const [clients, rows, allFlags] = await Promise.all([
     sb.from("clients").select("id, name").order("name"),
-    sb.from("daily_rows").select("client_id, date, unavailable").gte("date", cutoff),
-    sb.from("flags").select("id, client_id, kind, dedupe_key, status").eq("status", "open"),
+    sb
+      .from("daily_rows")
+      .select("client_id, date, unavailable")
+      .gte("date", cutoff),
+    sb
+      .from("flags")
+      .select("id, client_id, kind, dedupe_key, status")
+      .eq("status", "open"),
   ]);
 
   const names = new Map((clients.data ?? []).map((c) => [c.id, c.name]));
@@ -45,7 +52,9 @@ async function main() {
     const u = (r.unavailable ?? {}) as Record<string, string>;
     if (!u[ROW_ABSENT_KEY]) live.add(r.client_id);
   }
-  const stale = (clients.data ?? []).map((c) => c.id).filter((id) => !live.has(id));
+  const stale = (clients.data ?? [])
+    .map((c) => c.id)
+    .filter((id) => !live.has(id));
 
   console.log(
     `\nYesterday ${yesterday()} · a source counts as stopped once its newest data row ` +
@@ -55,7 +64,10 @@ async function main() {
   for (const c of clients.data ?? []) {
     const dates = (rows.data ?? [])
       .filter((r) => r.client_id === c.id)
-      .filter((r) => !((r.unavailable ?? {}) as Record<string, string>)[ROW_ABSENT_KEY])
+      .filter(
+        (r) =>
+          !((r.unavailable ?? {}) as Record<string, string>)[ROW_ABSENT_KEY],
+      )
       .map((r) => r.date)
       .sort();
     console.log(
@@ -71,7 +83,8 @@ async function main() {
   let suppressed = 0;
   for (const id of stale) {
     const engineAnomalies = (allFlags.data ?? []).filter(
-      (f) => f.client_id === id && f.dedupe_key !== null && f.kind === "anomaly",
+      (f) =>
+        f.client_id === id && f.dedupe_key !== null && f.kind === "anomaly",
     );
     suppressed += engineAnomalies.length;
     check(
@@ -134,7 +147,7 @@ async function main() {
   process.exit(fails.length ? 1 : 0);
 }
 
-main().catch((e) => {
+runWithServiceRole(main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

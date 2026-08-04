@@ -10,6 +10,7 @@
      export $(grep -v '^#' .env.local | xargs) && npx tsx scripts/ingest.ts    */
 import { subDays, format } from "date-fns";
 import { runIngestion, weekOf } from "../lib/ingestion";
+import { runWithServiceRole } from "../lib/supabase";
 import { config } from "../lib/config";
 import { now } from "../lib/clock";
 
@@ -25,7 +26,9 @@ const anchor =
 
 const pad = (s: string, n: number) => s.padEnd(n);
 const money = (n?: number) =>
-  n === undefined ? "—" : n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  n === undefined
+    ? "—"
+    : n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 
 async function main() {
   const period = weekOf(anchor);
@@ -36,7 +39,9 @@ async function main() {
   );
   console.log(`Period: ${period.start} → ${period.end}`);
   if (report.unmatchedTabs.length) {
-    console.log(`Tabs with no matching client: ${report.unmatchedTabs.join(", ")}`);
+    console.log(
+      `Tabs with no matching client: ${report.unmatchedTabs.join(", ")}`,
+    );
   }
 
   let anyMismatch = false;
@@ -89,12 +94,15 @@ async function main() {
     `\n${anyMismatch ? "✗ mapper produced mismatches beyond tolerance" : "✓ mapper agrees with Relay's data within tolerance"} (tolerance ${config.ingestion.dryRunTolerancePct}%)`,
   );
   if (commit) console.log("Snapshots written.");
-  else console.log("Nothing written — dry run. Re-run with --commit to persist.\n");
+  else
+    console.log(
+      "Nothing written — dry run. Re-run with --commit to persist.\n",
+    );
 
   process.exit(anyMismatch && !commit ? 1 : 0);
 }
 
-main().catch((e) => {
+runWithServiceRole(main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

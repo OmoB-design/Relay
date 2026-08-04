@@ -6,6 +6,7 @@ import {
   Home,
   Library,
   MessagesSquare,
+  ShieldCheck,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -15,21 +16,36 @@ import { cn } from "@/lib/utils";
    or a mobile bottom bar. Icon components can't live in the zod config, so the
    nav list lives here. */
 
-type NavItem = { label: string; href: string; icon: LucideIcon };
+type NavItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  /** Admin-only. A buyer never sees the link, and requireAdmin() plus RLS refuse
+   *  the route even if they guess the URL. */
+  adminOnly?: boolean;
+};
 
 const NAV: NavItem[] = [
   { label: "Today", href: "/today", icon: Home },
   { label: "Clients", href: "/clients", icon: Users },
   { label: "Answer Desk", href: "/answer-desk", icon: MessagesSquare },
   { label: "Library", href: "/library", icon: Library },
+  { label: "Team", href: "/admin", icon: ShieldCheck, adminOnly: true },
 ];
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AppNav({ variant }: { variant: "sidebar" | "bottom" }) {
+export function AppNav({
+  variant,
+  isAdmin = false,
+}: {
+  variant: "sidebar" | "bottom";
+  isAdmin?: boolean;
+}) {
   const pathname = usePathname();
+  const items = NAV.filter((n) => !n.adminOnly || isAdmin);
 
   if (variant === "bottom") {
     return (
@@ -37,7 +53,7 @@ export function AppNav({ variant }: { variant: "sidebar" | "bottom" }) {
         aria-label="Primary"
         className="fixed inset-x-0 bottom-0 z-10 flex border-t border-border bg-surface-primary md:hidden"
       >
-        {NAV.map(({ label, href, icon: Icon }) => {
+        {items.map(({ label, href, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
             <Link
@@ -60,7 +76,7 @@ export function AppNav({ variant }: { variant: "sidebar" | "bottom" }) {
 
   return (
     <nav aria-label="Primary" className="flex flex-col gap-1">
-      {NAV.map(({ label, href, icon: Icon }) => {
+      {items.map(({ label, href, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
           <Link

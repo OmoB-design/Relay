@@ -16,6 +16,20 @@ interface Row<T> {
 export interface Database {
   public: {
     Tables: {
+      /* People and access (supabase/migrations/0008_auth_and_rls.sql). */
+      profiles: Row<{
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        status: string;
+        created_at: string;
+      }>;
+      client_assignments: Row<{
+        client_id: string;
+        buyer_id: string;
+        assigned_at: string;
+      }>;
       clients: Row<{
         id: string;
         name: string;

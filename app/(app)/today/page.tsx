@@ -2,6 +2,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { config, formatAge } from "@/lib/config";
 import { isPilotClock, now } from "@/lib/clock";
+import { firstName, requireProfile } from "@/lib/auth";
 import {
   getClients,
   getDueThisWeek,
@@ -48,6 +49,8 @@ export default async function TodayPage({
 }: {
   searchParams: { empty?: string };
 }) {
+  const profile = await requireProfile();
+
   // ?empty=1 forces the first-run view for demos, without touching data.
   const forceEmpty = searchParams.empty === "1";
 
@@ -114,8 +117,11 @@ export default async function TodayPage({
             expression of it, so the nav label and the heading agree. */}
         <h1 className="mt-1 font-geist text-28 fig-sb text-heading-01">
           <span className="sr-only">Today — </span>
-          {t.greeting}
+          {t.greetingPrefix} {firstName(profile)}.
         </h1>
+        <p className="mt-1 font-geist text-fig-body text-heading-06">
+          {t.greeting}
+        </p>
         {isPilotClock && (
           <p className="mt-2 font-geist text-fig-caption-2 text-yellow-700">
             Demo clock — pinned to {today}. Unset RELAY_PILOT_NOW for the real
@@ -125,16 +131,24 @@ export default async function TodayPage({
       </header>
 
       {showFirstRun ? (
-        <EmptyState
-          title={t.emptyTitle}
-          action={
-            <Button asChild size="sm">
-              <Link href="/clients">{t.emptyCta}</Link>
-            </Button>
-          }
-        >
-          {t.emptyBody}
-        </EmptyState>
+        profile.role === "admin" ? (
+          <EmptyState
+            title={t.emptyTitle}
+            action={
+              <Button asChild size="fig">
+                <Link href="/admin">{t.emptyCta}</Link>
+              </Button>
+            }
+          >
+            {t.emptyBody}
+          </EmptyState>
+        ) : (
+          /* A buyer cannot assign themselves a client, so offering them a CTA
+             would be a dead end. Name who can. */
+          <EmptyState title={config.copy.auth.noClients}>
+            {config.copy.auth.noClientsBody}
+          </EmptyState>
+        )
       ) : (
         <div className="flex flex-col gap-10">
           {/* 0. Yesterday's numbers — the morning ritual, most time-critical. */}

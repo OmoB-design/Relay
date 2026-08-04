@@ -23,6 +23,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { format, parseISO, subDays } from "date-fns";
 import { readFixtureWorkbook } from "../lib/ingestion/read";
+import { runWithServiceRole } from "../lib/supabase";
 import { parseDateCell, parseWorkbook } from "../lib/ingestion/parse";
 import { rebaseTab } from "../lib/demo/rebaseTracker";
 import { config } from "../lib/config";
@@ -94,7 +95,9 @@ async function main() {
     console.log(
       `  ${tab.tabName.padEnd(13)} ${String(rebased.rows.length).padStart(2)} rows  ` +
         `${sheetDate(first)} → ${sheetDate(last)}` +
-        (last < yesterday() ? "   ← stops early on purpose (missing-days case)" : ""),
+        (last < yesterday()
+          ? "   ← stops early on purpose (missing-days case)"
+          : ""),
     );
   }
 
@@ -103,7 +106,7 @@ async function main() {
   console.log("  1. select cell A1");
   console.log("  2. File → Import → upload that client's CSV");
   console.log('  3. Import location: "Replace data at selected cell"');
-  console.log("  4. Separator: comma. Leave \"Convert text to numbers\" ticked.");
+  console.log('  4. Separator: comma. Leave "Convert text to numbers" ticked.');
   console.log(
     "  5. Then select column A → Format → Number → Custom date and time →",
   );
@@ -112,7 +115,7 @@ async function main() {
   );
 }
 
-main().catch((e) => {
+runWithServiceRole(main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

@@ -35,7 +35,13 @@ import { Button } from "@/components/ui/button";
 const t = config.copy.today;
 
 /** Today's section heading, replicated so a frame shows its own context. */
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="flex flex-col gap-3" aria-label={title}>
       <h2 className="font-ui text-13 uppercase tracking-wide text-ink-soft">
@@ -95,7 +101,15 @@ const SLUGS = [
     "digest/all-confirmed",
     "digest/empty",
   ],
-  ["flags/open-list", "flags/with-draft", "flags/no-draft", "flags/dismissing", "flags/dismissed", "flags/resolved", "flags/none"],
+  [
+    "flags/open-list",
+    "flags/with-draft",
+    "flags/no-draft",
+    "flags/dismissing",
+    "flags/dismissed",
+    "flags/resolved",
+    "flags/none",
+  ],
   ["waiting/list", "waiting/none"],
   ["due/all", "due/drafted", "due/reviewed", "due/sent", "due/empty"],
 ];
@@ -134,12 +148,7 @@ export default function TodayStatesPage() {
         title="Page level"
         blurb="The frame around everything, and the two states that replace the whole page."
       >
-        <Spec
-          id="today/page-header"
-          title="Page header"
-          when="Always"
-          onPaper
-        >
+        <Spec id="today/page-header" title="Page header" when="Always" onPaper>
           <header className="mx-auto max-w-column">
             <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
               Monday, July 13
@@ -401,8 +410,10 @@ export default function TodayStatesPage() {
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <p className="font-ui text-13 text-ink-soft">
-              Nothing renders. Design the gap, not a placeholder.
+            <p className="border-hair border-dashed border-line px-4 py-6 text-center font-ui text-13 text-ink-soft">
+              Nothing renders at all — no heading, no card, no gap. The dashed
+              outline is this catalogue marking the absence; the product shows
+              literally nothing.
             </p>
           </div>
         </Spec>
@@ -443,11 +454,11 @@ export default function TodayStatesPage() {
           when="Section collapses entirely."
           onPaper
         >
-          <div className="mx-auto max-w-column">
-            <p className="font-ui text-13 text-ink-soft">
-              Nothing renders. Design the gap.
-            </p>
-          </div>
+          <p className="border-hair border-dashed border-line px-4 py-6 text-center font-ui text-13 text-ink-soft">
+            Nothing renders at all — no heading, no card, no gap. The dashed
+            outline is this catalogue marking the absence; the product shows
+            literally nothing.
+          </p>
         </Spec>
       </Group>
 

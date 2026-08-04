@@ -158,6 +158,34 @@ const ConfigSchema = z.object({
       whatsapp: z.string(),
       email: z.string(),
     }),
+    /** Auth. No Figma frame yet; wording lives here so the eventual redesign is
+     *  a component change, not a copy hunt. */
+    auth: z.object({
+      signInBody: z.string(),
+      signInCta: z.string(),
+      emailLabel: z.string(),
+      passwordLabel: z.string(),
+      setUpBody: z.string(),
+      setUpCta: z.string(),
+      nameLabel: z.string(),
+      newPasswordLabel: z.string(),
+      passwordHint: z.string(),
+      inviteOnly: z.string(),
+      noClients: z.string(),
+      noClientsBody: z.string(),
+    }),
+    admin: z.object({
+      title: z.string(),
+      invite: z.string(),
+      inviteCta: z.string(),
+      inviteSent: z.string(),
+      revoke: z.string(),
+      restore: z.string(),
+      revoked: z.string(),
+      assignTitle: z.string(),
+      assignBody: z.string(),
+      noBuyers: z.string(),
+    }),
     dismissReasonPlaceholder: z.string(),
     dismissReasonRequired: z.string(),
     dismissedPrefix: z.string(),
@@ -265,6 +293,7 @@ const ConfigSchema = z.object({
       deck: z.string(),
     }),
     today: z.object({
+      greetingPrefix: z.string(),
       greeting: z.string(),
       waitingTitle: z.string(),
       flagsTitle: z.string(),
@@ -396,6 +425,34 @@ export const config: Config = ConfigSchema.parse({
       monthly: "Monthly",
     },
     channelLabel: { whatsapp: "WhatsApp", email: "Email" },
+    auth: {
+      signInBody: "Sign in to your agency's workspace.",
+      signInCta: "Sign in",
+      emailLabel: "Work email",
+      passwordLabel: "Password",
+      setUpBody: "Set a password to finish setting up your account.",
+      setUpCta: "Finish setup",
+      nameLabel: "Your name",
+      newPasswordLabel: "Choose a password",
+      passwordHint: "At least 8 characters.",
+      inviteOnly: "Relay is invite-only. Ask your agency admin for access.",
+      noClients: "No clients assigned to you yet",
+      noClientsBody:
+        "Your admin assigns the clients you cover. Once they do, your morning digest appears here.",
+    },
+    admin: {
+      title: "Team",
+      invite: "Invite a media buyer",
+      inviteCta: "Send invite",
+      inviteSent: "Invite sent",
+      revoke: "Revoke access",
+      restore: "Restore access",
+      revoked: "Revoked",
+      assignTitle: "Clients",
+      assignBody:
+        "A buyer sees only the clients assigned to them. A client can have more than one.",
+      noBuyers: "No buyers yet — invite one above.",
+    },
     dismissReasonPlaceholder: "Why are you dismissing this? (required)",
     dismissReasonRequired: "A reason is required before dismissing.",
     dismissedPrefix: "Dismissed —",
@@ -440,7 +497,8 @@ export const config: Config = ConfigSchema.parse({
       working: "Working…",
       cooldown: "Just ran — give it a moment",
       goToTracker: "The row needs filling in the tracker.",
-      blockedFromClient: "Internal only — this client's profile forbids a daily note.",
+      blockedFromClient:
+        "Internal only — this client's profile forbids a daily note.",
       goesToClient: "Cleared for a daily note to this client",
       unavailableNote: "Not available",
     },
@@ -509,6 +567,7 @@ export const config: Config = ConfigSchema.parse({
       deck: "Deck",
     },
     today: {
+      greetingPrefix: "Hey",
       greeting: "Here's your week",
       waitingTitle: "Waiting on you",
       flagsTitle: "Flags",
@@ -518,7 +577,7 @@ export const config: Config = ConfigSchema.parse({
         "No outstanding drafts and nothing scheduled for this week. Drafts appear here as the week's data lands.",
       emptyTitle: "No clients connected yet",
       emptyBody: "Connect a client to see your week take shape.",
-      emptyCta: "Connect a client",
+      emptyCta: "Add a client",
     },
   },
 });
@@ -526,10 +585,14 @@ export const config: Config = ConfigSchema.parse({
 // --- Formatters (reference the validated config above) ----------------------
 
 const localeFor = (currency: Currency): string =>
-  config.currency.locale[currency] ?? config.currency.locale[config.currency.default];
+  config.currency.locale[currency] ??
+  config.currency.locale[config.currency.default];
 
 /** Full currency, e.g. $26.40. Per-client currency; USD default. */
-export function formatCurrency(value: number, currency: Currency = "USD"): string {
+export function formatCurrency(
+  value: number,
+  currency: Currency = "USD",
+): string {
   return new Intl.NumberFormat(localeFor(currency), {
     style: "currency",
     currency,
@@ -550,7 +613,11 @@ export function formatCompactCurrency(
 }
 
 /** A period as "Jul 6–12" (uses the stored label when present). */
-export function formatPeriod(start: string, end: string, label?: string): string {
+export function formatPeriod(
+  start: string,
+  end: string,
+  label?: string,
+): string {
   if (label) return label;
   const s = parseISO(start);
   const e = parseISO(end);

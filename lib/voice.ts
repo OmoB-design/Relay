@@ -21,7 +21,7 @@ export function toSegments(before: string, after: string): EditDiffSegment[] {
 
 /** The pilot runs a single demo buyer; real auth is post-MVP. */
 async function getOrCreateProfileId(): Promise<string> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const key = config.voice.demoBuyerKey;
   const { data, error } = await sb
     .from("voice_profiles")
@@ -47,7 +47,7 @@ export async function captureEditDiff(input: {
 }): Promise<void> {
   if (input.before === input.after) return;
   const profileId = await getOrCreateProfileId();
-  const { error } = await getSupabase().from("edit_diffs").insert({
+  const { error } = await (await getSupabase()).from("edit_diffs").insert({
     id: crypto.randomUUID(),
     profile_id: profileId,
     narrative_id: input.narrativeId,

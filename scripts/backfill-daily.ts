@@ -14,6 +14,7 @@
      set -a; . ./.env.local; set +a; npx tsx scripts/backfill-daily.ts        */
 import { addDays, format, parseISO } from "date-fns";
 import { compileDaily } from "../lib/daily/compile";
+import { runWithServiceRole } from "../lib/supabase";
 import { config } from "../lib/config";
 import { yesterday } from "../lib/demo/calendar";
 
@@ -59,7 +60,7 @@ async function main() {
   );
 }
 
-main().catch((e) => {
+runWithServiceRole(main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

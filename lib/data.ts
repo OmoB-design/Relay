@@ -73,7 +73,8 @@ function mapKpi(r: any): Kpi {
     target: num(r.target),
     polarity: r.polarity,
     format: r.format,
-    tolerancePct: opt(r.tolerance_pct) === undefined ? undefined : num(r.tolerance_pct),
+    tolerancePct:
+      opt(r.tolerance_pct) === undefined ? undefined : num(r.tolerance_pct),
     note: opt(r.note),
   });
 }
@@ -97,7 +98,13 @@ function mapStakeholder(r: any): Stakeholder {
   });
 }
 
-function mapProfile(client: any, accounts: any[], kpis: any[], sensitivities: any[], stakeholders: any[]): ClientProfile {
+function mapProfile(
+  client: any,
+  accounts: any[],
+  kpis: any[],
+  sensitivities: any[],
+  stakeholders: any[],
+): ClientProfile {
   return ClientProfileSchema.parse({
     id: client.id,
     name: client.name,
@@ -199,16 +206,14 @@ function mapNarrative(r: any, claims: any[]): Narrative {
     claims: claims
       .filter((c) => c.narrative_id === r.id)
       .sort((a, b) => a.ord - b.ord)
-      .map((c) =>
-        ({
-          id: c.id,
-          narrativeId: c.narrative_id,
-          order: c.ord,
-          kind: c.kind,
-          text: c.text,
-          evidenceRefs: c.evidence_refs,
-        }),
-      ),
+      .map((c) => ({
+        id: c.id,
+        narrativeId: c.narrative_id,
+        order: c.ord,
+        kind: c.kind,
+        text: c.text,
+        evidenceRefs: c.evidence_refs,
+      })),
   });
 }
 
@@ -219,7 +224,7 @@ function throwIf(error: { message: string } | null): void {
 // --- Clients -----------------------------------------------------------------
 
 export async function getClients(): Promise<ClientProfile[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const [clients, accounts, kpis, sensitivities, stakeholders] =
     await Promise.all([
       sb.from("clients").select("*").order("name"),
@@ -247,7 +252,7 @@ export async function getClients(): Promise<ClientProfile[]> {
 export async function getClientProfile(
   id: string,
 ): Promise<ClientProfile | undefined> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const [client, accounts, kpis, sensitivities, stakeholders] =
     await Promise.all([
       sb.from("clients").select("*").eq("id", id).maybeSingle(),
@@ -272,7 +277,7 @@ export async function getClientProfile(
 // --- Timeline + snapshots ------------------------------------------------------
 
 export async function getTimeline(clientId: string): Promise<TimelineEntry[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data, error } = await sb
     .from("timeline_entries")
     .select("*")
@@ -287,7 +292,7 @@ export async function getSnapshotsByIds(
   ids: string[],
 ): Promise<Record<string, EvidenceSnapshot>> {
   if (ids.length === 0) return {};
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const [snaps, items] = await Promise.all([
     sb.from("evidence_snapshots").select("*").in("id", ids),
     sb.from("evidence_items").select("*").in("snapshot_id", ids),
@@ -308,7 +313,7 @@ export async function getSnapshotsByIds(
 export async function getSnapshotsForClient(
   clientId: string,
 ): Promise<EvidenceSnapshot[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data, error } = await sb
     .from("evidence_snapshots")
     .select("id")
@@ -324,8 +329,10 @@ export async function getSnapshotsForClient(
  *  Keyed by the snapshot's deterministic id, so re-ingesting the same period
  *  is idempotent. Never touches snapshots with other ids — artifacts stay
  *  pinned to exactly the evidence they were written from. */
-export async function upsertSnapshot(snapshot: EvidenceSnapshot): Promise<void> {
-  const sb = getSupabase();
+export async function upsertSnapshot(
+  snapshot: EvidenceSnapshot,
+): Promise<void> {
+  const sb = await getSupabase();
   const { error } = await sb.from("evidence_snapshots").upsert({
     id: snapshot.id,
     client_id: snapshot.clientId,
@@ -365,7 +372,7 @@ export async function upsertSnapshot(snapshot: EvidenceSnapshot): Promise<void> 
 export type WaitingThread = { thread: AnswerThread; clientName: string };
 
 export async function getWaitingThreads(): Promise<WaitingThread[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const [threads, clients] = await Promise.all([
     sb.from("answer_threads").select("*").is("answer", null),
     sb.from("clients").select("id, name"),
@@ -392,7 +399,7 @@ export type FlagWithClient = { flag: Flag; clientName: string };
  *  and found nothing" rows would otherwise make the source look current right up
  *  to yesterday while carrying no numbers at all. */
 async function clientsWithStaleSource(): Promise<Set<string>> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const cutoff = format(
     subDays(parseISO(yesterday()), config.flags.staleSourceDays),
     "yyyy-MM-dd",
@@ -434,7 +441,7 @@ async function clientsWithStaleSource(): Promise<Set<string>> {
  *  carries the actionable message meanwhile — "the row needs filling in the
  *  tracker". */
 export async function getOpenFlags(): Promise<FlagWithClient[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const [flags, clients, stale] = await Promise.all([
     sb.from("flags").select("*").eq("status", "open").order("created_at"),
     sb.from("clients").select("id, name"),
@@ -460,7 +467,9 @@ export async function getOpenFlags(): Promise<FlagWithClient[]> {
 export async function dismissFlag(id: string, reason: string): Promise<void> {
   const trimmed = reason.trim();
   if (!trimmed) throw new Error("A dismissal reason is required.");
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("flags")
     .update({ status: "dismissed", dismissal_reason: trimmed })
     .eq("id", id);
@@ -491,7 +500,7 @@ const STATUS_ORDER: Record<NarrativeStatus, number> = {
  *  without bound — fine against one week of seed, wrong within a month.
  *  Capped at config.pageSizes.library so one neglected client can't flood it. */
 export async function getDueThisWeek(at?: Date): Promise<DueItem[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const [narratives, claims] = await Promise.all([
     sb.from("narratives").select("*"),
     sb.from("claims").select("*"),
@@ -531,7 +540,7 @@ export async function getDueThisWeek(at?: Date): Promise<DueItem[]> {
 export async function getNarrativesForClient(
   clientId: string,
 ): Promise<Narrative[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const narratives = await sb
     .from("narratives")
     .select("*")
@@ -556,7 +565,7 @@ export type NarrativeContext = {
 export async function getNarrativeContext(
   narrativeId: string,
 ): Promise<NarrativeContext | undefined> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data: n, error } = await sb
     .from("narratives")
     .select("*")
@@ -590,7 +599,7 @@ export async function saveDraftEdits(
   narrativeId: string,
   paragraphs: string[],
 ): Promise<void> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data: n, error } = await sb
     .from("narratives")
     .select("*")
@@ -643,7 +652,9 @@ export async function saveDraftEdits(
 }
 
 export async function markReviewed(narrativeId: string): Promise<void> {
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("narratives")
     .update({ status: "reviewed", reviewed_at: nowIso() })
     .eq("id", narrativeId)
@@ -654,7 +665,9 @@ export async function markReviewed(narrativeId: string): Promise<void> {
 /** Unreview: reviewed → drafted, reopening the edit (and voice-capture)
  *  window. Sent narratives are immutable — the client received them. */
 export async function unreviewNarrative(narrativeId: string): Promise<void> {
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("narratives")
     .update({ status: "drafted", reviewed_at: null })
     .eq("id", narrativeId)
@@ -666,7 +679,7 @@ export async function unreviewNarrative(narrativeId: string): Promise<void> {
  *  already has a timeline entry (all seeded ones do), only its date refreshes;
  *  otherwise a new pinned entry is inserted. */
 export async function sendNarrative(narrativeId: string): Promise<void> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data: n, error } = await sb
     .from("narratives")
     .select("*")
@@ -717,7 +730,9 @@ export async function sendNarrative(narrativeId: string): Promise<void> {
 export async function getThreadsForClient(
   clientId: string,
 ): Promise<AnswerThread[]> {
-  const { data, error } = await getSupabase()
+  const { data, error } = await (
+    await getSupabase()
+  )
     .from("answer_threads")
     .select("*")
     .eq("client_id", clientId)
@@ -730,7 +745,7 @@ export async function getThreadsForClient(
 export async function getLatestSnapshot(
   clientId: string,
 ): Promise<EvidenceSnapshot | undefined> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data, error } = await sb
     .from("evidence_snapshots")
     .select("id")
@@ -752,16 +767,20 @@ async function pinAnswerToTimeline(
   answer: Answer,
 ): Promise<void> {
   if (!answer.grounded) return;
-  const { error } = await getSupabase().from("timeline_entries").insert({
-    id: crypto.randomUUID(),
-    client_id: clientId,
-    type: "answer",
-    date: nowIso().slice(0, 10),
-    summary: `Answered: "${question.length > 80 ? `${question.slice(0, 77)}…` : question}"`,
-    body: `Q: "${question}" — A: ${answer.text}`,
-    snapshot_id: answer.evidenceRefs[0]?.snapshotId ?? null,
-    ref_id: threadId,
-  });
+  const { error } = await (
+    await getSupabase()
+  )
+    .from("timeline_entries")
+    .insert({
+      id: crypto.randomUUID(),
+      client_id: clientId,
+      type: "answer",
+      date: nowIso().slice(0, 10),
+      summary: `Answered: "${question.length > 80 ? `${question.slice(0, 77)}…` : question}"`,
+      body: `Q: "${question}" — A: ${answer.text}`,
+      snapshot_id: answer.evidenceRefs[0]?.snapshotId ?? null,
+      ref_id: threadId,
+    });
   throwIf(error);
 }
 
@@ -772,7 +791,7 @@ export async function askQuestion(
   answer: Answer,
 ): Promise<void> {
   const id = crypto.randomUUID();
-  const { error } = await getSupabase().from("answer_threads").insert({
+  const { error } = await (await getSupabase()).from("answer_threads").insert({
     id,
     client_id: clientId,
     question,
@@ -788,7 +807,7 @@ export async function answerThread(
   threadId: string,
   answer: Answer,
 ): Promise<void> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data: t, error } = await sb
     .from("answer_threads")
     .select("*")
@@ -820,7 +839,8 @@ const DAILY_METRIC_COLUMNS = [
 function mapDailyRow(r: any): DailyRow {
   const metrics: Record<string, number | undefined> = {};
   for (const col of DAILY_METRIC_COLUMNS) {
-    metrics[col] = r[col] === null || r[col] === undefined ? undefined : num(r[col]);
+    metrics[col] =
+      r[col] === null || r[col] === undefined ? undefined : num(r[col]);
   }
   return DailyRowSchema.parse({
     id: r.id,
@@ -850,7 +870,7 @@ export async function upsertStagedRow(input: {
   metrics: DailyMetrics;
   unavailable: Record<string, string>;
 }): Promise<void> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data: found, error: findError } = await sb
     .from("daily_rows")
     .select("id, status")
@@ -884,7 +904,7 @@ export type DailyRowWithClient = { row: DailyRow; client: ClientProfile };
 
 /** The morning queue: the most recent compiled day per client. */
 export async function getLatestDailyRows(): Promise<DailyRowWithClient[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const clients = await getClients();
   const { data, error } = await sb
     .from("daily_rows")
@@ -910,7 +930,9 @@ export async function getDailyRowsForClient(
   clientId: string,
   windowDays: number,
 ): Promise<DailyRow[]> {
-  const { data, error } = await getSupabase()
+  const { data, error } = await (
+    await getSupabase()
+  )
     .from("daily_rows")
     .select("*")
     .eq("client_id", clientId)
@@ -937,7 +959,9 @@ export async function confirmDailyRow(input: {
         DAILY_METRIC_COLUMNS.map((c) => [c, input.metrics?.[c] ?? null]),
       )
     : {};
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("daily_rows")
     .update({
       ...metricPatch,
@@ -969,7 +993,7 @@ export async function resolveStaleFlags(input: {
    *  this list no longer holds and is retracted. */
   activeKeys: string[];
 }): Promise<number> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data, error } = await sb
     .from("flags")
     .select("id, dedupe_key")
@@ -1015,7 +1039,7 @@ export async function raiseFlags(
   }[],
 ): Promise<number> {
   if (detected.length === 0) return 0;
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const keys = detected.map((d) => d.dedupeKey);
   const { data: existing, error } = await sb
     .from("flags")
@@ -1109,7 +1133,7 @@ const dateOnly = (iso: string) => iso.slice(0, 10);
  *  not a client artifact (consistent with Timeline pinning). Volume is small;
  *  filtering/search happen client-side over this list. */
 export async function getLibraryArtifacts(): Promise<LibraryArtifact[]> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const [clients, narratives, claims, threads, briefs, headlines] =
     await Promise.all([
       sb.from("clients").select("id, name"),
@@ -1222,7 +1246,7 @@ export type LoomBriefContext = {
 export async function getLoomBriefContext(
   narrativeId: string,
 ): Promise<LoomBriefContext | undefined> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const { data: b, error } = await sb
     .from("loom_briefs")
     .select("*")
@@ -1247,7 +1271,9 @@ export async function getLoomBriefContext(
 /** Narrative ids that have a Loom brief, for this client — drives the
  *  secondary artifact link on the Narratives tab. */
 export async function getLoomNarrativeIds(clientId: string): Promise<string[]> {
-  const { data, error } = await getSupabase()
+  const { data, error } = await (
+    await getSupabase()
+  )
     .from("loom_briefs")
     .select("narrative_id")
     .eq("client_id", clientId);
@@ -1263,7 +1289,9 @@ export async function updateLoomHeadline(
 ): Promise<void> {
   const trimmed = text.trim();
   if (!trimmed) throw new Error("Headline text is required.");
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("loom_headlines")
     .update({ text: trimmed })
     .eq("id", id);
@@ -1280,7 +1308,9 @@ export async function updateLoomLine(
   const trimmed = text.trim();
   if (!trimmed) throw new Error("The line is required.");
   const patch = field === "risk" ? { risk: trimmed } : { win: trimmed };
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("loom_briefs")
     .update(patch)
     .eq("id", briefId);
@@ -1293,9 +1323,15 @@ export async function updateKpi(
   id: string,
   patch: { label: string; target: number; polarity: Kpi["polarity"] },
 ): Promise<void> {
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("kpis")
-    .update({ label: patch.label, target: patch.target, polarity: patch.polarity })
+    .update({
+      label: patch.label,
+      target: patch.target,
+      polarity: patch.polarity,
+    })
     .eq("id", id);
   throwIf(error);
 }
@@ -1308,7 +1344,7 @@ export async function addKpi(kpi: {
   polarity: Kpi["polarity"];
   format: Kpi["format"];
 }): Promise<void> {
-  const { error } = await getSupabase().from("kpis").insert({
+  const { error } = await (await getSupabase()).from("kpis").insert({
     id: crypto.randomUUID(),
     client_id: kpi.clientId,
     label: kpi.label,
@@ -1321,7 +1357,12 @@ export async function addKpi(kpi: {
 }
 
 export async function deleteKpi(id: string): Promise<void> {
-  const { error } = await getSupabase().from("kpis").delete().eq("id", id);
+  const { error } = await (
+    await getSupabase()
+  )
+    .from("kpis")
+    .delete()
+    .eq("id", id);
   throwIf(error);
 }
 
@@ -1332,7 +1373,7 @@ export async function saveSensitivity(s: {
   type: Sensitivity["type"];
   text: string;
 }): Promise<void> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   if (s.id) {
     const { error } = await sb
       .from("sensitivities")
@@ -1351,7 +1392,9 @@ export async function saveSensitivity(s: {
 }
 
 export async function deleteSensitivity(id: string): Promise<void> {
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("sensitivities")
     .delete()
     .eq("id", id);
@@ -1365,7 +1408,7 @@ export async function updateComms(
     channel: "whatsapp" | "email";
   },
 ): Promise<void> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   // Merge into the cadence jsonb rather than replacing it (keeps secondary/note).
   const { data, error } = await sb
     .from("clients")
@@ -1373,7 +1416,10 @@ export async function updateComms(
     .eq("id", clientId)
     .single();
   throwIf(error);
-  const cadence = { ...(data!.cadence as object), primary: patch.cadencePrimary };
+  const cadence = {
+    ...(data!.cadence as object),
+    primary: patch.cadencePrimary,
+  };
   const { error: updateError } = await sb
     .from("clients")
     .update({ cadence, channel: patch.channel })
@@ -1388,7 +1434,7 @@ export async function saveStakeholder(s: {
   role: string;
   gets: Stakeholder["gets"];
 }): Promise<void> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   if (s.id) {
     const { error } = await sb
       .from("stakeholders")
@@ -1408,7 +1454,9 @@ export async function saveStakeholder(s: {
 }
 
 export async function deleteStakeholder(id: string): Promise<void> {
-  const { error } = await getSupabase()
+  const { error } = await (
+    await getSupabase()
+  )
     .from("stakeholders")
     .delete()
     .eq("id", id);

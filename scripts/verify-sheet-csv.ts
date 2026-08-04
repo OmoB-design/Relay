@@ -14,6 +14,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { parseTab } from "../lib/ingestion/parse";
+import { runWithServiceRole } from "../lib/supabase";
 import { readFixtureWorkbook } from "../lib/ingestion/read";
 import { parseWorkbook } from "../lib/ingestion/parse";
 import { rebaseTab } from "../lib/demo/rebaseTracker";
@@ -65,7 +66,9 @@ async function main() {
       .map((t) => [t.tabName, t] as const),
   );
 
-  console.log(`\nRound-tripping ${files.length} CSVs · through ${yesterday()}\n`);
+  console.log(
+    `\nRound-tripping ${files.length} CSVs · through ${yesterday()}\n`,
+  );
 
   for (const file of files.sort()) {
     const tabName = path.basename(file, ".csv");
@@ -119,8 +122,10 @@ async function main() {
         `  ${parsed.sourceOfTruth ?? "—"}`,
     );
     for (const p of problems.slice(0, 6)) console.log(`      ${p}`);
-    if (problems.length > 6) console.log(`      … +${problems.length - 6} more`);
-    if (problems.length) fails.push(`${tabName}: ${problems.length} problem(s)`);
+    if (problems.length > 6)
+      console.log(`      … +${problems.length - 6} more`);
+    if (problems.length)
+      fails.push(`${tabName}: ${problems.length} problem(s)`);
   }
 
   // The two deliberate transcription errors must survive the whole round trip.
@@ -147,7 +152,7 @@ async function main() {
   process.exit(fails.length ? 1 : 0);
 }
 
-main().catch((e) => {
+runWithServiceRole(main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

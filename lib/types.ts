@@ -53,7 +53,11 @@ export type Currency = z.infer<typeof CurrencySchema>;
  *  hide 3.58 branded against 0.79 prospecting. Segment is first-class so a
  *  claim can cite the number that actually carries the story. The tracker only
  *  yields `overall`; Google Ads direct fills the rest. */
-export const MetricSegmentSchema = z.enum(["overall", "branded", "non_branded"]);
+export const MetricSegmentSchema = z.enum([
+  "overall",
+  "branded",
+  "non_branded",
+]);
 export type MetricSegment = z.infer<typeof MetricSegmentSchema>;
 
 export const AccountHealthSchema = z.enum(["green", "amber", "red"]);
@@ -152,6 +156,26 @@ export const ClientProfileSchema = ClientSchema.extend({
 });
 export type ClientProfile = z.infer<typeof ClientProfileSchema>;
 
+// --- People -----------------------------------------------------------------
+
+export const UserRoleSchema = z.enum(["admin", "buyer"]);
+export type UserRole = z.infer<typeof UserRoleSchema>;
+
+/** Revoked, never deleted: the audit trail names who confirmed a row and who
+ *  dismissed a flag, so a departed buyer's profile has to outlive their access. */
+export const UserStatusSchema = z.enum(["active", "revoked"]);
+export type UserStatus = z.infer<typeof UserStatusSchema>;
+
+export const ProfileSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string(),
+  /** Empty until the invited buyer sets it. The page header greets this. */
+  name: z.string(),
+  role: UserRoleSchema,
+  status: UserStatusSchema,
+});
+export type Profile = z.infer<typeof ProfileSchema>;
+
 // --- Evidence ---------------------------------------------------------------
 
 /** One metric snapshot — the atom of evidence that backs claims. */
@@ -169,7 +193,9 @@ export const EvidenceItemSchema = z.object({
   deltaPct: z.number().optional(), // signed, e.g. 21, -9
   deltaLabel: z.string(), // display, e.g. "−9% vs $29 target"
   /** Optional polarity override; otherwise resolved from config by metricKey. */
-  polarity: z.enum(["higher_is_better", "lower_is_better", "neutral"]).optional(),
+  polarity: z
+    .enum(["higher_is_better", "lower_is_better", "neutral"])
+    .optional(),
   segment: MetricSegmentSchema.default("overall"),
   /** Why a metric is absent, stated rather than silently omitted — e.g. "This
    *  account does not report new vs. returning customers." */

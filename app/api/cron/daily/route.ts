@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { compileDaily } from "@/lib/daily/compile";
+import { hasServiceRoleKey, runWithServiceRole } from "@/lib/supabase";
 
 /* Nightly compile endpoint. Scheduled for config.daily.pullHour so the digest
    is waiting before the buyer's start time.
@@ -22,8 +23,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
+  // The compile runs with no user, so every RLS policy would deny it. It needs
+  // the service role — and if that key is absent, refusing is the only honest
+  // outcome: a silent failure leaves the morning band showing stale numbers.
+  if (!hasServiceRoleKey()) {
+    return NextResponse.json(
+      { error: "SUPABASE_SERVICE_ROLE_KEY is not set; refusing to run." },
+      { status: 503 },
+    );
+  }
+
   try {
-    const result = await compileDaily();
+    const result = await runWithServiceRole(() => compileDaily());
     return NextResponse.json({
       ok: true,
       source: result.source,
