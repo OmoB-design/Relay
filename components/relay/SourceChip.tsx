@@ -27,7 +27,7 @@ export function SourceChip({
   sourceOfTruth?: DailyRow["sourceOfTruth"];
 }) {
   return (
-    <span className="inline-flex items-center justify-center gap-1 rounded-full border-fig-08 border-border bg-surface-foreground-01 px-1.5 py-1">
+    <span className="inline-flex items-center justify-center gap-1 rounded-full border-fig border-border bg-surface-foreground-01 px-1.5 py-1">
       <span className="font-geist text-fig-caption-2 text-heading-05">
         {source}
       </span>

@@ -233,9 +233,6 @@
 @utility shadow-card {
   box-shadow: 0 1.5px 2px 0 rgb(227 227 227 / 0.1);
 }
-@utility shadow-card-inner {
-  box-shadow: 0 0 9.3px 0 rgb(243 243 243 / 0.25);
-}
 @utility shadow-control {
   box-shadow: 0 0 3px 0 rgb(186 186 186 / 0.15);
 }
@@ -262,23 +259,15 @@
 @utility field-invalid {
   box-shadow: 0 0 1.5px 1px var(--color-red-200);
 }
-/* Figma draws sub-pixel borders; rounded to the nearest useful value. */
+/* ONE border weight for the whole redesign. Figma's nodes carry 1px / 0.8 /
+   0.7 / 0.6 / 0.4 at different nesting depths, but concentric shells at the same
+   radius stack into visible banding, so they resolve to a single 0.7px hairline. */
 @utility border-fig {
-  border-width: 0.6px;
-}
-/* The 0.5px rule under a card's header strip. */
-@utility divider-b {
-  border-bottom-width: 0.5px;
-}
-/* The flag card nests three shells, each with its own hairline: 1px / 0.8 / 0.7. */
-@utility border-fig-08 {
-  border-width: 0.8px;
-}
-@utility border-fig-07 {
   border-width: 0.7px;
 }
-@utility border-fig-thin {
-  border-width: 0.4px;
+/* The rule under a card's header strip — same weight, one edge. */
+@utility divider-b {
+  border-bottom-width: 0.7px;
 }
 
 /* Base layer — the editorial desk canvas. */

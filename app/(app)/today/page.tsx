@@ -144,7 +144,7 @@ export default async function TodayPage({
                  absence of urgency is itself information. */}
           {waiting.length > 0 && (
             <Section title={t.waitingTitle}>
-              <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-primary">
+              <ul className="divide-y divide-border overflow-hidden rounded-lg border-fig border-border bg-surface-primary">
                 {waiting.map(({ thread, clientName }) => (
                   <WaitingRow
                     key={thread.id}
@@ -171,7 +171,7 @@ export default async function TodayPage({
             {due.length === 0 ? (
               <EmptyState title={t.dueEmpty}>{t.dueEmptyBody}</EmptyState>
             ) : (
-              <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-primary">
+              <ul className="divide-y divide-border overflow-hidden rounded-lg border-fig border-border bg-surface-primary">
                 {due.map(({ narrative, client }) => (
                   <DueRow
                     key={narrative.id}
