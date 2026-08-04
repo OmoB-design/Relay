@@ -13,9 +13,42 @@ export const metadata: Metadata = {
 
 const SECTIONS: { href: string; label: string; hint: string }[] = [
   { href: "/design", label: "Index", hint: "Start here" },
-  { href: "/design/tokens", label: "Tokens", hint: "Colour, type, radius, motion" },
-  { href: "/design/components", label: "Components", hint: "Relay + shadcn primitives" },
-  { href: "/design/states/today", label: "Today states", hint: "Every state, one frame each" },
+  {
+    href: "/design/tokens",
+    label: "Tokens",
+    hint: "Colour, type, radius, motion",
+  },
+  {
+    href: "/design/components",
+    label: "Components",
+    hint: "Relay + shadcn primitives",
+  },
+  {
+    href: "/design/states/today",
+    label: "Today",
+    hint: "28 frames, live specimens",
+  },
+  {
+    href: "/design/states/client",
+    label: "Client",
+    hint: "Workspace — 4 tabs",
+  },
+  {
+    href: "/design/states/narrative",
+    label: "Narrative",
+    hint: "The evidence stitch",
+  },
+  { href: "/design/states/loom", label: "Loom", hint: "Recording prep" },
+  {
+    href: "/design/states/answer-desk",
+    label: "Answer Desk",
+    hint: "Grounded vs honest miss",
+  },
+  {
+    href: "/design/states/library",
+    label: "Library",
+    hint: "Everything produced",
+  },
 ];
 
 export default function DesignLayout({
@@ -28,7 +61,10 @@ export default function DesignLayout({
       <div className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
           <span className="font-display text-16 text-ink">Relay</span>
-          <nav aria-label="Design catalogue" className="flex flex-wrap gap-x-4 gap-y-1">
+          <nav
+            aria-label="Design catalogue"
+            className="flex flex-wrap gap-x-4 gap-y-1"
+          >
             {SECTIONS.map((s) => (
               <Link
                 key={s.href}

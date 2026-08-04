@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { StatusStepper } from "@/components/relay/StatusStepper";
+import { StatusTimeline } from "@/components/relay/StatusMark";
 import { SensitivityChip } from "@/components/relay/SensitivityChip";
 import { EvidenceCard } from "@/components/relay/EvidenceCard";
 import { ClaimSpan } from "@/components/relay/ClaimSpan";
@@ -290,7 +290,7 @@ export function NarrativeSplitView({ context }: { context: NarrativeContext }) {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <StatusStepper status={narrative.status} compact />
+            <StatusTimeline narrative={narrative} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" variant="ghost" aria-label="More actions">

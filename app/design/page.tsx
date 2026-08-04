@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CatalogueHeader, Slug } from "@/app/design/_ui";
+import { SCREENS, stateCount } from "@/lib/design/screens";
 
 /* The catalogue index. Explains the handshake so the three pages below are
    usable without me in the room. */
@@ -33,6 +34,9 @@ const PAGES: {
     use: "One Figma frame per slug. A design covering only the populated state will break the first late morning.",
   },
 ];
+
+/** The other five screens, driven by lib/design/screens.ts. */
+const SCREEN_TOTAL = SCREENS.reduce((n, s) => n + stateCount(s), 0);
 
 export default function DesignIndexPage() {
   return (
@@ -95,7 +99,9 @@ export default function DesignIndexPage() {
             rewording is a config edit, not a component hunt.
           </p>
           <p className="max-w-column">
-            <span className="text-ink">Needs a decision before it changes:</span>{" "}
+            <span className="text-ink">
+              Needs a decision before it changes:
+            </span>{" "}
             the three reserved colour roles on the Tokens page. Colour carries
             meaning in Relay — the dotted claim underline reads as a signal only
             because verdigris means one thing. If a redesign introduces a new
@@ -104,14 +110,40 @@ export default function DesignIndexPage() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-6">
-        <h2 className="font-display text-22 text-ink">Still to catalogue</h2>
+      <section className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-22 text-ink">
+            The other five screens
+          </h2>
+          <span className="font-ui text-12 text-ink-soft">
+            {SCREEN_TOTAL} frames · {28 + SCREEN_TOTAL} across the whole app
+          </span>
+        </div>
         <p className="max-w-column font-ui text-14 text-ink-soft">
-          Today is done. The other five screens need the same treatment before
-          they are safe to redesign — client workspace, narrative split view,
-          Loom brief, Answer Desk, and Library. Each is a smaller matrix than
-          Today.
+          Each is a state matrix rather than live specimens: these are
+          screen-level compositions, and nearly every state they can be in is
+          internal — a selected claim, an open editor, a chosen filter. Every
+          state names its condition and how to reach it on the real route.
         </p>
+        <div className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line">
+          {SCREENS.map((sc) => (
+            <Link
+              key={sc.key}
+              href={`/design/states/${sc.key}`}
+              className="flex flex-col gap-1 px-4 py-3 hover:bg-paper"
+            >
+              <span className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="font-ui text-14 text-ink">{sc.title}</span>
+                <span className="font-ui text-12 text-ink-soft">
+                  {stateCount(sc)} frames
+                </span>
+              </span>
+              <span className="max-w-column font-ui text-13 text-ink-soft">
+                {sc.blurb}
+              </span>
+            </Link>
+          ))}
+        </div>
       </section>
     </>
   );

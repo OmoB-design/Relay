@@ -3,7 +3,7 @@ import { Bell, Copy, Filter, MoreHorizontal } from "lucide-react";
 import { CatalogueHeader, Group, Slug, Spec } from "@/app/design/_ui";
 import { config } from "@/lib/config";
 import { clientProfiles, snapshots, timeline } from "@/lib/seed";
-import { specClients, specFlags, specNarratives } from "@/lib/design/specimens";
+import { specClients, specFlags } from "@/lib/design/specimens";
 import type { Answer, LoomHeadline } from "@/lib/types";
 
 import { AnswerCard } from "@/components/relay/AnswerCard";
@@ -16,7 +16,10 @@ import { EvidenceCard } from "@/components/relay/EvidenceCard";
 import { FlagCard } from "@/components/relay/FlagCard";
 import { HealthDot } from "@/components/relay/HealthDot";
 import { KpiList } from "@/components/relay/KpiList";
-import { ColumnSkeleton, ListSkeleton } from "@/components/relay/LoadingSkeletons";
+import {
+  ColumnSkeleton,
+  ListSkeleton,
+} from "@/components/relay/LoadingSkeletons";
 import { LoomHeadlineCard } from "@/components/relay/LoomHeadlineCard";
 import { SensitivityChip } from "@/components/relay/SensitivityChip";
 import { SensitivityEditor } from "@/components/relay/SensitivityEditor";
@@ -24,6 +27,8 @@ import { SnapshotButton } from "@/components/relay/SnapshotButton";
 import { Sparkline } from "@/components/relay/Sparkline";
 import { StakeholderList } from "@/components/relay/StakeholderList";
 import { StatusStepper } from "@/components/relay/StatusStepper";
+import { StatusTimeline, StatusWord } from "@/components/relay/StatusMark";
+import { specNarratives } from "@/lib/design/specimens";
 import { TimelineFeed } from "@/components/relay/TimelineFeed";
 import { TokenSelect } from "@/components/relay/TokenSelect";
 import { WaitingRow } from "@/components/relay/WaitingRow";
@@ -59,7 +64,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 /* ============================================================================
    Component catalogue — every piece the app is assembled from.
@@ -298,9 +307,45 @@ export default function ComponentsPage() {
         blurb="Small, high-frequency indicators. They appear on nearly every screen, so their weight sets the tone of the whole app."
       >
         <Spec
+          id="StatusWord"
+          title="StatusWord — the list-row form (RECOMMENDED)"
+          when="Replaces the stepper in every list row. The row's button already says what to do next, so a three-node diagram beside it repeats itself once per row. Colour follows the palette's roles: grey nothing-yet, blue at-the-send-step, green done."
+        >
+          <div className="flex flex-wrap items-center gap-6">
+            {(["drafted", "reviewed", "sent"] as const).map((st) => (
+              <span key={st} className="flex flex-col gap-2">
+                <Slug id={`StatusWord/${st}`} />
+                <StatusWord status={st} />
+              </span>
+            ))}
+          </div>
+        </Spec>
+
+        <Spec
+          id="StatusTimeline"
+          title="StatusTimeline — the narrative-page form (RECOMMENDED)"
+          when="Strictly more than the stepper carried: it says WHEN, not just whether, and a missing timestamp is itself the 'not yet'. It also survives the lifecycle growing — Back to draft means a narrative can go reviewed → drafted → reviewed, which three fixed nodes cannot depict."
+        >
+          <div className="flex flex-col gap-4">
+            {(
+              [
+                ["drafted", specNarratives.drafted],
+                ["reviewed", specNarratives.reviewed],
+                ["sent", specNarratives.sent],
+              ] as const
+            ).map(([label, n]) => (
+              <div key={label} className="flex flex-col gap-2">
+                <Slug id={`StatusTimeline/${label}`} />
+                <StatusTimeline narrative={n} />
+              </div>
+            ))}
+          </div>
+        </Spec>
+
+        <Spec
           id="StatusStepper"
-          title="StatusStepper — 3 statuses × 2 densities"
-          when="Where a draft sits in drafted → reviewed → sent. The compact form is for list rows."
+          title="StatusStepper — the outgoing form, for comparison"
+          when="Still built, no longer used anywhere. Kept here only so the two can be compared before the designer settles it. Delete once that call is made."
         >
           <div className="flex flex-col gap-6">
             {(["drafted", "reviewed", "sent"] as const).map((s) => (
@@ -365,9 +410,21 @@ export default function ComponentsPage() {
           onPaper
         >
           <div className="flex flex-col gap-4">
-            <FlagCard flag={specFlags.withDraft} clientName="Birkenstock" clientLogo={config.clientLogos.Birkenstock} />
-            <FlagCard flag={specFlags.dismissed} clientName="Switchup" clientLogo={config.clientLogos.Switchup} />
-            <FlagCard flag={specFlags.resolved} clientName="Northbrook" clientLogo={config.clientLogos.Northbrook} />
+            <FlagCard
+              flag={specFlags.withDraft}
+              clientName="Birkenstock"
+              clientLogo={config.clientLogos.Birkenstock}
+            />
+            <FlagCard
+              flag={specFlags.dismissed}
+              clientName="Switchup"
+              clientLogo={config.clientLogos.Switchup}
+            />
+            <FlagCard
+              flag={specFlags.resolved}
+              clientName="Northbrook"
+              clientLogo={config.clientLogos.Northbrook}
+            />
           </div>
         </Spec>
 
@@ -663,7 +720,14 @@ export default function ComponentsPage() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center gap-3">
               {(
-                ["default", "secondary", "outline", "ghost", "destructive", "link"] as const
+                [
+                  "default",
+                  "secondary",
+                  "outline",
+                  "ghost",
+                  "destructive",
+                  "link",
+                ] as const
               ).map((v) => (
                 <Button key={v} variant={v}>
                   {v}
@@ -704,7 +768,14 @@ export default function ComponentsPage() {
         >
           <div className="flex flex-wrap items-center gap-2">
             {(
-              ["default", "secondary", "outline", "ghost", "destructive", "link"] as const
+              [
+                "default",
+                "secondary",
+                "outline",
+                "ghost",
+                "destructive",
+                "link",
+              ] as const
             ).map((v) => (
               <Badge key={v} variant={v}>
                 {v}
@@ -720,7 +791,11 @@ export default function ComponentsPage() {
         >
           <div className="flex max-w-column flex-col gap-3">
             <Input placeholder="Metric label" aria-label="Metric label" />
-            <Input defaultValue="26.40" inputMode="decimal" aria-label="Value" />
+            <Input
+              defaultValue="26.40"
+              inputMode="decimal"
+              aria-label="Value"
+            />
             <Input
               defaultValue="not a number"
               aria-invalid
@@ -826,7 +901,11 @@ export default function ComponentsPage() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon-sm" aria-label="Notifications">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Notifications"
+                >
                   <Bell />
                 </Button>
               </TooltipTrigger>

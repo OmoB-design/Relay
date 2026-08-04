@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { config, formatCadenceLine } from "@/lib/config";
 import type { ClientProfile, Narrative } from "@/lib/types";
-import { StatusStepper } from "@/components/relay/StatusStepper";
+import { StatusWord } from "@/components/relay/StatusMark";
 import { Button } from "@/components/ui/button";
 
 /* One row of Today's "Due this week": who, what cadence, which week, where it
@@ -38,7 +38,7 @@ export function DueRow({
         </span>
       </span>
       <span className="flex items-center gap-3">
-        <StatusStepper status={narrative.status} compact />
+        <StatusWord status={narrative.status} />
         {/* A sent narrative is done — its action drops to secondary weight. */}
         <Button
           asChild

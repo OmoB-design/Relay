@@ -133,6 +133,12 @@ const ConfigSchema = z.object({
       reviewed: z.string(),
       sent: z.string(),
     }),
+    /** How an un-reached stage reads on the narrative timeline. The absence of a
+     *  timestamp is the information; this names it. */
+    statusPending: z.object({
+      reviewed: z.string(),
+      sent: z.string(),
+    }),
     actionByStatus: z.object({
       drafted: z.string(),
       reviewed: z.string(),
@@ -376,6 +382,7 @@ export const config: Config = ConfigSchema.parse({
 
   copy: {
     status: { drafted: "Drafted", reviewed: "Reviewed", sent: "Sent" },
+    statusPending: { reviewed: "Not yet reviewed", sent: "Not yet sent" },
     actionByStatus: {
       drafted: "Review draft",
       reviewed: "Send",

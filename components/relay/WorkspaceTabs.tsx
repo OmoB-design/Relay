@@ -19,7 +19,7 @@ import { SensitivityEditor } from "@/components/relay/SensitivityEditor";
 import { CommsControls } from "@/components/relay/CommsControls";
 import { StakeholderList } from "@/components/relay/StakeholderList";
 import { TimelineFeed } from "@/components/relay/TimelineFeed";
-import { StatusStepper } from "@/components/relay/StatusStepper";
+import { StatusWord } from "@/components/relay/StatusMark";
 import { NumbersTab } from "@/components/relay/NumbersTab";
 
 /* The workspace body: Profile / Timeline / Narratives tabs (design.md §4.2).
@@ -164,7 +164,7 @@ export function WorkspaceTabs({
                   </span>
                 </span>
                 <span className="flex items-center gap-3">
-                  <StatusStepper status={n.status} compact />
+                  <StatusWord status={n.status} />
                   <Link
                     href={`/clients/${profile.id}/narratives/${n.id}`}
                     aria-label={`Open ${n.week.label}`}
