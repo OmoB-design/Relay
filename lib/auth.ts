@@ -16,8 +16,12 @@ import { ProfileSchema, type Profile } from "@/lib/types";
 
    THE BOOTSTRAP. Invite-only needs an admin, and a fresh database has none. The
    `handle_new_user` trigger makes the FIRST account an admin (see
-   supabase/migrations/0008_auth_and_rls.sql), so the agency owner signs up once
+   supabase/migrations/0008_auth.sql), so the agency owner signs up once
    and everyone after is invited.
+
+   THE RLS PREDICATES LIVE IN A PRIVATE SCHEMA. PostgREST exposes every function
+   in `public` as a REST endpoint, so private.can_access_client() etc. are out of
+   reach while still callable from policies — see 0010_harden_definer_functions.
 
    REVOKE, NEVER DELETE. Access is withdrawn with status = 'revoked' and the
    profile row survives, because the audit trail names it — who confirmed which

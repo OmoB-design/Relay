@@ -41,24 +41,33 @@ async function main() {
     process.exit(1);
   }
 
-  // Deliberately NOT the service client — this script reports on whether the key
-  // exists, so it cannot depend on it. Steps 1–3 use the anon key, which is the
-  // honest vantage point anyway: it is what a browser has.
-  const sb = createClient(url, anon, {
+  /* TWO VANTAGE POINTS, and using the wrong one gives the wrong answer.
+
+     `db` inspects DATABASE STATE — do the tables exist, is there an admin. Once
+     RLS is on, an anonymous client is correctly refused those reads, so asking
+     anonymously reports "no admin" for a database that has one. It uses the
+     service key when present and falls back to anon before RLS exists.
+
+     `browser` is the anon key with no session — exactly what ships in the client
+     bundle. It is the only honest way to ask whether RLS is actually closed. */
+  const db = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY || anon, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const browser = createClient(url, anon, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
   console.log(
     "\n── Step 1 · tables (0008_auth.sql) ───────────────────────────",
   );
-  const profilesTable = await sb.from("profiles").select("id").limit(1);
+  const profilesTable = await db.from("profiles").select("id").limit(1);
   const tablesExist = !profilesTable.error;
   line(
     "profiles exists",
     tablesExist,
     tablesExist ? "" : profilesTable.error!.message,
   );
-  const assignTable = await sb
+  const assignTable = await db
     .from("client_assignments")
     .select("client_id")
     .limit(1);
@@ -71,7 +80,7 @@ async function main() {
   let admins = 0;
   let total = 0;
   if (tablesExist) {
-    const all = await sb.from("profiles").select("id, email, role, status");
+    const all = await db.from("profiles").select("id, email, role, status");
     total = all.data?.length ?? 0;
     admins = (all.data ?? []).filter(
       (p) => p.role === "admin" && p.status === "active",
@@ -97,10 +106,7 @@ async function main() {
   );
   // The honest test is behavioural, not a catalogue lookup: can an ANONYMOUS
   // client read client rows? If it can, RLS is not protecting anything.
-  const anonClient = createClient(url, anon, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const leak = await anonClient.from("clients").select("id, name").limit(5);
+  const leak = await browser.from("clients").select("id, name").limit(5);
   const leaked = (leak.data ?? []).length;
   const rlsOn = leaked === 0;
   line(
@@ -119,12 +125,7 @@ async function main() {
     "\n── Step 4 · service role still works ─────────────────────────",
   );
   if (service) {
-    const svcClient = createClient(
-      url,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    );
-    const svc = await svcClient.from("clients").select("id").limit(1);
+    const svc = await db.from("clients").select("id").limit(1);
     line(
       "compile + scripts can still read",
       !svc.error && (svc.data?.length ?? 0) > 0,
