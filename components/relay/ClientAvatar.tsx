@@ -18,9 +18,9 @@ import { cn } from "@/lib/utils";
    component needs either way, since no agency has a logo for every client. */
 
 const OUTER =
-  "flex size-avatar shrink-0 items-center justify-center rounded-7 border-fig-thin border-border bg-panel p-0.5 shadow-control-sm";
+  "flex size-avatar shrink-0 items-center justify-center rounded-7 border-fig-thin border-border bg-panel p-0.5 shadow-avatar";
 const WELL =
-  "flex h-avatar-well min-w-0 flex-1 items-center justify-center rounded-5 border-fig-thin border-border bg-surface-primary shadow-control-sm";
+  "flex h-avatar-well min-w-0 flex-1 items-center justify-center rounded-5 border-fig-thin border-border bg-surface-primary shadow-avatar-well";
 
 /** Two letters at most: "Northbrook" → N, "Acme Beverage Co" → AB. */
 export function initialsFor(name: string): string {

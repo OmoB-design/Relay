@@ -81,7 +81,8 @@
   --spacing-avatar-glyph: 21px;
   --radius-5: 5px;
   --radius-7: 7px;
-  --spacing-dot: 5px; /* the separator dot between category and delta */
+  --spacing-dot: 5px; /* band header + flag category separator */
+  --spacing-dot-sm: 3px; /* inside the source chip and the summary line */
 
   /* Numbers/N — Figma's single scale for spacing AND radius. */
   --radius-4: 4px;
@@ -95,8 +96,9 @@
   /* Type — one family. `geist` sets --font-geist-sans on <body>. */
   --font-geist: var(--font-geist-sans), system-ui, sans-serif;
 
-  /* Figma text styles. Weight 470 for SB resolves the 450/450 collision
-     between Body-MD and Body-SB (the user's call). */
+  /* Figma text styles. All three Body-small variants declare weight 450 in the
+     variables, which collides; the designer's resolution is a monotonic ladder —
+     Regular 450 · Medium 470 · SemiBold 500. */
   --text-fig-caption-2: 0.625rem; /* 10 / 1.2 */
   --text-fig-caption-2--line-height: 1.2;
   --text-fig-caption-1: 0.75rem; /* 12 / 1.4 */
@@ -219,15 +221,11 @@
 @utility fig-w450 {
   font-weight: 450;
 }
-/* Body (Regular) declares 450 in the variable but renders as Regular. */
-@utility fig-body-regular {
-  font-weight: 450;
-}
 @utility fig-medium {
-  font-weight: 500;
+  font-weight: 470;
 }
 @utility fig-sb {
-  font-weight: 470;
+  font-weight: 500;
 }
 
 /* Card elevations, straight from the Figma nodes. Borders still carry most of
@@ -244,11 +242,24 @@
 @utility shadow-control-sm {
   filter: drop-shadow(0 0 1.5px rgb(186 186 186 / 0.15));
 }
-/* The focus ring on an input: 1.5px spread in the accent, or red when invalid. */
-@utility ring-focus {
+/* The metric value box — a fainter lift than a control. */
+@utility shadow-field {
+  filter: drop-shadow(0 0 1.5px rgb(186 186 186 / 0.05));
+}
+/* The client mark's outer tile carries a heavier drop than its well. */
+@utility shadow-avatar {
+  filter: drop-shadow(0 2px 1.5px rgb(171 171 171 / 0.12));
+}
+@utility shadow-avatar-well {
+  filter: drop-shadow(0 0.919px 0.919px rgb(105 105 105 / 0.1));
+}
+/* The 1.5px spread on a focused or invalid field (Figma nodes 305:12049 /
+   300:8699). NOT named ring-* — that is Tailwind's own namespace, which shadowed
+   these and emitted nothing at all. */
+@utility field-focus {
   box-shadow: 0 0 1.5px 1px var(--color-blue-150);
 }
-@utility ring-invalid {
+@utility field-invalid {
   box-shadow: 0 0 1.5px 1px var(--color-red-200);
 }
 /* Figma draws sub-pixel borders; rounded to the nearest useful value. */

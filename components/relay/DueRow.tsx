@@ -28,11 +28,11 @@ export function DueRow({
       <span className="min-w-0">
         <Link
           href={`/clients/${client.id}`}
-          className="font-display text-16 text-ink hover:text-verdigris"
+          className="font-geist text-fig-body text-heading-01 hover:text-blue-500"
         >
           {client.name}
         </Link>
-        <span className="block font-ui text-13 text-ink-soft">
+        <span className="block font-geist text-fig-caption-1 text-heading-06">
           {formatCadenceLine(client.cadence, client.channel)} ·{" "}
           {narrative.week.label}
         </span>

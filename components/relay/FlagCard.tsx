@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
 import type { Flag } from "@/lib/types";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
+import { Dot } from "@/components/relay/SourceChip";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -99,10 +100,7 @@ export function FlagCard({
                       <span className="font-geist text-fig-caption-1 text-yellow-600">
                         {flag.metricLabel}
                       </span>
-                      <span
-                        aria-hidden="true"
-                        className="size-dot shrink-0 rounded-full bg-grey-300"
-                      />
+                      <Dot size="md" />
                       <span className="font-geist text-fig-caption-1 text-heading-06">
                         {flag.deltaLabel}
                       </span>
@@ -136,7 +134,7 @@ export function FlagCard({
                       aria-invalid={!reasonValid}
                       className={cn(
                         "min-h-16 rounded-12 border-red-600 bg-surface-primary px-2 py-2 font-geist text-fig-caption-1 text-heading-02 md:text-fig-caption-1 placeholder:text-caption-1",
-                        !reasonValid && "ring-invalid",
+                        !reasonValid && "field-invalid",
                       )}
                     />
                     {!reasonValid && (

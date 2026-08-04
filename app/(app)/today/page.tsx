@@ -35,7 +35,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-3" aria-label={title}>
-      <h2 className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+      <h2 className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
         {title}
       </h2>
       {children}
@@ -107,17 +107,17 @@ export default async function TodayPage({
   return (
     <div className="mx-auto max-w-column px-6 py-10">
       <header className="mb-8">
-        <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+        <p className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
           {today}
         </p>
         {/* The page's accessible name is "Today"; the greeting is the visible
             expression of it, so the nav label and the heading agree. */}
-        <h1 className="mt-1 font-display text-28 text-ink">
+        <h1 className="mt-1 font-geist text-28 fig-sb text-heading-01">
           <span className="sr-only">Today — </span>
           {t.greeting}
         </h1>
         {isPilotClock && (
-          <p className="mt-2 font-ui text-12 text-flag">
+          <p className="mt-2 font-geist text-fig-caption-2 text-yellow-700">
             Demo clock — pinned to {today}. Unset RELAY_PILOT_NOW for the real
             date.
           </p>
@@ -144,7 +144,7 @@ export default async function TodayPage({
                  absence of urgency is itself information. */}
           {waiting.length > 0 && (
             <Section title={t.waitingTitle}>
-              <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+              <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-primary">
                 {waiting.map(({ thread, clientName }) => (
                   <WaitingRow
                     key={thread.id}
@@ -171,7 +171,7 @@ export default async function TodayPage({
             {due.length === 0 ? (
               <EmptyState title={t.dueEmpty}>{t.dueEmptyBody}</EmptyState>
             ) : (
-              <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+              <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-primary">
                 {due.map(({ narrative, client }) => (
                   <DueRow
                     key={narrative.id}

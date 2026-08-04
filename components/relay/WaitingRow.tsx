@@ -23,17 +23,17 @@ export function WaitingRow({
     <li>
       <Link
         href={`/answer-desk?client=${clientId}`}
-        className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-paper"
+        className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-surface-foreground-01"
       >
         <span className="min-w-0">
-          <span className="block font-display text-16 text-ink">
+          <span className="block font-geist text-fig-body text-heading-01">
             {clientName}
           </span>
-          <span className="block truncate font-ui text-14 text-ink-soft">
+          <span className="block truncate font-geist text-fig-caption-1 text-heading-06">
             {question}
           </span>
         </span>
-        <span className="shrink-0 whitespace-nowrap font-ui text-12 text-ink-soft">
+        <span className="shrink-0 whitespace-nowrap font-geist text-fig-caption-2 text-heading-06">
           {age} ago
         </span>
       </Link>

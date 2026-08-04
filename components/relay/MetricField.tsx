@@ -1,18 +1,22 @@
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 
-/* One labelled metric cell in the digest grid — Figma "Metric Input"
-   (node 305:12045), three variants:
+/* One labelled metric cell — Figma "Metric Input" (node 305:12045).
 
-     Filled   plain text, no chrome    → reading
-     Default  bordered box             → editable, untouched
-     Active   bordered box + blue ring → focused
+   Cell:  flex-col · gap 4 · pb 4 · px 8
+   Label: 10px/1.2 Regular · heading-06 · uppercase as authored
+   Box:   px 8 · py 4 · radius 8 · 0.6px stroke · white · faint drop
+   Value: 12px/1.4 Regular · heading-01
 
-   The frames were inconsistent about which to use when: `staged·open` showed
-   bordered boxes with no currency symbols, `partial·open` plain text with them,
-   `edit·open` bordered boxes with them. The rule agreed with the designer is
-   BORDER MEANS YOU CAN TYPE HERE — plain for reading, bordered for editing —
-   and currency always shows. */
+   THE BOX IS PRESENT WHEN READING, not only when editing. I had it the other way
+   round on an earlier reading of the frames — `partial·open` renders values as
+   plain text while `staged·open` and `edit·open` both box them. Two of three, and
+   both of the frames that show a full row, so the box is the rule.
+
+   An unavailable metric stays plain: a box implies a value belongs there. */
+
+const BOX =
+  "flex items-center rounded-8 border-fig border-border bg-surface-primary px-2 py-1 shadow-field";
 
 export function MetricField({
   label,
@@ -23,7 +27,7 @@ export function MetricField({
   onChange,
 }: {
   label: string;
-  /** Formatted for display. Ignored while editing. */
+  /** Already formatted for display. Ignored while editing. */
   value: string;
   /** Why this metric is missing. Renders "n/a" with the reason on hover. */
   unavailable?: string;
@@ -45,22 +49,25 @@ export function MetricField({
           className={cn(
             // h-auto and md:text-fig-caption-1 override shadcn's h-9 / md:text-sm;
             // Figma derives the height from py-4 plus a 12px/1.4 line.
-            "h-auto rounded-8 border-fig border-border bg-surface-primary px-2 py-1 shadow-none",
-            "font-geist text-fig-caption-1 text-heading-05 md:text-fig-caption-1",
-            "focus-visible:border-blue-500 focus-visible:ring-focus focus-visible:ring-0",
+            BOX,
+            "h-auto w-full font-geist text-fig-caption-1 text-heading-01 md:text-fig-caption-1",
+            "focus-visible:border-blue-500 focus-visible:ring-0 focus-visible:field-focus",
           )}
         />
       ) : unavailable ? (
-        // Absent is stated, never rendered as a stand-in zero.
+        // Absent is stated, never rendered as a stand-in zero — and never boxed,
+        // because a box implies a value belongs in it.
         <span
           title={unavailable}
-          className="rounded-8 py-1 font-geist text-fig-caption-1 text-caption-1"
+          className="py-1 font-geist text-fig-caption-1 text-caption-1"
         >
           n/a
         </span>
       ) : (
-        <span className="rounded-8 py-1 font-geist text-fig-caption-1 text-heading-05">
-          {value}
+        <span className={BOX}>
+          <span className="min-w-0 flex-1 font-geist text-fig-caption-1 text-heading-01">
+            {value}
+          </span>
         </span>
       )}
     </div>

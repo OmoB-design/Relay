@@ -16,6 +16,7 @@ import { config } from "@/lib/config";
 import { formatMetric, metricLabel } from "@/lib/metrics";
 import type { DailyMetrics, DailyRow, ClientProfile } from "@/lib/types";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
+import { Dot, SourceChip } from "@/components/relay/SourceChip";
 import { MetricField } from "@/components/relay/MetricField";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,16 +28,23 @@ import {
 /* The morning band — Figma component set "Digest" (node 309:17116), 20 variants
    across two axes: the row's state (staged · confirmed · edit · partial ·
    not-compiled · absent · stale) and how far it is open (closed · open ·
-   edit numbers · selected · active), plus the band-level mixed / all-confirmed /
-   empty.
+   edit numbers · selected · active), plus band-level mixed / all-confirmed / empty.
 
-   One card per client rather than a divided list, per the frames.
+   MEASURED FROM node 309:17100, not approximated:
+     band      flex-col · gap 16
+     shells    outer 1px › card 0.8px + shadow › inner 0.7px + shadow › p 4
+     panel     #fbfbfb · 0.4px · radius 14 · pt 4 pb 12 · gap 16
+     header    border-b 0.5px · pb 12 · px 8 · gap 8
+     grid      2 rows of 4 · gap-x 16 · gap-y 8
+     note+CTA  px 8 · gap 10 · LEFT-aligned, INSIDE the panel
 
-   THE CONFIRM AFFORDANCE lives in the row header and is present whether the row
-   is collapsed or expanded, so a buyer who opens a row to read it can still
-   accept it without going through the edit form. `Edit numbers` is the footer
-   action, only while open. That resolves an ambiguity in the first frames, where
-   the expanded state had no way to confirm.                                   */
+   That last line is why the open row had dead space beneath it: Edit numbers was
+   in a right-aligned footer band of its own. Figma keeps it in the panel, directly
+   under the delivery note. Only the edit form's Cancel/Confirm pair gets a footer.
+
+   THE CONFIRM AFFORDANCE is in the row header and stays there whether the row is
+   collapsed or expanded, so a buyer who opens a row to read it can accept it
+   without going through the edit form.                                        */
 
 const dc = config.copy.daily;
 
@@ -71,8 +79,12 @@ export type DigestEntry = {
   logo?: string;
 };
 
+/* Three nested shells, each with its own hairline and lift. */
+const SHELL = "rounded-18 border border-border";
 const CARD =
-  "overflow-hidden rounded-18 border-fig border-border bg-surface-primary shadow-card";
+  "overflow-hidden rounded-18 border-fig-08 border-border bg-surface-primary shadow-card";
+const INNER =
+  "overflow-hidden rounded-18 border-fig-07 border-border bg-surface-primary shadow-card-inner";
 const PANEL =
   "flex flex-col overflow-hidden rounded-14 border-fig-thin border-border bg-panel";
 
@@ -104,40 +116,44 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
     const kind = problem?.kind ?? "notCompiled";
     const Icon = kind === "notCompiled" ? Clock : CircleAlert;
     return (
-      <li className={CARD}>
-        <div className="p-1">
-          <div className={cn(PANEL, "gap-2 px-2 py-2")}>
-            <div className="flex items-center gap-2">
-              <ClientAvatar name={client.name} logo={logo} />
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-geist text-fig-body fig-w450 text-heading-01">
-                    {client.name}
+      <li className={SHELL}>
+        <div className={CARD}>
+          <div className={INNER}>
+            <div className="p-1">
+              <div className={cn(PANEL, "gap-4 px-2 pb-3 pt-1")}>
+                <div className="flex items-center gap-2">
+                  <ClientAvatar name={client.name} logo={logo} />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="flex flex-wrap items-center gap-2.5">
+                      <span className="font-geist text-fig-body fig-w450 text-heading-01">
+                        {client.name}
+                      </span>
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full border-fig-08 px-1.5 py-1 font-geist text-fig-caption-2",
+                          kind === "notCompiled"
+                            ? "border-border bg-surface-foreground-01 text-heading-05"
+                            : "border-yellow-100 bg-yellow-100 text-yellow-700",
+                        )}
+                      >
+                        <Icon size={10} aria-hidden="true" />
+                        {PROBLEM_CHIP[kind]}
+                      </span>
+                    </span>
+                    <span className="flex flex-wrap items-center gap-1.5 font-geist text-fig-caption-1 text-heading-06">
+                      <span>{problem?.message}</span>
+                      {/* "Relay hasn't looked" is fixed by re-running; "the row
+                          isn't in the tracker" is fixed in the sheet. Say which. */}
+                      {kind === "absent" && (
+                        <>
+                          <Dot />
+                          <span>{dc.goToTracker}</span>
+                        </>
+                      )}
+                    </span>
                   </span>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-geist text-fig-caption-2",
-                      kind === "notCompiled"
-                        ? "bg-surface-foreground-01 text-heading-06"
-                        : "bg-yellow-100 text-yellow-700",
-                    )}
-                  >
-                    <Icon size={10} aria-hidden="true" />
-                    {PROBLEM_CHIP[kind]}
-                  </span>
-                </span>
-                <span className="font-geist text-fig-caption-1 text-heading-05">
-                  {problem?.message}
-                  {/* "Relay hasn't looked" is fixed by re-running; "the row
-                      isn't in the tracker" is fixed in the sheet. Say which. */}
-                  {kind === "absent" && (
-                    <>
-                      {" · "}
-                      <span className="text-heading-06">{dc.goToTracker}</span>
-                    </>
-                  )}
-                </span>
-              </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -146,10 +162,6 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   }
 
   const confirmed = row.status === "confirmed";
-  const sourceChip =
-    row.source === "Tracker" && row.sourceOfTruth
-      ? `${row.source} · ${row.sourceOfTruth}`
-      : row.source;
 
   function beginEdit() {
     setDraft(
@@ -196,144 +208,164 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   const reasonValid = reason.trim().length > 0;
 
   return (
-    <li className={CARD}>
-      <div className="p-1">
-        <div className={PANEL}>
-          {/* Header — identity, source, the two numbers a buyer scans first,
-              and the one action that advances the row. */}
-          <div
-            className={cn(
-              "flex flex-wrap items-center gap-2 px-2 py-2",
-              open && "divider-b border-border pb-3",
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              aria-expanded={open}
-              aria-label={`${open ? "Hide" : "Show"} all metrics for ${client.name}`}
-              className="flex min-w-0 flex-1 items-center gap-2 text-left"
-            >
-              <ClientAvatar name={client.name} logo={logo} />
-              <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-geist text-fig-body fig-w450 text-heading-01">
-                    {client.name}
-                  </span>
-                  <span className="inline-flex items-center rounded-full border-fig-thin border-border bg-surface-primary px-1.5 py-0.5 font-geist text-fig-caption-2 text-heading-06">
-                    {sourceChip}
-                  </span>
-                  {confirmed && (
-                    <span className="inline-flex items-center rounded-full bg-green-50 px-1.5 py-0.5 font-geist text-fig-caption-2 text-green-500">
-                      {dc.confirmed}
-                    </span>
-                  )}
-                </span>
-                <span className="mt-0.5 block font-geist text-fig-caption-1 text-heading-05">
-                  {metricLabel("spend")} {display("spend", row.metrics.spend)}
-                  {" · "}
-                  {metricLabel("sales")} {display("sales", row.metrics.sales)}
-                  {" · "}
-                  {metricLabel("cpa_cpo")}{" "}
-                  {display("cpa_cpo", row.metrics.cpa_cpo)}
-                </span>
-              </span>
-            </button>
-
-            {!confirmed && !editing ? (
-              <Button
-                size="fig"
-                variant={pending ? "working" : "secondary"}
-                onClick={() => submit(false)}
-                disabled={pending}
+    <li className={SHELL}>
+      <div className={CARD}>
+        <div className={INNER}>
+          <div className="p-1">
+            <div className={cn(PANEL, "gap-4 pb-3 pt-1")}>
+              {/* Header — identity, source, the two numbers a buyer scans first,
+                  and the one action that advances the row. */}
+              <div
+                className={cn(
+                  "flex flex-wrap items-center gap-2 px-2",
+                  open ? "divider-b border-border pb-3" : "pb-1",
+                )}
               >
-                {pending ? dc.working : dc.confirm}
-              </Button>
-            ) : (
-              !editing && (
-                <ChevronRight
-                  size={16}
-                  aria-hidden="true"
-                  className={cn(
-                    "shrink-0 text-caption-1 transition-transform",
-                    open && "rotate-90",
-                  )}
-                />
-              )
-            )}
-          </div>
+                <button
+                  type="button"
+                  onClick={() => setOpen((v) => !v)}
+                  aria-expanded={open}
+                  aria-label={`${open ? "Hide" : "Show"} all metrics for ${client.name}`}
+                  className="flex min-w-0 flex-1 items-center gap-2 rounded-8 text-left outline-offset-4"
+                >
+                  <ClientAvatar name={client.name} logo={logo} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2.5">
+                      <span className="font-geist text-fig-body fig-w450 text-heading-01">
+                        {client.name}
+                      </span>
+                      <SourceChip
+                        source={row.source}
+                        sourceOfTruth={row.sourceOfTruth}
+                      />
+                      {confirmed && (
+                        <span className="inline-flex items-center rounded-full border-fig-08 border-green-50 bg-green-50 px-1.5 py-1 font-geist text-fig-caption-2 text-green-500">
+                          {dc.confirmed}
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-0.5 flex flex-wrap items-center gap-1.5 font-geist text-fig-caption-1 text-heading-06">
+                      <span>
+                        {metricLabel("spend")}{" "}
+                        {display("spend", row.metrics.spend)}
+                      </span>
+                      <Dot />
+                      <span>
+                        {metricLabel("sales")}{" "}
+                        {display("sales", row.metrics.sales)}
+                      </span>
+                      <Dot />
+                      <span>
+                        {metricLabel("cpa_cpo")}{" "}
+                        {display("cpa_cpo", row.metrics.cpa_cpo)}
+                      </span>
+                    </span>
+                  </span>
+                </button>
 
-          {open && (
-            <div className="flex flex-col gap-2 px-2 pb-3 pt-2">
-              <dl className="grid grid-cols-2 gap-x-2 gap-y-1 sm:grid-cols-4">
-                {METRICS.map((m) => (
-                  <div key={m} className="contents">
-                    <MetricField
-                      label={metricLabel(m).toUpperCase()}
-                      value={display(m, row.metrics[m])}
-                      unavailable={row.unavailable[m]}
-                      editing={editing}
-                      draft={draft[m]}
-                      onChange={(next) =>
-                        setDraft((d) => ({ ...d, [m]: next }))
-                      }
+                {!confirmed && !editing ? (
+                  <Button
+                    size="fig"
+                    variant={pending ? "working" : "secondary"}
+                    onClick={() => submit(false)}
+                    disabled={pending}
+                  >
+                    {pending ? dc.working : dc.confirm}
+                  </Button>
+                ) : (
+                  !editing && (
+                    <ChevronRight
+                      size={16}
+                      aria-hidden="true"
+                      className={cn(
+                        "shrink-0 text-caption-1 transition-transform",
+                        open && "rotate-90",
+                      )}
                     />
-                  </div>
-                ))}
-              </dl>
+                  )
+                )}
+              </div>
 
-              {/* Why a metric is missing, said out loud rather than left blank. */}
-              {Object.entries(row.unavailable).length > 0 && !editing && (
-                <p className="px-2 font-geist text-fig-caption-1 text-heading-05">
-                  {Object.values(row.unavailable)[0]}
-                </p>
-              )}
+              {open && (
+                <>
+                  {/* Eight metrics, two rows of four. */}
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+                    {METRICS.map((m) => (
+                      <MetricField
+                        key={m}
+                        label={metricLabel(m).toUpperCase()}
+                        value={display(m, row.metrics[m])}
+                        unavailable={row.unavailable[m]}
+                        editing={editing}
+                        draft={draft[m]}
+                        onChange={(next) =>
+                          setDraft((d) => ({ ...d, [m]: next }))
+                        }
+                      />
+                    ))}
+                  </dl>
 
-              <p className="px-2 font-geist text-fig-caption-1 text-heading-06">
-                {client.dailyToClient ? dc.goesToClient : dc.blockedFromClient}
-              </p>
-
-              {row.edited && row.overrideReason && !editing && (
-                <p className="px-2 font-geist text-fig-caption-1 text-caption-1">
-                  {dc.editedPrefix} {row.overrideReason}
-                </p>
-              )}
-
-              {editing && (
-                <div className="flex flex-col gap-1.5 px-2">
-                  <Textarea
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    placeholder={dc.overridePlaceholder}
-                    aria-label="Reason for changing the numbers"
-                    aria-invalid={!reasonValid}
-                    className={cn(
-                      "min-h-16 rounded-12 bg-surface-primary px-2 py-2 font-geist text-fig-caption-1 text-heading-02 md:text-fig-caption-1 placeholder:text-caption-1",
-                      !reasonValid && "border-red-600 ring-invalid",
+                  {/* Note and its one action, left-aligned inside the panel. */}
+                  <div className="flex flex-col items-start gap-2.5 px-2">
+                    {/* Why a metric is missing, said out loud rather than left blank. */}
+                    {Object.entries(row.unavailable).length > 0 && !editing && (
+                      <p className="font-geist text-fig-caption-2 text-heading-06">
+                        {Object.values(row.unavailable)[0]}
+                      </p>
                     )}
-                  />
-                  {!reasonValid && (
-                    <p className="font-geist text-fig-caption-2 text-red-700">
-                      {dc.overrideRequired}
+
+                    <p className="font-geist text-fig-caption-2 text-heading-06">
+                      {client.dailyToClient
+                        ? dc.goesToClient
+                        : dc.blockedFromClient}
                     </p>
-                  )}
-                  {error && (
-                    <p className="font-geist text-fig-caption-2 text-red-700">
-                      {error}
-                    </p>
-                  )}
-                </div>
+
+                    {row.edited && row.overrideReason && !editing && (
+                      <p className="font-geist text-fig-caption-2 text-caption-1">
+                        {dc.editedPrefix} {row.overrideReason}
+                      </p>
+                    )}
+
+                    {editing ? (
+                      <div className="flex w-full flex-col gap-1.5">
+                        <Textarea
+                          value={reason}
+                          onChange={(e) => setReason(e.target.value)}
+                          placeholder={dc.overridePlaceholder}
+                          aria-label="Reason for changing the numbers"
+                          aria-invalid={!reasonValid}
+                          className={cn(
+                            "min-h-16 rounded-12 bg-surface-primary p-2 font-geist text-fig-caption-1 text-heading-02 placeholder:text-caption-1 md:text-fig-caption-1",
+                            !reasonValid && "border-red-600 field-invalid",
+                          )}
+                        />
+                        {!reasonValid && (
+                          <p className="font-geist text-fig-caption-2 text-red-700">
+                            {dc.overrideRequired}
+                          </p>
+                        )}
+                        {error && (
+                          <p className="font-geist text-fig-caption-2 text-red-700">
+                            {error}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      !confirmed && (
+                        <Button size="fig" onClick={beginEdit}>
+                          {dc.edit}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </>
               )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Footer actions sit outside the panel, as in the frames. */}
-      {open && (
-        <div className="flex items-center justify-end gap-1.5 p-2.5">
-          {editing ? (
-            <>
+          {/* Only the edit form gets a footer band; the read state does not. */}
+          {open && editing && (
+            <div className="flex items-center justify-end gap-1.5 p-2.5">
               <Button
                 size="fig"
                 variant="ghost"
@@ -349,16 +381,10 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
               >
                 {pending ? dc.working : dc.confirm}
               </Button>
-            </>
-          ) : (
-            !confirmed && (
-              <Button size="fig" onClick={beginEdit}>
-                {dc.edit}
-              </Button>
-            )
+            </div>
           )}
         </div>
-      )}
+      </div>
     </li>
   );
 }
@@ -402,15 +428,22 @@ export function DailyDigestBand({ entries }: { entries: DigestEntry[] }) {
   }
 
   return (
-    <section className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-        <h2 className="font-geist text-fig-body fig-w450 text-heading-06">
-          {dc.bandTitle}
-          {date && `, ${format(parseISO(date), "EEE MMM d")}`}
-          {" — "}
-          {entries.length} {entries.length === 1 ? "client" : "clients"}
-          {compiledAt &&
-            ` • ${dc.compiledAt} ${format(parseISO(compiledAt), "HH:mm")}`}
+    <section className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 font-geist text-fig-body fig-medium text-heading-06">
+          <span>
+            {dc.bandTitle}
+            {date && `, ${format(parseISO(date), "EEE MMM d")}`} -{" "}
+            {entries.length} {entries.length === 1 ? "Client" : "Clients"}
+          </span>
+          {compiledAt && (
+            <>
+              <Dot size="md" />
+              <span>
+                {dc.compiledAt} {format(parseISO(compiledAt), "HH:mm")}
+              </span>
+            </>
+          )}
         </h2>
         <Button
           size="fig-compile"
@@ -428,18 +461,18 @@ export function DailyDigestBand({ entries }: { entries: DigestEntry[] }) {
       </div>
 
       {entries.length === 0 ? (
-        <div
-          className={cn(CARD, "flex flex-col items-center gap-2 px-6 py-10")}
-        >
-          <span className="flex size-8 items-center justify-center rounded-8 border-fig border-border">
-            <Inbox size={14} aria-hidden="true" className="text-heading-06" />
-          </span>
-          <p className="font-geist text-fig-body fig-medium text-heading-01">
-            {dc.noRows}
-          </p>
-          <p className="text-center font-geist text-fig-caption-1 text-heading-05">
-            {dc.noRowsBody}
-          </p>
+        <div className={cn(SHELL, "bg-surface-primary shadow-card")}>
+          <div className="flex flex-col items-center gap-2 px-6 py-10">
+            <span className="flex size-8 items-center justify-center rounded-8 border-fig border-border">
+              <Inbox size={14} aria-hidden="true" className="text-heading-06" />
+            </span>
+            <p className="font-geist text-fig-body fig-medium text-heading-01">
+              {dc.noRows}
+            </p>
+            <p className="text-center font-geist text-fig-caption-1 text-heading-05">
+              {dc.noRowsBody}
+            </p>
+          </div>
         </div>
       ) : (
         <>
@@ -449,7 +482,7 @@ export function DailyDigestBand({ entries }: { entries: DigestEntry[] }) {
             ))}
           </ul>
           {allDone && (
-            <p className="px-1 font-geist text-fig-caption-1 text-caption-1">
+            <p className="font-geist text-fig-caption-1 text-caption-1">
               {dc.allConfirmed}
             </p>
           )}
