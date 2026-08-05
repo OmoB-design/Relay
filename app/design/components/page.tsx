@@ -83,6 +83,16 @@ import {
    stray click cannot mutate real client data.
    ========================================================================== */
 
+/* A stand-in for the signed-in buyer. The catalogue renders outside (app), so
+   there is no session to read one from. */
+const NAV_DEMO_PROFILE = {
+  id: "00000000-0000-0000-0000-000000000001",
+  email: "sarah@mail.com",
+  name: "Sarah",
+  role: "admin",
+  status: "active",
+} as const;
+
 const nb = clientProfiles[0]; // Northbrook — the fully-modelled client
 const snapNb = snapshots[0];
 const cpo = snapNb.items.find((i) => i.id === "E3")!; // good delta, has series
@@ -622,12 +632,18 @@ export default function ComponentsPage() {
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Slug id="AppNav/sidebar" />
-              <div className="w-56 rounded-lg border border-line bg-surface px-4 py-6">
-                <p className="mb-6 px-3 font-display text-22 text-ink">Relay</p>
-                <AppNav variant="sidebar" />
+              {/* The frame's own height is the viewport; capped here so the
+                  specimen does not run the length of the catalogue. */}
+              <div className="flex h-96 overflow-hidden rounded-lg border border-line">
+                <AppNav profile={NAV_DEMO_PROFILE} isAdmin />
               </div>
             </div>
             <div className="flex flex-col gap-2">
+              <Slug id="AppNav/collapsed" />
+              <p className="font-ui text-12 text-ink-soft">
+                One component, two widths — 230 and 55. Use the chevron in the
+                specimen; the choice is remembered per browser.
+              </p>
               <Slug id="AppNav/bottom" />
               <p className="font-ui text-12 text-ink-soft">
                 Renders fixed to the viewport bottom below <code>md</code>.

@@ -13,14 +13,18 @@ let collapseFailures = 0;
    proving it live would need a database with nothing in it. */
 function checkCollapsingSections(): void {
   const src = readFileSync("app/(app)/today/page.tsx", "utf8");
+  /* The guard is what matters — `list.length > 0 &&` wrapping the <Section>.
+     Matching the title as a separate step keeps this from breaking every time a
+     prop is added and prettier reflows the tag onto four lines, which is what it
+     did the moment Waiting gained a glyph. */
   const cases: { name: string; guard: RegExp }[] = [
     {
       name: "Waiting on you",
-      guard: /\{waiting\.length > 0 && \(\s*<Section title=\{t\.waitingTitle\}/,
+      guard: /\{waiting\.length > 0 && \(\s*<Section[\s\S]{0,160}?t\.waitingTitle/,
     },
     {
       name: "Flags",
-      guard: /\{flags\.length > 0 && \(\s*<Section title=\{t\.flagsTitle\}/,
+      guard: /\{flags\.length > 0 && \(\s*<Section[\s\S]{0,160}?t\.flagsTitle/,
     },
   ];
   for (const c of cases) {

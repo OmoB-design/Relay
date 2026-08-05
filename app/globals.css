@@ -33,6 +33,15 @@
   --color-surface-primary: #ffffff;
   --color-surface-foreground-01: #f4f4f4;
   --color-surface-stroke: #eaeaea;
+  --color-surface-dashboard: #fcfcfc; /* Surface/Dashboard — row fill inside a card */
+
+  /* Icon — a separate ramp from typography, and it does not track it.
+     NOTE the names read backwards against the frame: Icon-Nav-Active (#424242)
+     is what Figma's node 357:2590 paints the RESTING nav icons, and Icon-System
+     (#212121) the active one. The frame wins over the variable name. */
+  --color-icon-system: #212121; /* the selected nav item */
+  --color-icon-nav-active: #424242; /* every resting nav item */
+  --color-icon-explainer: #777777; /* the collapse chevron */
 
   /* Typography — greys, darkest to lightest */
   --color-heading-01: #000000; /* client names, headlines */
@@ -108,6 +117,10 @@
   /* Button label: Caption 2 - MD is 12/1.2, NOT Caption 1's 12/1.4. */
   --text-fig-button: 0.75rem;
   --text-fig-button--line-height: 1.2;
+  /* Caption 1 - MD: 12/1.2. Same size as Caption 1, tighter leading — the nav
+     label sits on one line, so it does not want Caption 1's 1.4. */
+  --text-fig-caption-1-md: 0.75rem;
+  --text-fig-caption-1-md--line-height: 1.2;
 
   /* --- Color: Relay semantic palette (design.md §2) --- */
   --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */
@@ -186,6 +199,14 @@
   /* --- Named sizes (semantic, so they survive the Figma swap). --- */
   --spacing-rule: 3px; /* the linked-evidence left rule (design.md §3) */
 
+  /* Sidebar geometry (Figma node 357:2590, both variants). */
+  --spacing-nav: 230px;
+  --spacing-nav-collapsed: 55px;
+  --spacing-nav-header: 60px; /* the logo strip */
+  --spacing-nav-profile: 48px; /* the account card's row */
+  --spacing-nav-icon: 14px;
+  --spacing-nav-mark: 20px;
+
   /* Centered reading-column widths (design.md §4). */
   --container-column: 720px; /* Today, and general centered content */
   --container-thread: 680px; /* Answer Desk thread (used from Phase 5) */
@@ -259,6 +280,52 @@
 @utility field-invalid {
   box-shadow: 0 0 1.5px 1px var(--color-red-200);
 }
+/* The sidebar's account card (Figma 357:2730): a faint outer lift plus two
+   insets — a top white catch-light and a bottom shade — which together read as a
+   pressed tile rather than a floating one. */
+@utility shadow-nav-profile {
+  box-shadow:
+    0 1.882px 12.518px 0 rgb(197 197 197 / 0.1),
+    inset 0 -1.276px 2.551px 0 rgb(137 137 137 / 0.08),
+    inset 0 0.957px 3.827px 0 #ffffff;
+}
+
+/* ── Skeleton shimmer ───────────────────────────────────────────────────────
+   Every parameter is a variable, because /design/skeletons ships a tweak panel
+   that drives them live at runtime. Tune there, then bake the numbers in here
+   and delete the panel — it is scaffolding, not a feature.
+
+   Band is in PIXELS on purpose. A percentage band makes the sweep travel faster
+   on a wide element than a narrow one, so a page of mixed-width bars shimmers
+   out of step with itself. */
+@utility shimmer {
+  background-color: var(--shimmer-base);
+  background-image: linear-gradient(
+    var(--shimmer-angle),
+    transparent 0%,
+    color-mix(
+        in oklab,
+        var(--shimmer-highlight) calc(var(--shimmer-opacity) * 100%),
+        transparent
+      )
+      50%,
+    transparent 100%
+  );
+  background-repeat: no-repeat;
+  background-size: var(--shimmer-band) 100%;
+  animation: shimmer-sweep var(--shimmer-duration) var(--shimmer-easing)
+    var(--shimmer-delay) infinite;
+}
+
+@keyframes shimmer-sweep {
+  from {
+    background-position: calc(-1 * var(--shimmer-band)) 0;
+  }
+  to {
+    background-position: calc(var(--shimmer-band) + 100%) 0;
+  }
+}
+
 /* ONE border weight for the whole redesign. Figma's nodes carry 1px / 0.8 /
    0.7 / 0.6 / 0.4 at different nesting depths, but concentric shells at the same
    radius stack into visible banding, so they resolve to a single 0.7px hairline. */
@@ -268,6 +335,36 @@
 /* The rule under a card's header strip — same weight, one edge. */
 @utility divider-b {
   border-bottom-width: 0.7px;
+}
+/* The same rule above an element — the mobile bar's lid. */
+@utility divider-t {
+  border-top-width: 0.7px;
+}
+
+/* Shimmer defaults. Plain custom properties rather than @theme entries: they are
+   read by the `shimmer` utility, not turned into classes, and the tweak panel
+   overrides them on this same element. */
+:root {
+  --shimmer-base: var(--color-surface-foreground-01);
+  --shimmer-highlight: #ffffff;
+  --shimmer-opacity: 0.9;
+  --shimmer-angle: 100deg;
+  --shimmer-band: 160px;
+  --shimmer-duration: 1.5s;
+  --shimmer-delay: 0s;
+  --shimmer-easing: ease-in-out;
+}
+
+/* A shimmer is a loading cue, and for anyone who asked the OS to stop moving
+   things it is just motion. Hold the base fill and drop the sweep. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --shimmer-duration: 0s;
+  }
+  .shimmer {
+    animation: none;
+    background-image: none;
+  }
 }
 
 /* Base layer — the editorial desk canvas. */

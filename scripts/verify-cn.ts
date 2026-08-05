@@ -110,6 +110,42 @@ const CASES: Case[] = [
     exact: "shadow-control",
     label: "two custom shadows — the later wins",
   },
+  // The sidebar's account tile (Figma 357:2730) is a third box-shadow.
+  {
+    input: ["shadow-card", "shadow-nav-profile"],
+    exact: "shadow-nav-profile",
+    label: "the nav profile lift replaces a card shadow",
+  },
+  /* Caption 1 and Caption 1 - MD are the same 12px at different leading. If the
+     -md suffix were read as a modifier of the shorter name, the nav label would
+     silently take Caption 1's 1.4 and sit a pixel low in a 34px row. */
+  {
+    input: ["text-fig-caption-1-md", "text-heading-01"],
+    keep: ["text-fig-caption-1-md", "text-heading-01"],
+    label: "Caption 1 - MD survives its colour",
+  },
+  {
+    input: ["text-fig-caption-1", "text-fig-caption-1-md"],
+    exact: "text-fig-caption-1-md",
+    label: "Caption 1 and Caption 1 - MD are distinct sizes",
+  },
+  // divider-t is a border WIDTH on one edge, and looks like a colour otherwise.
+  {
+    input: ["divider-t", "border-border"],
+    keep: ["divider-t", "border-border"],
+    label: "the mobile bar's top hairline survives its colour",
+  },
+  {
+    input: ["divider-b", "divider-t"],
+    keep: ["divider-b", "divider-t"],
+    label: "top and bottom hairlines are different edges, not rivals",
+  },
+  // The shimmer utility sets a background; a bg-* colour beside it must not eat it.
+  {
+    input: ["shimmer", "rounded-4"],
+    keep: ["shimmer", "rounded-4"],
+    label: "the skeleton shimmer survives a radius",
+  },
   // The real thing: a full Button class list.
   {
     input: [

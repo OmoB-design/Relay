@@ -17,7 +17,9 @@ import {
   type DigestEntry,
 } from "@/components/relay/DailyDigestBand";
 import { DueRow } from "@/components/relay/DueRow";
-import { WaitingRow } from "@/components/relay/WaitingRow";
+import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
+import { SectionHeading } from "@/components/relay/SectionHeading";
+import { WaitingGlyph } from "@/components/relay/NavIcons";
 import { EmptyState } from "@/components/relay/EmptyState";
 import { TodayFlagList } from "@/components/relay/TodayFlagList";
 import { Button } from "@/components/ui/button";
@@ -29,15 +31,17 @@ export const dynamic = "force-dynamic";
 
 function Section({
   title,
+  glyph,
   children,
 }: {
   title: string;
+  glyph?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-3" aria-label={title}>
-      <h2 className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
-        {title}
+    <section className="flex flex-col gap-4" aria-label={title}>
+      <h2>
+        <SectionHeading title={title} glyph={glyph} />
       </h2>
       {children}
     </section>
@@ -157,18 +161,22 @@ export default async function TodayPage({
           {/* 1. Waiting on you — collapses entirely when empty, because the
                  absence of urgency is itself information. */}
           {waiting.length > 0 && (
-            <Section title={t.waitingTitle}>
-              <ul className="divide-y divide-border overflow-hidden rounded-lg border-fig border-border bg-surface-primary">
-                {waiting.map(({ thread, clientName }) => (
+            <Section
+              title={t.waitingTitle}
+              glyph={<WaitingGlyph className="size-nav-icon" />}
+            >
+              <WaitingList>
+                {waiting.map(({ thread, clientName }, i) => (
                   <WaitingRow
                     key={thread.id}
                     clientId={thread.clientId}
                     clientName={clientName}
                     question={thread.question}
                     age={formatAge(thread.createdAt)}
+                    last={i === waiting.length - 1}
                   />
                 ))}
-              </ul>
+              </WaitingList>
             </Section>
           )}
 

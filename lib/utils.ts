@@ -35,6 +35,9 @@ const FONT_SIZES = [
   "fig-button",
   "fig-body",
   "fig-caption-1",
+  // Longest-first is not required — the table is exact-match — but note that
+  // caption-1 and caption-1-md are distinct sizes, not a prefix pair.
+  "fig-caption-1-md",
   "fig-caption-2",
   "12",
   "13",
@@ -61,6 +64,7 @@ const SHADOWS = [
   "control-sm",
   "avatar",
   "avatar-well",
+  "nav-profile",
 ];
 
 /** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB 500. */
@@ -73,6 +77,7 @@ const twMerge = extendTailwindMerge({
       rounded: [{ rounded: RADII }],
       "border-w": [{ border: BORDER_WIDTHS }],
       "border-w-b": ["divider-b"],
+      "border-w-t": ["divider-t"],
       // field-focus / field-invalid are also box-shadow, so they share the group:
       // two of them on one element must never both apply.
       shadow: [{ shadow: SHADOWS }, "field-focus", "field-invalid"],
