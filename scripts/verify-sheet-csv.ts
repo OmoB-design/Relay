@@ -18,6 +18,8 @@ import { runWithServiceRole } from "../lib/supabase";
 import { readFixtureWorkbook } from "../lib/ingestion/read";
 import { parseWorkbook } from "../lib/ingestion/parse";
 import { rebaseTab } from "../lib/demo/rebaseTracker";
+import { getClients } from "../lib/data";
+import { latestYesterday } from "../lib/daily/compile";
 import { yesterday } from "../lib/demo/calendar";
 import type { MetricKey } from "../lib/types";
 
@@ -59,16 +61,25 @@ async function main() {
     process.exit(1);
   }
 
-  // The expected answer: the fixture, rebased exactly as the app reads it.
+  /* The expected answer: the fixture, rebased exactly as the app reads it —
+     including the bound. That bound is the FURTHEST-AHEAD client's yesterday,
+     not this machine's; checking against the runner's own would pass a sheet
+     that the compile then finds a row short. */
+  const clients = await getClients();
+  const through = latestYesterday(clients);
   const expected = new Map(
     parseWorkbook(await readFixtureWorkbook())
-      .map(rebaseTab)
+      .map((t) => rebaseTab(t, through))
       .map((t) => [t.tabName, t] as const),
   );
 
-  console.log(
-    `\nRound-tripping ${files.length} CSVs · through ${yesterday()}\n`,
-  );
+  console.log(`\nRound-tripping ${files.length} CSVs · through ${through}`);
+  if (through !== yesterday()) {
+    console.log(
+      `  (this machine's yesterday is ${yesterday()} — the clients are ahead)`,
+    );
+  }
+  console.log();
 
   for (const file of files.sort()) {
     const tabName = path.basename(file, ".csv");

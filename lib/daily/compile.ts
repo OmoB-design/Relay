@@ -1,4 +1,4 @@
-import { format, parseISO, subDays } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { now as clockNow } from "@/lib/clock";
 import {
   getClients,
@@ -9,6 +9,7 @@ import {
 import { readWorkbook } from "@/lib/ingestion/read";
 import { parseWorkbook } from "@/lib/ingestion/parse";
 import { rebaseTabs } from "@/lib/demo/rebaseTracker";
+import { latestYesterdayAcross, yesterdayIn } from "@/lib/demo/calendar";
 import type { TrackerTab } from "@/lib/ingestion/types";
 import {
   ROW_ABSENT_KEY,
@@ -65,11 +66,20 @@ export type CompileResult = {
 /** "Yesterday" in the ad account's timezone — not the agency's, not the
  *  server's UTC. A Dubai agency running a US account has two yesterdays. */
 export function yesterdayFor(client: ClientProfile, at?: Date): string {
-  const instant = at ?? clockNow();
-  const local = new Date(
-    instant.toLocaleString("en-US", { timeZone: client.accountTimezone }),
+  return yesterdayIn(client.accountTimezone, at ?? clockNow());
+}
+
+/** The last date the tracker has to reach to satisfy EVERY client.
+ *
+ *  Clients ahead of the runner roll over first, so the bound is the furthest-
+ *  ahead client's yesterday, never the runner's. Getting this wrong does not
+ *  fail loudly: the sheet simply lacks the row and the digest reports an honest
+ *  absence for data that was there all along. */
+export function latestYesterday(clients: ClientProfile[], at?: Date): string {
+  return latestYesterdayAcross(
+    clients.map((c) => c.accountTimezone),
+    at ?? clockNow(),
   );
-  return format(subDays(local, 1), "yyyy-MM-dd");
 }
 
 /** The tracker's column names are the agency's vocabulary; `sales` here is the
@@ -117,11 +127,17 @@ export async function compileDaily(options?: {
   at?: Date;
 }): Promise<CompileResult> {
   const { workbook, source } = await readWorkbook();
-  // The fixture is authored against the seed week; rebase it onto the current
-  // calendar so "yesterday" always has a row. The live sheet passes through.
-  const tabs = rebaseTabs(parseWorkbook(workbook), source);
-  const byName = new Map(tabs.map((t) => [t.tabName.toLowerCase(), t] as const));
   const clients = await getClients();
+  /* The fixture is authored against the seed week; rebase it onto the current
+     calendar so "yesterday" always has a row. The live sheet passes through.
+     The bound has to be the FURTHEST-AHEAD client's yesterday — clients are
+     loaded first for exactly that reason. */
+  const tabs = rebaseTabs(
+    parseWorkbook(workbook),
+    source,
+    latestYesterday(clients, options?.at),
+  );
+  const byName = new Map(tabs.map((t) => [t.tabName.toLowerCase(), t] as const));
 
   const results: CompiledClient[] = [];
 

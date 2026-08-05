@@ -31,9 +31,13 @@ function shiftRow(row: TrackerRow, days: number): TrackerRow {
   };
 }
 
-export function rebaseTab(tab: TrackerTab): TrackerTab {
+/** `through` is the last date the tracker should reach — the LATEST yesterday
+ *  across every client's account timezone, which the caller knows and this
+ *  module does not. It defaults to the runner's own yesterday, which is correct
+ *  only when every client sits in the runner's zone. */
+export function rebaseTab(tab: TrackerTab, through?: string): TrackerTab {
   const days = demoShiftDays();
-  const lastDay = yesterday();
+  const lastDay = through ?? yesterday();
   const weekEnd = currentWeek().end;
 
   const shifted = tab.rows
@@ -63,6 +67,7 @@ export function rebaseTab(tab: TrackerTab): TrackerTab {
 export function rebaseTabs(
   tabs: TrackerTab[],
   source: "live" | "fixture",
+  through?: string,
 ): TrackerTab[] {
-  return source === "fixture" ? tabs.map(rebaseTab) : tabs;
+  return source === "fixture" ? tabs.map((t) => rebaseTab(t, through)) : tabs;
 }

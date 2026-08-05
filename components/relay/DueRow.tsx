@@ -3,7 +3,11 @@ import { config } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import type { ClientProfile, Narrative, NarrativeStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { ClientRing, RING_PROGRESS } from "@/components/relay/ClientRing";
+import {
+  ClientRing,
+  RING_PROGRESS,
+  RING_TONE,
+} from "@/components/relay/ClientRing";
 import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { EditGlyph } from "@/components/relay/NavIcons";
 
@@ -34,9 +38,10 @@ import { EditGlyph } from "@/components/relay/NavIcons";
       state's four concentric shells (dashed 1px, 0.7px dashed, 0.4px, and a 0.5
       divider at the same 18px radius) collapse to one dashed hairline.
 
-   3. THE RING is now the pipeline as a meter — empty at drafted, half at
-      reviewed, full at sent — rather than the frame's fixed red arc, which was
-      the same on all three rows and so could not mean anything. See ClientRing.
+   3. THE RING is now the pipeline as a meter — empty at drafted, half blue at
+      reviewed, full green at sent — rather than the frame's fixed red arc, which
+      was the same on all three rows and so could not mean anything. Its tone
+      tracks the status word beside it. See ClientRing.
    ========================================================================== */
 
 export type DueClient = Pick<
@@ -86,6 +91,7 @@ export function DueRow({
             name={client.name}
             logo={logo}
             progress={RING_PROGRESS[narrative.status]}
+            tone={RING_TONE[narrative.status]}
           />
           <span className="flex min-w-0 flex-col justify-center gap-1.5">
             <Link

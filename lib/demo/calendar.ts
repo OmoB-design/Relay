@@ -83,10 +83,47 @@ export function labelFor(startIso: string, endIso: string): string {
     : `${format(start, "MMM d")} – ${format(end, "MMM d")}`;
 }
 
-/** What the nightly compile asks for. Not derived from the week anchor —
- *  the daily rhythm runs to the day that just ended, whatever weekday it is. */
+/** What the nightly compile asks for, in the RUNNER's zone. Not derived from the
+ *  week anchor — the daily rhythm runs to the day that just ended, whatever
+ *  weekday it is.
+ *
+ *  Rarely the right function on its own. Every client has its own account
+ *  timezone, so the day that just ended is a per-client question — see
+ *  yesterdayIn and latestYesterdayAcross below. */
 export function yesterday(at: Date = now()): string {
   return format(addDays(at, -1), ISO_DAY);
+}
+
+/** The day that just ended IN A GIVEN ZONE.
+ *
+ *  en-CA formats as yyyy-MM-dd, so the zone's own calendar date comes out ready
+ *  to compare — no round-trip through a parsed locale string, which is the usual
+ *  way this goes wrong. */
+export function yesterdayIn(timeZone: string, at: Date = now()): string {
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(at);
+  return format(addDays(parseISO(today), -1), ISO_DAY);
+}
+
+/** The LATEST yesterday across a set of zones — the furthest-ahead client's.
+ *
+ *  This is the bound the tracker has to reach. Every Relay client is currently
+ *  Asia/Dubai (UTC+4), so from 20:00 UTC onwards their local date has already
+ *  rolled over and the compile asks for a day the runner still calls tomorrow.
+ *  Bounding the tracker at the runner's `yesterday()` left it one row short for
+ *  the last four hours of every single day — which is exactly what "No tracker
+ *  row for Aug 5" was. */
+export function latestYesterdayAcross(
+  timeZones: string[],
+  at: Date = now(),
+): string {
+  const days = timeZones.map((tz) => yesterdayIn(tz, at));
+  days.push(yesterday(at));
+  return days.sort().at(-1)!;
 }
 
 /** True when the seed is already sitting on the current week — the shift is a

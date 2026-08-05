@@ -27,6 +27,8 @@ import { runWithServiceRole } from "../lib/supabase";
 import { parseDateCell, parseWorkbook } from "../lib/ingestion/parse";
 import { rebaseTab } from "../lib/demo/rebaseTracker";
 import { config } from "../lib/config";
+import { getClients } from "../lib/data";
+import { latestYesterday } from "../lib/daily/compile";
 import { currentWeek, demoShiftDays, yesterday } from "../lib/demo/calendar";
 
 const OUT_DIR = path.join(process.cwd(), "supabase/fixtures/sheet");
@@ -46,11 +48,31 @@ async function main() {
   const shift = demoShiftDays();
   const week = currentWeek();
 
+  /* THE BOUND IS PER CLIENT, NOT PER RUNNER. Every Relay client is Asia/Dubai,
+     so from 20:00 UTC their local date has already rolled over and the compile
+     asks for a day this machine still calls tomorrow. Emitting through the
+     runner's own yesterday left the sheet one row short for the last four hours
+     of every day, and the digest reported an honest absence for data that was
+     simply never written. */
+  const clients = await getClients();
+  const through = latestYesterday(clients);
+  const runnerYesterday = yesterday();
+
   await mkdir(OUT_DIR, { recursive: true });
   console.log(
-    `\nRebasing tracker by ${shift} days · week ${week.label} · through ${yesterday()}` +
-      `\nDate format: "${sheetDate(yesterday())}"\n`,
+    `\nRebasing tracker by ${shift} days · week ${week.label} · through ${through}` +
+      `\nDate format: "${sheetDate(through)}"`,
   );
+  if (through !== runnerYesterday) {
+    const zones = Array.from(
+      new Set(clients.map((c) => c.accountTimezone)),
+    ).join(", ");
+    console.log(
+      `  note: this machine's yesterday is ${runnerYesterday}, but ${zones} has\n` +
+        `        already rolled over — the sheet is written to the client's day.`,
+    );
+  }
+  console.log();
 
   for (const tab of tabs) {
     const raw = workbook[tab.tabName];
@@ -72,7 +94,7 @@ async function main() {
     if (rawByDate.size === 0) continue;
     const lastOriginal = Array.from(rawByDate.keys()).sort().at(-1)!;
 
-    const rebased = rebaseTab(tab);
+    const rebased = rebaseTab(tab, through);
     const lines = [
       ...raw.slice(0, headerIdx + 1).map(row),
       ...rebased.rows.map((r) => {
@@ -95,7 +117,7 @@ async function main() {
     console.log(
       `  ${tab.tabName.padEnd(13)} ${String(rebased.rows.length).padStart(2)} rows  ` +
         `${sheetDate(first)} → ${sheetDate(last)}` +
-        (last < yesterday()
+        (last < through
           ? "   ← stops early on purpose (missing-days case)"
           : ""),
     );

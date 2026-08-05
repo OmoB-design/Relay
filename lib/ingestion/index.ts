@@ -4,6 +4,7 @@ import type { EvidenceSnapshot, Period } from "@/lib/types";
 import { readWorkbook } from "@/lib/ingestion/read";
 import { parseWorkbook } from "@/lib/ingestion/parse";
 import { rebaseTabs } from "@/lib/demo/rebaseTracker";
+import { latestYesterday } from "@/lib/daily/compile";
 import { mapPeriod, snapshotIdFor } from "@/lib/ingestion/map";
 import { diffPassed, diffSnapshot, type DiffRow } from "@/lib/ingestion/diff";
 import type { FreshnessWarning, TrackerTab } from "@/lib/ingestion/types";
@@ -54,8 +55,13 @@ export async function runIngestion(options: {
 }): Promise<IngestionReport> {
   const { period, commit = false } = options;
   const { workbook, source } = await readWorkbook();
-  const tabs = rebaseTabs(parseWorkbook(workbook), source);
   const clients = await getClients();
+  // Same bound as the compile: the furthest-ahead client's yesterday.
+  const tabs = rebaseTabs(
+    parseWorkbook(workbook),
+    source,
+    latestYesterday(clients),
+  );
 
   // Match a tab to a client by name — the agency's tab names are the clients.
   const byName = new Map(clients.map((c) => [c.name.toLowerCase(), c] as const));

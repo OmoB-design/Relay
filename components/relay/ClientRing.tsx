@@ -19,11 +19,11 @@ import { initialsFor } from "@/components/relay/ClientAvatar";
    runs from r=15.348 to r=17.5, so the stroke is 2.152 wide centred at r=16.424,
    with the round caps the original arc had.
 
-   BLUE AT EVERY STEP, on purpose. Blue is the palette's pipeline-advancing
-   colour, and a meter that changes hue as it fills stops reading as a meter — the
-   status word beside it already carries the stage in colour. The consequence is
-   that a full blue ring sits next to a green "Sent"; the alternative, tinting the
-   ring by status, is a one-line change to `tone` if that reads better. */
+   THE RING AGREES WITH THE WORD. Blue while the work is in flight, green once it
+   is sent — the same tones StatusMark gives the status word beside it, so a row
+   never says two things at once. The hue change is legible precisely because it
+   happens exactly at the last step: a full ring and a green ring are the same
+   fact stated twice, not two facts. */
 
 const CENTRE = 17.5;
 const RADIUS = 16.424;
@@ -37,13 +37,22 @@ export const RING_PROGRESS: Record<NarrativeStatus, number> = {
   sent: 1,
 };
 
+/** And in which colour. Matches the status word: blue-400 at the send step, as
+ *  the due frame draws it, green-500 once it is done. `drafted` fills nothing, so
+ *  its tone is never painted. */
+export const RING_TONE: Record<NarrativeStatus, string> = {
+  drafted: "text-blue-400",
+  reviewed: "text-blue-400",
+  sent: "text-green-500",
+};
+
 export function ClientRing({
   name,
   logo,
   /** 0–1. Values outside that range are clamped rather than drawn wrong. */
   progress = 0,
   /** Tailwind text-* class for the filled part. */
-  tone = "text-blue-500",
+  tone = "text-blue-400",
   className,
 }: {
   name: string;
