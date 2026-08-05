@@ -3,8 +3,8 @@ import { config } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import type { ClientProfile, Narrative, NarrativeStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { ClientAvatar } from "@/components/relay/ClientAvatar";
-import { ClientRing } from "@/components/relay/ClientRing";
+import { ClientRing, RING_PROGRESS } from "@/components/relay/ClientRing";
+import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { EditGlyph } from "@/components/relay/NavIcons";
 
 /* ============================================================================
@@ -17,11 +17,10 @@ import { EditGlyph } from "@/components/relay/NavIcons";
    differently on purpose — Waiting is a queue you work down, Due is a set of
    separate pieces of work.
 
-   TWO GREYS ON THE META LINE, and they are both bound to Typography/Heading-06
-   in Figma. The cadence is #5a5a5a, the channel and the week are #bfbfbf, and
-   the frame's screenshot confirms the difference is real rather than a codegen
-   artefact — so the lighter pair map to Grey/Grey 300. See the note in the
-   commit about which value that variable should actually hold.
+   THE META LINE IS ONE GREY. The frame emitted #5a5a5a for the cadence and
+   #bfbfbf for the channel and week, all three bound to the same
+   Typography/Heading-06 — because it was read against the dark-mode collection.
+   Heading-06 is #5a5a5a; the line is uniform.
 
    DEPARTURES:
 
@@ -35,8 +34,9 @@ import { EditGlyph } from "@/components/relay/NavIcons";
       state's four concentric shells (dashed 1px, 0.7px dashed, 0.4px, and a 0.5
       divider at the same 18px radius) collapse to one dashed hairline.
 
-   3. THE ARC on the client ring is drawn as designed but its meaning is
-      undefined — see the note in ClientRing.
+   3. THE RING is now the pipeline as a meter — empty at drafted, half at
+      reviewed, full at sent — rather than the frame's fixed red arc, which was
+      the same on all three rows and so could not mean anything. See ClientRing.
    ========================================================================== */
 
 export type DueClient = Pick<
@@ -82,7 +82,11 @@ export function DueRow({
     <li className="overflow-hidden rounded-20 border-fig border-border bg-surface-primary">
       <div className="flex items-center gap-2.5 p-2.5">
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
-          <ClientRing name={client.name} logo={logo} />
+          <ClientRing
+            name={client.name}
+            logo={logo}
+            progress={RING_PROGRESS[narrative.status]}
+          />
           <span className="flex min-w-0 flex-col justify-center gap-1.5">
             <Link
               href={`/clients/${client.id}`}
@@ -90,16 +94,19 @@ export function DueRow({
             >
               {client.name}
             </Link>
+            {/* All three are Typography/Heading-06, which is one value: #5a5a5a.
+                The lighter #bfbfbf this once carried came from reading the frame
+                against the dark-mode collection. */}
             <span className="flex min-w-0 items-center gap-1.5">
               <span className="shrink-0 font-geist text-fig-caption-1 text-heading-06">
                 {config.copy.cadenceLabel[client.cadence.primary]}
               </span>
               <Dot />
-              <span className="shrink-0 font-geist text-fig-caption-1 text-grey-300">
+              <span className="shrink-0 font-geist text-fig-caption-1 text-heading-06">
                 {config.copy.channelLabel[client.channel]}
               </span>
               <Dot />
-              <span className="truncate font-geist text-fig-caption-1 text-grey-300">
+              <span className="truncate font-geist text-fig-caption-1 text-heading-06">
                 {narrative.week.label}
               </span>
             </span>
@@ -140,27 +147,15 @@ export function DueList({ children }: { children: React.ReactNode }) {
   return <ul className="flex flex-col gap-4 pt-0.5">{children}</ul>;
 }
 
-/** "All caught up" — Figma 365:3311. The client mark's own tile with a pencil in
- *  it, over a dashed hairline. */
+/** "All caught up" — Figma 365:3311. The shell it uses is shared, so the Today
+ *  first-run states get the same treatment without tracing it twice. */
 export function DueEmpty() {
   return (
-    <div className="flex min-h-due-empty flex-col rounded-18 border-fig border-dashed border-border bg-surface-primary p-1 shadow-card">
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-14 border-fig border-border bg-surface-dashboard px-2 pb-3 pt-1">
-        <div className="flex flex-col items-center justify-center gap-2">
-          <ClientAvatar
-            name=""
-            glyph={<EditGlyph className="size-nav-icon text-caption-1" />}
-          />
-          <div className="flex flex-col items-center justify-center gap-3">
-            <p className="font-geist text-fig-body fig-w450 text-heading-01">
-              {config.copy.today.dueEmpty}
-            </p>
-            <p className="max-w-column text-center font-geist text-fig-caption-1 text-heading-06">
-              {config.copy.today.dueEmptyBody}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <EmptyPanel
+      title={config.copy.today.dueEmpty}
+      glyph={<EditGlyph className="size-nav-icon text-caption-1" />}
+    >
+      {config.copy.today.dueEmptyBody}
+    </EmptyPanel>
   );
 }

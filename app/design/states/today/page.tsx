@@ -19,12 +19,12 @@ import {
   DueRow,
   type DueClient,
 } from "@/components/relay/DueRow";
-import { EmptyState } from "@/components/relay/EmptyState";
 import { FlagCard } from "@/components/relay/FlagCard";
 import { TodayFlagList } from "@/components/relay/TodayFlagList";
 import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
 import { SectionHeading } from "@/components/relay/SectionHeading";
-import { WaitingGlyph } from "@/components/relay/NavIcons";
+import { ClientsGlyph, WaitingGlyph } from "@/components/relay/NavIcons";
+import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { Button } from "@/components/ui/button";
 
 /* ============================================================================
@@ -90,7 +90,12 @@ const dueClients: Record<string, DueClient> = {
 };
 
 const SLUGS = [
-  ["today/page-header", "today/pilot-clock", "today/first-run"],
+  [
+    "today/page-header",
+    "today/pilot-clock",
+    "today/first-run",
+    "today/first-run-buyer",
+  ],
   [
     "digest/mixed",
     "digest/staged",
@@ -121,7 +126,7 @@ export default function TodayStatesPage() {
   return (
     <>
       <CatalogueHeader title="Today — every state" count="3 of 3">
-        Twenty-eight frames. Today has four sections and each has its own
+        Twenty-nine frames. Today has four sections and each has its own
         absence and progress states, so the real matrix is much wider than the
         happy path. Design every slug listed here; annotate each Figma frame
         with its slug and the mapping back to code is unambiguous.
@@ -180,21 +185,38 @@ export default function TodayStatesPage() {
 
         <Spec
           id="today/first-run"
-          title="First run — no clients at all"
-          when="Zero clients connected. Replaces the entire page body."
+          title="First run, as an ADMIN — no clients at all"
+          when="Zero clients in the agency. Replaces the entire page body. The admin is the only role that can fix it, so this is the only version with a CTA."
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <EmptyState
+            <EmptyPanel
               title={t.emptyTitle}
+              glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
               action={
-                <Button asChild size="sm">
-                  <Link href="/clients">{t.emptyCta}</Link>
+                <Button asChild size="fig">
+                  <Link href="/admin">{t.emptyCta}</Link>
                 </Button>
               }
             >
               {t.emptyBody}
-            </EmptyState>
+            </EmptyPanel>
+          </div>
+        </Spec>
+
+        <Spec
+          id="today/first-run-buyer"
+          title="First run, as a BUYER — nothing assigned"
+          when="Covers two situations that look identical from here: no clients exist, or clients exist but none are this buyer's. Either way their next move is to ask, so there is no button — a CTA a buyer cannot use is worse than none."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <EmptyPanel
+              title={config.copy.auth.noClients}
+              glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
+            >
+              {config.copy.auth.noClientsBody}
+            </EmptyPanel>
           </div>
         </Spec>
       </Group>

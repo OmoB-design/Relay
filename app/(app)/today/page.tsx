@@ -19,8 +19,8 @@ import {
 import { DueEmpty, DueList, DueRow } from "@/components/relay/DueRow";
 import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
 import { SectionHeading } from "@/components/relay/SectionHeading";
-import { WaitingGlyph } from "@/components/relay/NavIcons";
-import { EmptyState } from "@/components/relay/EmptyState";
+import { ClientsGlyph, WaitingGlyph } from "@/components/relay/NavIcons";
+import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { TodayFlagList } from "@/components/relay/TodayFlagList";
 import { Button } from "@/components/ui/button";
 
@@ -136,8 +136,9 @@ export default async function TodayPage({
 
       {showFirstRun ? (
         profile.role === "admin" ? (
-          <EmptyState
+          <EmptyPanel
             title={t.emptyTitle}
+            glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
             action={
               <Button asChild size="fig">
                 <Link href="/admin">{t.emptyCta}</Link>
@@ -145,13 +146,16 @@ export default async function TodayPage({
             }
           >
             {t.emptyBody}
-          </EmptyState>
+          </EmptyPanel>
         ) : (
           /* A buyer cannot assign themselves a client, so offering them a CTA
-             would be a dead end. Name who can. */
-          <EmptyState title={config.copy.auth.noClients}>
+             would be a dead end. Name who can, and stop. */
+          <EmptyPanel
+            title={config.copy.auth.noClients}
+            glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
+          >
             {config.copy.auth.noClientsBody}
-          </EmptyState>
+          </EmptyPanel>
         )
       ) : (
         <div className="flex flex-col gap-10">

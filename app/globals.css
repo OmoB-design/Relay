@@ -51,12 +51,16 @@
      variables with separate lifecycles. Renamed from the unused --color-sub-text. */
   --color-heading-04: #212121;
   --color-heading-05: #424242; /* diagnostics, metric values */
+  /* Heading-06 is ONE value: #5a5a5a. Node 365:3414 reported #bfbfbf for it,
+     which was a dark-mode read of the same variable — see the Caption 1 note. */
   --color-heading-06: #5a5a5a; /* metric labels, secondary */
-  /* Typography/Caption 1. Figma's variable table for node 365:3414 gives #777777,
-     and that frame's own generated code agrees (`#777` on the Drafted label), so
-     the app's previous #959595 had no Figma backing left. Darkens placeholder and
-     faint-caption text everywhere — one line to put back if that is too dark. */
-  --color-caption-1: #777777;
+  /* Typography/Caption 1 — placeholders, faint captions, the resting status word.
+     Node 365:3414 reported #777777 for this and #bfbfbf for Heading-06, and both
+     were DARK-mode resolutions: that frame was read with the wrong collection
+     selected. The light-mode values are the ones below, confirmed by the
+     designer. Anything read out of a Figma frame has to be checked against light
+     mode before it lands here. */
+  --color-caption-1: #959595;
 
   /* Action */
   --color-button-primary: #171717;

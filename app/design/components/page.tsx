@@ -10,7 +10,9 @@ import { AnswerCard } from "@/components/relay/AnswerCard";
 import { AppNav } from "@/components/relay/AppNav";
 import { ClaimSpan } from "@/components/relay/ClaimSpan";
 import { CommsControls } from "@/components/relay/CommsControls";
-import { DueList, DueRow } from "@/components/relay/DueRow";
+import { DueEmpty, DueList, DueRow } from "@/components/relay/DueRow";
+import { ClientsGlyph } from "@/components/relay/NavIcons";
+import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { EmptyState } from "@/components/relay/EmptyState";
 import { EvidenceCard } from "@/components/relay/EvidenceCard";
 import { FlagCard } from "@/components/relay/FlagCard";
@@ -672,6 +674,55 @@ export default function ComponentsPage() {
             <EmptyState title="Nothing due">
               No outstanding drafts and nothing scheduled for this week.
             </EmptyState>
+          </div>
+        </Spec>
+
+        <Spec
+          id="EmptyPanel"
+          title="EmptyPanel — the redesigned empty state, three uses"
+          when="Wherever a Figma frame exists. Card-shaped: dashed hairline at radius 18, an inset well at 14, the client mark's own tile with a glyph in it. The legacy EmptyState above still serves the screens awaiting redesign."
+          onPaper
+        >
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <Slug id="EmptyPanel/due" />
+              <DueEmpty />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Slug id="EmptyPanel/first-run-admin" />
+              <p className="font-ui text-12 text-ink-soft">
+                The admin is the only role that can add a client, so this is the
+                one version with a CTA. Both halves of the job are named — a
+                client with no buyer assigned still shows nobody anything.
+              </p>
+              <EmptyPanel
+                title={config.copy.today.emptyTitle}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-caption-1" />
+                }
+                action={<Button size="fig">{config.copy.today.emptyCta}</Button>}
+              >
+                {config.copy.today.emptyBody}
+              </EmptyPanel>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Slug id="EmptyPanel/first-run-buyer" />
+              <p className="font-ui text-12 text-ink-soft">
+                No CTA on purpose. A buyer cannot assign themselves a client, and
+                a button that cannot work is worse than no button — so it names
+                who can instead.
+              </p>
+              <EmptyPanel
+                title={config.copy.auth.noClients}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-caption-1" />
+                }
+              >
+                {config.copy.auth.noClientsBody}
+              </EmptyPanel>
+            </div>
           </div>
         </Spec>
 

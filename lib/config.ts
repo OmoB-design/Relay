@@ -444,9 +444,13 @@ export const config: Config = ConfigSchema.parse({
       newPasswordLabel: "Choose a password",
       passwordHint: "At least 8 characters.",
       inviteOnly: "Relay is invite-only. Ask your agency admin for access.",
+      /* First run, seen by a BUYER. Covers two situations that look identical
+         from here — no clients exist yet, or clients exist but none are yours —
+         because the buyer's next move is the same either way: ask. Deliberately
+         no CTA; a button a buyer cannot use is worse than no button. */
       noClients: "No clients assigned to you yet",
       noClientsBody:
-        "Your admin assigns the clients you cover. Once they do, your morning digest appears here.",
+        "Your agency admin assigns the clients you cover. As soon as one is, yesterday's numbers appear here each morning.",
       completingInvite: "Signing you in…",
       linkProblem: "That link didn't work.",
       /* Supabase deliberately does not say whether a link expired or was already
@@ -596,8 +600,14 @@ export const config: Config = ConfigSchema.parse({
       dueEmpty: "All caught up",
       dueEmptyBody:
         "No outstanding drafts and nothing scheduled for this week. Drafts appear here as the week's data lands.",
-      emptyTitle: "No clients connected yet",
-      emptyBody: "Connect a client to see your week take shape.",
+      /* First run, seen by an ADMIN — the only role that can fix it. "Connect a
+         client" was written before the access model existed and implied whoever
+         read it could do the connecting; a buyer cannot. This names both halves
+         of the job, because a client with no buyer assigned to it still shows
+         nobody anything. */
+      emptyTitle: "No clients yet",
+      emptyBody:
+        "Add a client, then assign the buyer who covers them. The first digest arrives the next morning.",
       emptyCta: "Add a client",
     },
   },
