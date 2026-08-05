@@ -16,7 +16,7 @@ import {
   DailyDigestBand,
   type DigestEntry,
 } from "@/components/relay/DailyDigestBand";
-import { DueRow } from "@/components/relay/DueRow";
+import { DueEmpty, DueList, DueRow } from "@/components/relay/DueRow";
 import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
 import { SectionHeading } from "@/components/relay/SectionHeading";
 import { WaitingGlyph } from "@/components/relay/NavIcons";
@@ -191,17 +191,18 @@ export default async function TodayPage({
           {/* 3. Due this week — outstanding work plus this week's, oldest first. */}
           <Section title={t.dueTitle}>
             {due.length === 0 ? (
-              <EmptyState title={t.dueEmpty}>{t.dueEmptyBody}</EmptyState>
+              <DueEmpty />
             ) : (
-              <ul className="divide-y divide-border overflow-hidden rounded-lg border-fig border-border bg-surface-primary">
+              <DueList>
                 {due.map(({ narrative, client }) => (
                   <DueRow
                     key={narrative.id}
                     narrative={narrative}
                     client={client}
+                    logo={config.clientLogos[client.name]}
                   />
                 ))}
-              </ul>
+              </DueList>
             )}
           </Section>
         </div>

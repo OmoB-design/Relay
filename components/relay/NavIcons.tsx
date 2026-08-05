@@ -1,6 +1,6 @@
-/* The sidebar's glyphs, straight out of Figma node 357:2590 (and 357:2338 for
-   the waiting mark). Path data, viewBox and stroke widths are the exported
-   values, unedited.
+/* The inlined Figma glyphs — the sidebar's set from node 357:2590, plus the
+   section and empty-state marks from 357:2338 and 365:3405. Path data, viewBox
+   and stroke widths are the exported values, unedited.
 
    WHY THESE ARE INLINE AND NOT <img src="/icons/…">. Figma exports each glyph
    with its colour baked in — #212121 on the selected item, #424242 on the
@@ -154,6 +154,29 @@ export function PanelToggleGlyph({
         d="M11.0833 2.13889H2.91667C2.05756 2.13889 1.36111 2.83533 1.36111 3.69444V10.3056C1.36111 11.1647 2.05756 11.8611 2.91667 11.8611H11.0833C11.9424 11.8611 12.6389 11.1647 12.6389 10.3056V3.69444C12.6389 2.83533 11.9424 2.13889 11.0833 2.13889Z"
         stroke="currentColor"
         {...STROKE}
+      />
+    </svg>
+  );
+}
+
+/** The pencil in the middle of "All caught up" (Figma 365:3405). Same 1.75 as
+ *  the waiting mark — both stand alone rather than in a column. */
+export function EditGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...NAV_SVG} aria-hidden="true" className={className}>
+      <path
+        d="M11.8545 2.14545C12.74 3.03095 12.74 4.46829 11.8545 5.35379L6.27667 10.9316C5.98617 11.2221 5.6245 11.431 5.22783 11.536L1.45833 12.5417L2.464 8.77212C2.57017 8.37545 2.77783 8.0138 3.06833 7.7233L8.64617 2.14545C9.53167 1.25995 10.969 1.25995 11.8545 2.14545Z"
+        stroke="currentColor"
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12.8333 12.5417H8.75"
+        stroke="currentColor"
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

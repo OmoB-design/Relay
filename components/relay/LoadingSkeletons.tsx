@@ -113,32 +113,35 @@ export function WaitingSkeleton({ rows = 2 }: { rows?: number }) {
   );
 }
 
-/** Due this week — the row ends in a button, so the block on the right is
- *  taller than an age stamp and has the button's radius. */
+/** Due this week. Each row is its OWN radius-20 card with 16px under it — not
+ *  rows in a shared well like Waiting — and it opens with the 35px client ring
+ *  and ends in a button, so the right-hand block carries the button's radius. */
 export function DueSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeadingSkeleton />
-      <CardWell>
+      <div className="flex flex-col gap-4 pt-0.5">
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
-            className={cn(
-              "flex items-center justify-between gap-3 px-2 pb-3 pt-1.5",
-              i < rows - 1 && "divider-b border-border",
-            )}
+            className="overflow-hidden rounded-20 border-fig border-border bg-surface-primary"
           >
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <Bar className="h-3.5 w-28" />
-              <Bar className="h-3 w-full max-w-72" />
-            </span>
-            <span className="flex shrink-0 items-center gap-3">
-              <Bar className="h-3 w-16" />
-              <Bar className="h-7 w-20 rounded-8" />
-            </span>
+            <div className="flex items-center gap-2.5 p-2.5">
+              <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                <Bar className="size-ring shrink-0 rounded-full" />
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <Bar className="h-3.5 w-28" />
+                  <Bar className="h-3 w-48" />
+                </span>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Bar className="h-3 w-14" />
+                <Bar className="h-7 w-24 rounded-8" />
+              </div>
+            </div>
           </div>
         ))}
-      </CardWell>
+      </div>
     </section>
   );
 }

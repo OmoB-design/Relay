@@ -13,11 +13,18 @@ import {
   DailyDigestBand,
   type DigestEntry,
 } from "@/components/relay/DailyDigestBand";
-import { DueRow, type DueClient } from "@/components/relay/DueRow";
+import {
+  DueEmpty,
+  DueList,
+  DueRow,
+  type DueClient,
+} from "@/components/relay/DueRow";
 import { EmptyState } from "@/components/relay/EmptyState";
 import { FlagCard } from "@/components/relay/FlagCard";
 import { TodayFlagList } from "@/components/relay/TodayFlagList";
-import { WaitingRow } from "@/components/relay/WaitingRow";
+import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
+import { SectionHeading } from "@/components/relay/SectionHeading";
+import { WaitingGlyph } from "@/components/relay/NavIcons";
 import { Button } from "@/components/ui/button";
 
 /* ============================================================================
@@ -37,26 +44,22 @@ const t = config.copy.today;
 /** Today's section heading, replicated so a frame shows its own context. */
 function Section({
   title,
+  glyph,
   children,
 }: {
   title: string;
+  glyph?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  /* The real heading, not a catalogue lookalike — a specimen that draws its own
+     chrome stops being evidence the moment the shared one changes. */
   return (
-    <section className="flex flex-col gap-3" aria-label={title}>
-      <h2 className="font-ui text-13 uppercase tracking-wide text-ink-soft">
-        {title}
+    <section className="flex flex-col gap-4" aria-label={title}>
+      <h2>
+        <SectionHeading title={title} glyph={glyph} />
       </h2>
       {children}
     </section>
-  );
-}
-
-function List({ children }: { children: React.ReactNode }) {
-  return (
-    <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
-      {children}
-    </ul>
   );
 }
 
@@ -432,18 +435,22 @@ export default function TodayStatesPage() {
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <Section title={t.waitingTitle}>
-              <List>
-                {specWaiting.map((w) => (
+            <Section
+              title={t.waitingTitle}
+              glyph={<WaitingGlyph className="size-nav-icon" />}
+            >
+              <WaitingList>
+                {specWaiting.map((w, i) => (
                   <WaitingRow
                     key={w.question}
                     clientId={specClients.switchup.id}
                     clientName={w.clientName}
                     question={w.question}
                     age={w.age}
+                    last={i === specWaiting.length - 1}
                   />
                 ))}
-              </List>
+              </WaitingList>
             </Section>
           </div>
         </Spec>
@@ -476,20 +483,23 @@ export default function TodayStatesPage() {
         >
           <div className="mx-auto max-w-column">
             <Section title={t.dueTitle}>
-              <List>
+              <DueList>
                 <DueRow
                   narrative={specNarratives.drafted}
                   client={dueClients.northbrook}
+                  logo={config.clientLogos[dueClients.northbrook.name]}
                 />
                 <DueRow
                   narrative={specNarratives.reviewed}
                   client={dueClients.birkenstock}
+                  logo={config.clientLogos[dueClients.birkenstock.name]}
                 />
                 <DueRow
                   narrative={specNarratives.sent}
                   client={dueClients.switchup}
+                  logo={config.clientLogos[dueClients.switchup.name]}
                 />
-              </List>
+              </DueList>
             </Section>
           </div>
         </Spec>
@@ -501,12 +511,13 @@ export default function TodayStatesPage() {
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <List>
+            <DueList>
               <DueRow
                 narrative={specNarratives.drafted}
                 client={dueClients.northbrook}
+                  logo={config.clientLogos[dueClients.northbrook.name]}
               />
-            </List>
+            </DueList>
           </div>
         </Spec>
 
@@ -517,12 +528,13 @@ export default function TodayStatesPage() {
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <List>
+            <DueList>
               <DueRow
                 narrative={specNarratives.reviewed}
                 client={dueClients.birkenstock}
+                  logo={config.clientLogos[dueClients.birkenstock.name]}
               />
-            </List>
+            </DueList>
           </div>
         </Spec>
 
@@ -533,24 +545,25 @@ export default function TodayStatesPage() {
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <List>
+            <DueList>
               <DueRow
                 narrative={specNarratives.sent}
                 client={dueClients.switchup}
+                  logo={config.clientLogos[dueClients.switchup.name]}
               />
-            </List>
+            </DueList>
           </div>
         </Spec>
 
         <Spec
           id="due/empty"
-          title="Nothing due"
+          title="All caught up"
           when="No outstanding drafts and nothing sent recently. This section DOES get a zero-state, unlike Flags and Waiting."
           onPaper
         >
           <div className="mx-auto max-w-column">
             <Section title={t.dueTitle}>
-              <EmptyState title={t.dueEmpty}>{t.dueEmptyBody}</EmptyState>
+              <DueEmpty />
             </Section>
           </div>
         </Spec>

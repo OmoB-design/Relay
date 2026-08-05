@@ -593,7 +593,7 @@ export const config: Config = ConfigSchema.parse({
       waitingTitle: "Waiting on you",
       flagsTitle: "Flags",
       dueTitle: "Due this week",
-      dueEmpty: "Nothing due",
+      dueEmpty: "All caught up",
       dueEmptyBody:
         "No outstanding drafts and nothing scheduled for this week. Drafts appear here as the week's data lands.",
       emptyTitle: "No clients connected yet",

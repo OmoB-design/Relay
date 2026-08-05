@@ -140,6 +140,18 @@ const CASES: Case[] = [
     keep: ["divider-b", "divider-t"],
     label: "top and bottom hairlines are different edges, not rivals",
   },
+  /* Numbers/20, the due row's own card radius. Registered late, so this is the
+     case that catches it being forgotten again. */
+  {
+    input: ["rounded-20", "border-fig", "border-border", "bg-surface-primary"],
+    keep: ["rounded-20", "border-fig", "border-border", "bg-surface-primary"],
+    label: "the due card keeps radius 20 with its hairline",
+  },
+  {
+    input: ["rounded-18", "rounded-20"],
+    exact: "rounded-20",
+    label: "radius 18 and 20 are rivals — the later wins",
+  },
   // The shimmer utility sets a background; a bg-* colour beside it must not eat it.
   {
     input: ["shimmer", "rounded-4"],

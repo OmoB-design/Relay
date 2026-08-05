@@ -10,7 +10,7 @@ import { AnswerCard } from "@/components/relay/AnswerCard";
 import { AppNav } from "@/components/relay/AppNav";
 import { ClaimSpan } from "@/components/relay/ClaimSpan";
 import { CommsControls } from "@/components/relay/CommsControls";
-import { DueRow } from "@/components/relay/DueRow";
+import { DueList, DueRow } from "@/components/relay/DueRow";
 import { EmptyState } from "@/components/relay/EmptyState";
 import { EvidenceCard } from "@/components/relay/EvidenceCard";
 import { FlagCard } from "@/components/relay/FlagCard";
@@ -31,7 +31,7 @@ import { StatusTimeline, StatusWord } from "@/components/relay/StatusMark";
 import { specNarratives } from "@/lib/design/specimens";
 import { TimelineFeed } from "@/components/relay/TimelineFeed";
 import { TokenSelect } from "@/components/relay/TokenSelect";
-import { WaitingRow } from "@/components/relay/WaitingRow";
+import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -444,9 +444,10 @@ export default function ComponentsPage() {
           when="One row of Today's Due this week. Action weight follows status."
           onPaper
         >
-          <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          <DueList>
             <DueRow
               narrative={specNarratives.drafted}
+              logo={config.clientLogos["Northbrook"]}
               client={{
                 id: specClients.northbrook.id,
                 name: "Northbrook",
@@ -456,6 +457,7 @@ export default function ComponentsPage() {
             />
             <DueRow
               narrative={specNarratives.reviewed}
+              logo={config.clientLogos["Birkenstock"]}
               client={{
                 id: specClients.birkenstock.id,
                 name: "Birkenstock",
@@ -465,6 +467,7 @@ export default function ComponentsPage() {
             />
             <DueRow
               narrative={specNarratives.sent}
+              logo={config.clientLogos["Switchup"]}
               client={{
                 id: specClients.switchup.id,
                 name: "Switchup",
@@ -472,7 +475,7 @@ export default function ComponentsPage() {
                 channel: "email",
               }}
             />
-          </ul>
+          </DueList>
         </Spec>
 
         <Spec
@@ -481,7 +484,7 @@ export default function ComponentsPage() {
           when="An unanswered client question. Age never truncates — it is the reason the row exists."
           onPaper
         >
-          <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          <WaitingList>
             <WaitingRow
               clientId={specClients.switchup.id}
               clientName="Switchup"
@@ -494,7 +497,7 @@ export default function ComponentsPage() {
               question="Why did cost per order move on Thursday? The founder asked and I want to give a precise answer rather than a directional one."
               age="19 hours"
             />
-          </ul>
+          </WaitingList>
         </Spec>
 
         <Spec

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -33,17 +34,24 @@ export function initialsFor(name: string): string {
 export function ClientAvatar({
   name,
   logo,
+  glyph,
   className,
 }: {
   name: string;
   /** Path under /public. Omit to render initials. */
   logo?: string;
+  /** Renders instead of a logo or initials. The due row's empty state reuses
+   *  this exact tile with a pencil in it (Figma 365:3374), so the shape stays in
+   *  one place rather than being traced a second time. */
+  glyph?: ReactNode;
   className?: string;
 }) {
   return (
     <span className={cn(OUTER, className)}>
       <span className={WELL}>
-        {logo ? (
+        {glyph ? (
+          glyph
+        ) : logo ? (
           <Image
             src={logo}
             alt=""

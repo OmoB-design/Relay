@@ -46,10 +46,17 @@
   /* Typography — greys, darkest to lightest */
   --color-heading-01: #000000; /* client names, headlines */
   --color-heading-02: #171717; /* strong UI text */
-  --color-sub-text: #212121;
+  /* Typography/Heading-04 (node 365:3414) — a client's name in a due row. Same
+     hex as Icon/Icon-System, kept separate because they are separate Figma
+     variables with separate lifecycles. Renamed from the unused --color-sub-text. */
+  --color-heading-04: #212121;
   --color-heading-05: #424242; /* diagnostics, metric values */
   --color-heading-06: #5a5a5a; /* metric labels, secondary */
-  --color-caption-1: #959595; /* placeholders, faint captions */
+  /* Typography/Caption 1. Figma's variable table for node 365:3414 gives #777777,
+     and that frame's own generated code agrees (`#777` on the Drafted label), so
+     the app's previous #959595 had no Figma backing left. Darkens placeholder and
+     faint-caption text everywhere — one line to put back if that is too dark. */
+  --color-caption-1: #777777;
 
   /* Action */
   --color-button-primary: #171717;
@@ -73,10 +80,12 @@
   /* Red — error, destructive */
   --color-red-700: #991616; /* validation copy */
   --color-red-600: #cc1e1d; /* invalid border */
+  --color-red-500: #ff2524; /* Red/Red 500 — the due row's client ring arc */
   --color-red-200: #ffa8a7; /* invalid focus ring */
 
   /* Grey */
   --color-grey-300: #bfbfbf;
+  --color-grey-200: #d9d9d9; /* the 5px and 3px separator dots */
   --color-grey-100: #eaeaea; /* text on disabled/working fills */
 
   /* Panel fill used inside cards (Figma reads it as a raw hex, no variable). */
@@ -88,6 +97,14 @@
   --spacing-avatar: 34px;
   --spacing-avatar-well: 30px;
   --spacing-avatar-glyph: 21px;
+  /* The due row's client mark is a different shape entirely: a 35px ring gauge
+     around a 28px circular crop (node 365:3027). */
+  --spacing-ring: 35px;
+  --spacing-ring-inner: 28px;
+  /* "All caught up" is pinned to 182px in the frame (node 365:3307) — a short
+     card would read as a rendering slip rather than as a deliberate rest state.
+     A minimum, not a height, so longer copy can still grow it. */
+  --spacing-due-empty: 182px;
   --radius-5: 5px;
   --radius-7: 7px;
   --spacing-dot: 5px; /* band header + flag category separator */
@@ -101,6 +118,7 @@
   --radius-12: 12px;
   --radius-14: 14px;
   --radius-18: 18px;
+  --radius-20: 20px; /* the due row's own card */
 
   /* Type — one family. `geist` sets --font-geist-sans on <body>. */
   --font-geist: var(--font-geist-sans), system-ui, sans-serif;

@@ -50,7 +50,7 @@ const FONT_SIZES = [
 ];
 
 /** Figma's Numbers/N radius scale, plus the client mark's two. */
-const RADII = ["4", "5", "6", "7", "8", "10", "12", "14", "18"];
+const RADII = ["4", "5", "6", "7", "8", "10", "12", "14", "18", "20"];
 
 /** Border WIDTHS expressed as named utilities — these look like colours to
  *  tailwind-merge unless declared. */
