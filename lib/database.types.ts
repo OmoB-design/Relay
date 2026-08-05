@@ -16,7 +16,7 @@ interface Row<T> {
 export interface Database {
   public: {
     Tables: {
-      /* People and access (supabase/migrations/0008_auth_and_rls.sql). */
+      /* People and access (supabase/migrations/0008_auth.sql, 0009_rls.sql). */
       profiles: Row<{
         id: string;
         email: string;
@@ -24,6 +24,9 @@ export interface Database {
         role: string;
         status: string;
         created_at: string;
+        /* Null until they finish /auth/set-password — invited, not yet arrived.
+           See 0012_profile_accepted_at.sql for why auth.users cannot answer this. */
+        accepted_at: string | null;
       }>;
       client_assignments: Row<{
         client_id: string;

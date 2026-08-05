@@ -173,6 +173,12 @@ const ConfigSchema = z.object({
       inviteOnly: z.string(),
       noClients: z.string(),
       noClientsBody: z.string(),
+      completingInvite: z.string(),
+      linkProblem: z.string(),
+      expiredLink: z.string(),
+      linkIncomplete: z.string(),
+      linkFailed: z.string(),
+      backToSignIn: z.string(),
     }),
     admin: z.object({
       title: z.string(),
@@ -185,6 +191,8 @@ const ConfigSchema = z.object({
       assignTitle: z.string(),
       assignBody: z.string(),
       noBuyers: z.string(),
+      pending: z.string(),
+      pendingBody: z.string(),
     }),
     dismissReasonPlaceholder: z.string(),
     dismissReasonRequired: z.string(),
@@ -439,6 +447,17 @@ export const config: Config = ConfigSchema.parse({
       noClients: "No clients assigned to you yet",
       noClientsBody:
         "Your admin assigns the clients you cover. Once they do, your morning digest appears here.",
+      completingInvite: "Signing you in…",
+      linkProblem: "That link didn't work.",
+      /* Supabase deliberately does not say whether a link expired or was already
+         used, and neither should we — both have the same fix. */
+      expiredLink:
+        "That link has expired or was already used. Ask your agency admin to send another invite.",
+      linkIncomplete:
+        "That link is missing its sign-in details. Open it directly from the invite email rather than pasting the address.",
+      linkFailed:
+        "We couldn't finish signing you in. Try the link again, or ask your agency admin for a new invite.",
+      backToSignIn: "Go to sign in",
     },
     admin: {
       title: "Team",
@@ -452,6 +471,8 @@ export const config: Config = ConfigSchema.parse({
       assignBody:
         "A buyer sees only the clients assigned to them. A client can have more than one.",
       noBuyers: "No buyers yet — invite one above.",
+      pending: "Invited",
+      pendingBody: "Hasn't finished setting up yet. You can assign clients now.",
     },
     dismissReasonPlaceholder: "Why are you dismissing this? (required)",
     dismissReasonRequired: "A reason is required before dismissing.",

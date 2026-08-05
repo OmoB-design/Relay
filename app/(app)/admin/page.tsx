@@ -39,6 +39,13 @@ export default async function AdminPage() {
     (byBuyer[row.buyer_id] ??= []).push(row.client_id);
   }
 
+  /* Invited but not yet arrived. The row exists from the moment the invite is
+     sent — Supabase creates the auth user there and then — so without this an
+     unopened invite is indistinguishable from a colleague of two years. */
+  const pendingIds = (profiles.data ?? [])
+    .filter((r) => r.accepted_at === null)
+    .map((r) => r.id);
+
   return (
     <div className="mx-auto max-w-column px-6 py-10">
       <header className="mb-8">
@@ -55,6 +62,7 @@ export default async function AdminPage() {
         buyers={buyers}
         clients={(clients.data ?? []) as AdminClient[]}
         assignments={byBuyer}
+        pendingIds={pendingIds}
       />
     </div>
   );

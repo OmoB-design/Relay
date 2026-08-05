@@ -66,10 +66,12 @@ export async function setPasswordAction(
   if (error) return { ok: false, error: error.message };
 
   // The profile row already exists — the handle_new_user trigger created it when
-  // the invite was issued. This fills in the name the buyer just gave.
+  // the invite was issued. This fills in the name the buyer just gave, and stamps
+  // the moment they actually arrived, which is the only thing that distinguishes
+  // them from an invite nobody has opened (see 0012_profile_accepted_at.sql).
   const { error: profileError } = await sb
     .from("profiles")
-    .update({ name: trimmed })
+    .update({ name: trimmed, accepted_at: new Date().toISOString() })
     .eq("id", user.id);
   if (profileError) return { ok: false, error: profileError.message };
 

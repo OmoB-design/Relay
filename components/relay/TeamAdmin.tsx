@@ -36,12 +36,15 @@ export function TeamAdmin({
   buyers,
   clients,
   assignments,
+  pendingIds,
 }: {
   me: Profile;
   buyers: Profile[];
   clients: AdminClient[];
   /** buyerId → clientIds they cover. */
   assignments: Record<string, string[]>;
+  /** Invited, but has not finished /auth/set-password yet. */
+  pendingIds: string[];
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -128,6 +131,7 @@ export function TeamAdmin({
               const covered = assignments[b.id] ?? [];
               const revoked = b.status === "revoked";
               const isMe = b.id === me.id;
+              const invited = pendingIds.includes(b.id);
               return (
                 <li key={b.id} className={cn(CARD, "flex flex-col gap-3 p-4")}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -146,9 +150,16 @@ export function TeamAdmin({
                             {a.revoked}
                           </span>
                         )}
+                        {/* Revoked outranks invited: an invite that was withdrawn
+                            before it was opened is withdrawn, not pending. */}
+                        {invited && !revoked && (
+                          <span className="rounded-full border-fig border-border px-1.5 py-1 font-geist text-fig-caption-2 text-heading-06">
+                            {a.pending}
+                          </span>
+                        )}
                       </span>
                       <span className="font-geist text-fig-caption-1 text-heading-06">
-                        {b.email}
+                        {invited && !revoked ? a.pendingBody : b.email}
                       </span>
                     </span>
                     {/* An admin cannot revoke themselves — that is how an agency
