@@ -159,7 +159,8 @@ export function DueEmpty() {
   return (
     <EmptyPanel
       title={config.copy.today.dueEmpty}
-      glyph={<EditGlyph className="size-nav-icon text-caption-1" />}
+      glyph={<EditGlyph className="size-nav-icon text-icon-explainer" />}
+      bodyTone="text-heading-06"
     >
       {config.copy.today.dueEmptyBody}
     </EmptyPanel>

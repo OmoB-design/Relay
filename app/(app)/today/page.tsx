@@ -21,6 +21,8 @@ import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
 import { SectionHeading } from "@/components/relay/SectionHeading";
 import { ClientsGlyph, WaitingGlyph } from "@/components/relay/NavIcons";
 import { EmptyPanel } from "@/components/relay/EmptyPanel";
+import { PageHeader } from "@/components/relay/PageHeader";
+import { HealthCard } from "@/components/relay/HealthCard";
 import { TodayFlagList } from "@/components/relay/TodayFlagList";
 import { Button } from "@/components/ui/button";
 
@@ -113,51 +115,62 @@ export default async function TodayPage({
 
   return (
     <div className="mx-auto max-w-column px-6 py-10">
-      <header className="mb-8">
-        <p className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
-          {today}
-        </p>
-        {/* The page's accessible name is "Today"; the greeting is the visible
-            expression of it, so the nav label and the heading agree. */}
-        <h1 className="mt-1 font-geist text-28 fig-sb text-heading-01">
-          <span className="sr-only">Today — </span>
-          {t.greetingPrefix} {firstName(profile)}.
-        </h1>
-        <p className="mt-1 font-geist text-fig-body text-heading-06">
-          {t.greeting}
-        </p>
-        {isPilotClock && (
-          <p className="mt-2 font-geist text-fig-caption-2 text-yellow-700">
-            Demo clock — pinned to {today}. Unset RELAY_PILOT_NOW for the real
-            date.
-          </p>
-        )}
-      </header>
+      <div className="mb-8">
+        <PageHeader
+          date={today}
+          /* The page's accessible name is "Today"; the greeting is the visible
+             expression of it, so the nav label and the heading agree. */
+          greeting={
+            <>
+              <span className="sr-only">Today — </span>
+              {t.greetingPrefix} {firstName(profile)}.
+            </>
+          }
+          subline={showFirstRun ? t.firstRunSubline : t.greeting}
+          variant={showFirstRun ? "first-run" : "week"}
+          notice={
+            isPilotClock ? (
+              <p className="font-geist text-fig-caption-2 text-yellow-700">
+                Demo clock — pinned to {today}. Unset RELAY_PILOT_NOW for the
+                real date.
+              </p>
+            ) : undefined
+          }
+        >
+          {showFirstRun ? (
+            profile.role === "admin" ? (
+              <EmptyPanel
+                title={t.emptyTitle}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
+                }
+                action={
+                  <Button asChild size="fig">
+                    <Link href="/admin">{t.emptyCta}</Link>
+                  </Button>
+                }
+              >
+                {t.emptyBody}
+              </EmptyPanel>
+            ) : (
+              /* A buyer cannot assign themselves a client, so offering them a
+                 CTA would be a dead end. Name who can, and stop. */
+              <EmptyPanel
+                title={config.copy.auth.noClients}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
+                }
+              >
+                {config.copy.auth.noClientsBody}
+              </EmptyPanel>
+            )
+          ) : (
+            <HealthCard clients={clients} />
+          )}
+        </PageHeader>
+      </div>
 
-      {showFirstRun ? (
-        profile.role === "admin" ? (
-          <EmptyPanel
-            title={t.emptyTitle}
-            glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
-            action={
-              <Button asChild size="fig">
-                <Link href="/admin">{t.emptyCta}</Link>
-              </Button>
-            }
-          >
-            {t.emptyBody}
-          </EmptyPanel>
-        ) : (
-          /* A buyer cannot assign themselves a client, so offering them a CTA
-             would be a dead end. Name who can, and stop. */
-          <EmptyPanel
-            title={config.copy.auth.noClients}
-            glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
-          >
-            {config.copy.auth.noClientsBody}
-          </EmptyPanel>
-        )
-      ) : (
+      {!showFirstRun && (
         <div className="flex flex-col gap-10">
           {/* 0. Yesterday's numbers — the morning ritual, most time-critical. */}
           <DailyDigestBand entries={digest} />

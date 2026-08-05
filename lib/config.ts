@@ -303,6 +303,7 @@ const ConfigSchema = z.object({
     today: z.object({
       greetingPrefix: z.string(),
       greeting: z.string(),
+      firstRunSubline: z.string(),
       waitingTitle: z.string(),
       flagsTitle: z.string(),
       dueTitle: z.string(),
@@ -594,6 +595,9 @@ export const config: Config = ConfigSchema.parse({
     today: {
       greetingPrefix: "Hey",
       greeting: "Here's your week",
+      /* The line under the greeting when there is no week yet to introduce
+         (node 376:1678, first-run variants). */
+      firstRunSubline: "Let's get started",
       waitingTitle: "Waiting on you",
       flagsTitle: "Flags",
       dueTitle: "Due this week",

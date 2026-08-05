@@ -105,6 +105,11 @@
      around a 28px circular crop (node 365:3027). */
   --spacing-ring: 35px;
   --spacing-ring-inner: 28px;
+
+  /* Page header + health card (node 376:1678). */
+  --spacing-mark-lg: 30px; /* the brand mark above the greeting */
+  --spacing-health-bar: 5px; /* one segment of the health meter */
+  --spacing-health-meter: 180px; /* the meter's cap, so it never eats the row */
   /* "All caught up" is pinned to 182px in the frame (node 365:3307) — a short
      card would read as a rendering slip rather than as a deliberate rest state.
      A minimum, not a height, so longer copy can still grow it. */
@@ -127,6 +132,17 @@
   /* Type — one family. `geist` sets --font-geist-sans on <body>. */
   --font-geist: var(--font-geist-sans), system-ui, sans-serif;
 
+  /* The greeting, and ONLY the greeting (node 376:1678 asks for Helvetica Neue
+     Medium at 19px). It is the one editorial voice in the redesign, the way
+     Fraunces was in the old one.
+     A CAVEAT WORTH KNOWING: Helvetica Neue is a licensed Linotype face that
+     cannot be self-hosted, so this is a stack, not a guarantee. macOS and iOS
+     render it as designed; Windows and Linux fall through to Arial or Helvetica,
+     which are close in structure but not identical in weight. Swapping this line
+     for var(--font-geist) makes the greeting match the rest of the app exactly on
+     every platform, and is the alternative if the fallback bothers you. */
+  --font-greeting: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
   /* Figma text styles. All three Body-small variants declare weight 450 in the
      variables, which collides; the designer's resolution is a monotonic ladder —
      Regular 450 · Medium 470 · SemiBold 500. */
@@ -143,6 +159,13 @@
      label sits on one line, so it does not want Caption 1's 1.4. */
   --text-fig-caption-1-md: 0.75rem;
   --text-fig-caption-1-md--line-height: 1.2;
+  /* H6 - MD (node 376:1678): 19/1.2. The page greeting, and the only place the
+     redesign leaves Geist — see --font-greeting. */
+  --text-fig-h6: 1.1875rem;
+  --text-fig-h6--line-height: 1.2;
+  /* Body large - MD: 15/1.2. The line under the greeting. */
+  --text-fig-body-lg: 0.9375rem;
+  --text-fig-body-lg--line-height: 1.2;
 
   /* --- Color: Relay semantic palette (design.md §2) --- */
   --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */

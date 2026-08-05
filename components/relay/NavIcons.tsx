@@ -29,11 +29,18 @@ const NAV_ICON = {
 const { strokeWidth, strokeLinecap, strokeLinejoin, ...NAV_SVG } = NAV_ICON;
 const STROKE = { strokeWidth, strokeLinecap, strokeLinejoin } as const;
 
-export function RelayMark({ className }: GlyphProps) {
+/** The brand mark. Figma exports it at 20px (357:2439) and 30px (366:4239) with
+ *  proportionally scaled coordinates — the same artwork twice — so one viewBox
+ *  rendered at either size is geometrically identical to both, and there is no
+ *  second copy of the path to keep in step. */
+export function RelayMark({
+  className,
+  size = 20,
+}: GlyphProps & { size?: 20 | 30 }) {
   return (
     <svg
-      width={20}
-      height={20}
+      width={size}
+      height={size}
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"

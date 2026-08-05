@@ -24,6 +24,7 @@ export function EmptyPanel({
   glyph,
   children,
   action,
+  bodyTone = "text-caption-1",
   className,
 }: {
   title: string;
@@ -33,6 +34,10 @@ export function EmptyPanel({
   children?: ReactNode;
   /** At most one CTA, and only when the reader can actually act. */
   action?: ReactNode;
+  /** The two frames disagree: the first-run panels (376:1678) put the body in
+   *  Caption 1 #959595, the due-row panel (365:3311) in Heading-06 #5a5a5a.
+   *  Caption 1 is the default because it is the newer frame. */
+  bodyTone?: string;
   className?: string;
 }) {
   return (
@@ -50,7 +55,12 @@ export function EmptyPanel({
               {title}
             </p>
             {children && (
-              <p className="max-w-column text-center font-geist text-fig-caption-1 text-heading-06">
+              <p
+                className={cn(
+                  "max-w-column text-center font-geist text-fig-caption-1",
+                  bodyTone,
+                )}
+              >
                 {children}
               </p>
             )}

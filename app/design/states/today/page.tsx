@@ -25,6 +25,9 @@ import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
 import { SectionHeading } from "@/components/relay/SectionHeading";
 import { ClientsGlyph, WaitingGlyph } from "@/components/relay/NavIcons";
 import { EmptyPanel } from "@/components/relay/EmptyPanel";
+import { PageHeader } from "@/components/relay/PageHeader";
+import { HealthCard } from "@/components/relay/HealthCard";
+import { clientProfiles } from "@/lib/seed";
 import { Button } from "@/components/ui/button";
 
 /* ============================================================================
@@ -40,6 +43,13 @@ import { Button } from "@/components/ui/button";
    ========================================================================== */
 
 const t = config.copy.today;
+
+/* Figma draws the health meter all-green; the seed's real mix has one amber, so
+   both are shown. Green here means every account healthy. */
+const healthySpecimen = clientProfiles.map((c) => ({
+  ...c,
+  accounts: c.accounts.map((a) => ({ ...a, health: "green" as const })),
+}));
 
 /** Today's section heading, replicated so a frame shows its own context. */
 function Section({
@@ -93,6 +103,7 @@ const SLUGS = [
   [
     "today/page-header",
     "today/pilot-clock",
+    "today/health",
     "today/first-run",
     "today/first-run-buyer",
   ],
@@ -126,7 +137,7 @@ export default function TodayStatesPage() {
   return (
     <>
       <CatalogueHeader title="Today — every state" count="3 of 3">
-        Twenty-nine frames. Today has four sections and each has its own
+        Thirty frames. Today has four sections and each has its own
         absence and progress states, so the real matrix is much wider than the
         happy path. Design every slug listed here; annotate each Figma frame
         with its slug and the mapping back to code is unambiguous.
@@ -156,13 +167,55 @@ export default function TodayStatesPage() {
         title="Page level"
         blurb="The frame around everything, and the two states that replace the whole page."
       >
-        <Spec id="today/page-header" title="Page header" when="Always" onPaper>
-          <header className="mx-auto max-w-column">
-            <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
-              Monday, July 13
-            </p>
-            <h1 className="mt-1 font-display text-28 text-ink">{t.greeting}</h1>
-          </header>
+        <Spec
+          id="today/page-header"
+          title="Page header"
+          when="Always. Mark, date right-aligned, greeting, orientation line."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <PageHeader
+              date="Monday, July 13"
+              greeting="Hey Angel."
+              subline={t.greeting}
+            />
+          </div>
+        </Spec>
+
+        <Spec
+          id="today/health"
+          title="Health metric — the portfolio in one line"
+          when="Sits under the greeting once clients exist. One segment per client, tinted by that client's worst account health."
+          onPaper
+        >
+          <div className="mx-auto flex max-w-column flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <Slug id="today/health/all-green" />
+              <PageHeader
+                date="Monday, July 13"
+                greeting="Hey Angel."
+                subline={t.greeting}
+              >
+                <HealthCard clients={healthySpecimen} />
+              </PageHeader>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Slug id="today/health/mixed" />
+              <p className="font-ui text-12 text-ink-soft">
+                The seed&apos;s real mix — Birkenstock is amber. Figma only draws
+                the
+                all-green case, so the headline ladder below it is inferred: any
+                red client outranks any number of green ones.
+              </p>
+              <PageHeader
+                date="Monday, July 13"
+                greeting="Hey Angel."
+                subline={t.greeting}
+              >
+                <HealthCard clients={clientProfiles} />
+              </PageHeader>
+            </div>
+          </div>
         </Spec>
 
         <Spec
@@ -171,16 +224,19 @@ export default function TodayStatesPage() {
           when="RELAY_PILOT_NOW is set — a frozen date must never look like a bug"
           onPaper
         >
-          <header className="mx-auto max-w-column">
-            <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
-              Monday, July 13
-            </p>
-            <h1 className="mt-1 font-display text-28 text-ink">{t.greeting}</h1>
-            <p className="mt-2 font-ui text-12 text-flag">
-              Demo clock — pinned to Monday, July 13. Unset RELAY_PILOT_NOW for
-              the real date.
-            </p>
-          </header>
+          <div className="mx-auto max-w-column">
+            <PageHeader
+              date="Monday, July 13"
+              greeting="Hey Angel."
+              subline={t.greeting}
+              notice={
+                <p className="font-geist text-fig-caption-2 text-yellow-700">
+                  Demo clock — pinned to Monday, July 13. Unset RELAY_PILOT_NOW
+                  for the real date.
+                </p>
+              }
+            />
+          </div>
         </Spec>
 
         <Spec
@@ -190,17 +246,26 @@ export default function TodayStatesPage() {
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <EmptyPanel
-              title={t.emptyTitle}
-              glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
-              action={
-                <Button asChild size="fig">
-                  <Link href="/admin">{t.emptyCta}</Link>
-                </Button>
-              }
+            <PageHeader
+              date="Monday, July 13"
+              greeting="Hey Angel."
+              subline={t.firstRunSubline}
+              variant="first-run"
             >
-              {t.emptyBody}
-            </EmptyPanel>
+              <EmptyPanel
+                title={t.emptyTitle}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
+                }
+                action={
+                  <Button asChild size="fig">
+                    <Link href="/admin">{t.emptyCta}</Link>
+                  </Button>
+                }
+              >
+                {t.emptyBody}
+              </EmptyPanel>
+            </PageHeader>
           </div>
         </Spec>
 
@@ -211,12 +276,21 @@ export default function TodayStatesPage() {
           onPaper
         >
           <div className="mx-auto max-w-column">
-            <EmptyPanel
-              title={config.copy.auth.noClients}
-              glyph={<ClientsGlyph className="size-nav-icon text-caption-1" />}
+            <PageHeader
+              date="Monday, July 13"
+              greeting="Hey Angel."
+              subline={t.firstRunSubline}
+              variant="first-run"
             >
-              {config.copy.auth.noClientsBody}
-            </EmptyPanel>
+              <EmptyPanel
+                title={config.copy.auth.noClients}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
+                }
+              >
+                {config.copy.auth.noClientsBody}
+              </EmptyPanel>
+            </PageHeader>
           </div>
         </Spec>
       </Group>

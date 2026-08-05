@@ -33,6 +33,8 @@ import { extendTailwindMerge } from "tailwind-merge";
  *  on the screens awaiting redesign. */
 const FONT_SIZES = [
   "fig-button",
+  "fig-h6",
+  "fig-body-lg",
   "fig-body",
   "fig-caption-1",
   // Longest-first is not required — the table is exact-match — but note that
