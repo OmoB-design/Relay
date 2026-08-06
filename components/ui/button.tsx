@@ -41,8 +41,14 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline disabled:opacity-50",
       },
       size: {
-        /* Figma Button (node 300:8781): px 10 · py 6 · radius 8 · 12px/1.2 Medium. */
-        fig: "gap-1.5 rounded-8 px-2.5 py-1.5 text-fig-button fig-medium",
+        /* Figma Button (node 300:8781): px 10 · radius 8 · 12px/1.2 Medium, and
+           every variant measures 26px tall. That height is SET rather than left
+           to py-1.5, which landed at 28.4px once the hairline was added on top
+           of the padding — Figma keeps its 0.6px stroke inside the 26px box.
+           The 2.4px matters: the radius is unchanged at 8px, but 8 on a 28.4px
+           button reads squarer than 8 on a 26px one, which is why these looked
+           under-rounded against the frame. */
+        fig: "h-button-fig gap-1.5 rounded-8 px-2.5 text-fig-button fig-medium",
         /* Figma Compile (node 311:17920): px 8 · py 4 · radius 6 · gap 6 ·
            13px/1.2 SemiBold · 12px icon. A different size, not a variant of fig. */
         "fig-compile":

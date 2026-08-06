@@ -61,28 +61,42 @@ function CardWell({
   );
 }
 
-/** Yesterday's numbers. Rows carry the 34px client mark. */
+/** Yesterday's numbers. Rows carry the 34px client mark.
+ *
+ *  Mirrors DailyDigestBand's list rather than CardWell: the band is one 63px
+ *  card PER ROW at gap-2 with a hairline between, not a single well holding
+ *  several rows. Sharing the shell would have the page resize under the reader
+ *  the moment the data lands, which is the one thing a skeleton exists to
+ *  prevent. */
 export function DigestSkeleton({ rows = 4 }: { rows?: number }) {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeadingSkeleton />
-      <CardWell>
+      <ul className="flex flex-col gap-2">
         {Array.from({ length: rows }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex items-center gap-2 px-2 pb-3 pt-1.5",
-              i < rows - 1 && "divider-b border-border",
+          <li key={i} className="flex flex-col gap-2">
+            {i > 0 && (
+              <span
+                aria-hidden="true"
+                className="h-0 w-full divider-b border-border"
+              />
             )}
-          >
-            <Bar className="size-avatar shrink-0 rounded-10" />
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <Bar className="h-3.5 w-28" />
-              <Bar className="h-3 w-full max-w-80" />
-            </span>
-          </div>
+            <div className="flex h-digest-row flex-col overflow-hidden rounded-18 border-fig border-border bg-surface-primary p-1 shadow-card">
+              {/* Same two shells as the real row: the well fills the pinned
+                  height, the header sits at its top with the slack below. */}
+              <div className="flex flex-1 flex-col overflow-hidden rounded-14 border-fig border-border bg-surface-dashboard pt-1">
+                <div className="flex items-center gap-2 px-2">
+                  <Bar className="size-avatar shrink-0 rounded-10" />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <Bar className="h-3.5 w-28" />
+                    <Bar className="h-3 w-full max-w-80" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </li>
         ))}
-      </CardWell>
+      </ul>
     </section>
   );
 }

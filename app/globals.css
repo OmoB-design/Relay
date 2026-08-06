@@ -115,6 +115,20 @@
      card would read as a rendering slip rather than as a deliberate rest state.
      A minimum, not a height, so longer copy can still grow it. */
   --spacing-due-empty: 182px;
+
+  /* A digest row is exactly this tall — every variant, Confirm button or
+     chevron (node 392:2190 measures all four of its rows at 550x63). It is a
+     HEIGHT, not a minimum, because the arithmetic cannot reach 63 on its own:
+     Figma aligns strokes to the inside of the box, CSS puts them outside it, so
+     the card's and the well's hairlines add 2.8px that the frame never spends.
+     Pinning the height puts those borders back inside, which is where the frame
+     has them, and guarantees the rows agree with each other. */
+  --spacing-digest-row: 63px;
+  /* Likewise the Button component set (node 300:8781): every variant is 26px
+     tall. Left to padding alone ours came out 28.4px, and an 8px radius on a
+     28.4px box reads squarer than the same radius on a 26px one — which is what
+     made the buttons look under-rounded next to the frame. */
+  --spacing-button-fig: 26px;
   --radius-5: 5px;
   --radius-7: 7px;
   --spacing-dot: 5px; /* band header + flag category separator */
@@ -245,8 +259,9 @@
 
   /* --- Named sizes (semantic, so they survive the Figma swap). --- */
   --spacing-rule: 3px; /* the linked-evidence left rule (design.md §3) */
-  /* Half the 0.7px hairline. DashedOutline insets its svg by this so the
-     stroke straddles the element's edge exactly as a border would. */
+  /* Half the 0.7px hairline. The `hairline-outline` utility shrinks its svg by
+     this on every side so the stroke straddles the element's edge exactly as a
+     border would. */
   --spacing-hair-half: 0.35px;
 
   /* Sidebar geometry (Figma node 357:2590, both variants). */
@@ -404,6 +419,30 @@
 /* The same rule above an element — the mobile bar's lid. */
 @utility divider-t {
   border-top-width: 0.7px;
+}
+
+/* DashedOutline's overlay box, and the reason it is a utility rather than
+   `absolute inset-hair-half`.
+
+   An <svg> is a REPLACED element. Given offsets on all four sides but no
+   explicit width or height, it does not stretch the way a div does — it takes
+   its default intrinsic size, 300x150, and the right/bottom offsets are simply
+   dropped as over-constrained. Every dashed outline in the app was therefore a
+   fixed 300x150 rectangle pinned to the top-left corner of its card, measured
+   in Chromium at 300x150 inside a 550x182 panel.
+
+   So width and height are SET here, never inferred from the offsets. The box is
+   the parent inset by half a stroke, which puts the painted outer edge exactly
+   where a border's would be. `overflow: visible` then keeps the outer half of
+   that stroke — which by definition falls outside the svg's own viewport — from
+   being clipped back off. */
+@utility hairline-outline {
+  position: absolute;
+  top: var(--spacing-hair-half);
+  left: var(--spacing-hair-half);
+  width: calc(100% - 2 * var(--spacing-hair-half));
+  height: calc(100% - 2 * var(--spacing-hair-half));
+  overflow: visible;
 }
 
 /* Shimmer defaults. Plain custom properties rather than @theme entries: they are

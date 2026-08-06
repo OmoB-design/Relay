@@ -17,6 +17,11 @@ import { cn } from "@/lib/utils";
  *  svg is inset by half the stroke and the rect's radius drops by the same
  *  amount. The painted outer edge then lands exactly where a border would have.
  *
+ *  That inset comes from `hairline-outline`, which sets the svg's width and
+ *  height outright. It cannot be `absolute inset-hair-half`: an svg is a
+ *  replaced element, so four offsets with no explicit size get it the default
+ *  300x150 box, not the parent's. See the utility in globals.css.
+ *
  *  The parent must be `relative`, and must NOT also carry a border. */
 export function DashedOutline({
   /** The parent's border-radius. The rect's own is this minus half the stroke. */
@@ -29,10 +34,7 @@ export function DashedOutline({
   return (
     <svg
       aria-hidden="true"
-      className={cn(
-        "pointer-events-none absolute inset-hair-half text-border",
-        className,
-      )}
+      className={cn("hairline-outline pointer-events-none text-border", className)}
     >
       <rect
         width="100%"

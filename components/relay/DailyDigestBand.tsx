@@ -83,7 +83,7 @@ export type DigestEntry = {
    radius stack into banding rather than depth — the frames read as a single edge,
    so that is what this draws. */
 const CARD =
-  "overflow-hidden rounded-18 border-fig border-border bg-surface-primary shadow-card";
+  "flex flex-col overflow-hidden rounded-18 border-fig border-border bg-surface-primary shadow-card";
 /* The panel fill is bound to Surface/Dashboard in node 365:3662, where the
    earlier digest frame carried a raw #fbfbfb. A variable beats a hex. */
 const PANEL =
@@ -120,10 +120,12 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
          around a hole, which is what both of these rows are. The stroke is
          PAINTED rather than bordered; see DashedOutline for why 0.7px dashed
          cannot be a CSS border. The panel inside stays solid. */
-      <div className={cn(CARD, "relative border-0")}>
+      <div className={cn(CARD, "relative h-digest-row border-0")}>
         <DashedOutline />
-        <div className="p-1">
-          <div className={cn(PANEL, "gap-4 px-2 pb-3 pt-1")}>
+        <div className="flex flex-1 flex-col p-1">
+          {/* The well fills what the fixed height leaves, so the slack under the
+              row is what remains rather than a padding that fights the height. */}
+          <div className={cn(PANEL, "flex-1 gap-4 px-2 pt-1")}>
             <div className="flex items-center gap-2">
               <ClientAvatar name={client.name} logo={logo} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -213,15 +215,17 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   const reasonValid = reason.trim().length > 0;
 
   return (
-    <div className={CARD}>
-      <div className="p-1">
-        <div className={cn(PANEL, "gap-4 pb-3 pt-1")}>
+    /* 63px closed, whether the row ends in Confirm or a chevron. Open, it has to
+       grow — the metric grid and the override form live below the header. */
+    <div className={cn(CARD, !open && "h-digest-row")}>
+      <div className="flex flex-1 flex-col p-1">
+        <div className={cn(PANEL, "flex-1 gap-4 pt-1", open && "pb-3")}>
           {/* Header — identity, source, the two numbers a buyer scans first,
                   and the one action that advances the row. */}
           <div
             className={cn(
               "flex flex-wrap items-center gap-2 px-2",
-              open ? "divider-b border-border pb-3" : "pb-1",
+              open && "divider-b border-border pb-3",
             )}
           >
             <button

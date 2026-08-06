@@ -152,6 +152,24 @@ const CASES: Case[] = [
     exact: "rounded-20",
     label: "radius 18 and 20 are rivals — the later wins",
   },
+  /* Named heights. `h-digest-row` and `h-button-fig` look like nothing at all to
+     tailwind-merge unless declared — and a dropped height is exactly the bug
+     they exist to prevent, since both boxes are pinned to a Figma measurement. */
+  {
+    input: ["h-digest-row", "border-0"],
+    keep: ["h-digest-row", "border-0"],
+    label: "the 63px digest row keeps its height next to a border reset",
+  },
+  {
+    input: ["h-button-fig", "rounded-8", "px-2.5"],
+    keep: ["h-button-fig", "rounded-8", "px-2.5"],
+    label: "the 26px button keeps height, radius and padding together",
+  },
+  {
+    input: ["h-button-fig", "h-9"],
+    exact: "h-9",
+    label: "a legacy height still overrides the named one",
+  },
   // The shimmer utility sets a background; a bg-* colour beside it must not eat it.
   {
     input: ["shimmer", "rounded-4"],
