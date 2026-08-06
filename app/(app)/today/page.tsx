@@ -100,7 +100,7 @@ export default async function TodayPage({
         logo,
         problem: {
           kind: "stale",
-          message: `Newest row is ${match.row.date}, not ${expected}. Relay reports this as absent, never as zero.`,
+          message: `Newest row is ${match.row.date}, not ${expected}.`,
         },
       };
     }
@@ -173,7 +173,7 @@ export default async function TodayPage({
         </PageHeader>
 
       {!showFirstRun && (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-16">
           {/* 0. Yesterday's numbers — the morning ritual, most time-critical. */}
           <DailyDigestBand entries={digest} />
 

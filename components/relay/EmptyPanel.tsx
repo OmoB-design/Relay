@@ -25,6 +25,7 @@ export function EmptyPanel({
   children,
   action,
   bodyTone = "text-caption-1",
+  wellTone = "bg-surface-foreground-01",
   className,
 }: {
   title: string;
@@ -38,6 +39,10 @@ export function EmptyPanel({
    *  Caption 1 #959595, the due-row panel (365:3311) in Heading-06 #5a5a5a.
    *  Caption 1 is the default because it is the newer frame. */
   bodyTone?: string;
+  /** And they disagree on the well too. First-run and the digest's empty state
+   *  are Surface/Foreground-01 (357:1074); the due row's "All caught up" is
+   *  Surface/Dashboard, which node 365:3662 confirms it kept. */
+  wellTone?: string;
   className?: string;
 }) {
   return (
@@ -47,10 +52,12 @@ export function EmptyPanel({
         className,
       )}
     >
-      {/* The well is Surface/Foreground-01, not Dashboard — node 357:1074
-          changed it, and the digest's empty state moved with it so the three
-          empty states on Today read as one thing. */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-14 border-fig border-border bg-surface-foreground-01 px-2 pb-3 pt-1">
+      <div
+        className={cn(
+          "flex flex-1 flex-col items-center justify-center gap-4 rounded-14 border-fig border-border px-2 pb-3 pt-1",
+          wellTone,
+        )}
+      >
         <div className="flex flex-col items-center justify-center gap-2">
           <ClientAvatar name="" glyph={glyph} />
           <div className="flex flex-col items-center justify-center gap-3">

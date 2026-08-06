@@ -111,7 +111,11 @@ export function AppNav({
     <>
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col items-center justify-between bg-surface-foreground-01 md:flex",
+          /* h-full inside the shell's h-dvh, so the nav is exactly one viewport
+             and never scrolls — the account tile stays on screen no matter how
+             long the morning's list gets. No sticky needed: the sheet beside it
+             is the scroll container, not the page. */
+          "hidden h-full shrink-0 flex-col items-center justify-between overflow-hidden bg-surface-foreground-01 md:flex",
           collapsed ? "w-nav-collapsed" : "w-nav",
         )}
       >

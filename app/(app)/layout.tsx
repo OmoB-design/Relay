@@ -16,18 +16,29 @@ export default async function AppLayout({
 }) {
   const profile = await requireProfile();
 
-  return (
-    <div className="min-h-screen bg-surface-foreground-01 md:flex">
-      <AppNav profile={profile} isAdmin={profile.role === "admin"} />
-      {/* THE CONTENT SHEET (node 357:1074). The page is a white surface that
-          sits BESIDE the nav rather than under it: rounded on its left corners
-          only, so it reads as sliding out from behind the sidebar and running
-          off the right edge of the window.
+  /* THE SHELL IS EXACTLY ONE VIEWPORT TALL and never scrolls itself; the content
+     sheet is the only scroll container. That is what keeps the sidebar and the
+     account tile pinned while the morning's work moves under them.
 
-          Desktop only. Below md the nav is a bottom bar, there is nothing to
-          slide out from behind, and 24px corners on a full-bleed page would
-          just be two odd notches at the top. */}
-      <main className="flex-1 pb-24 md:min-w-0 md:rounded-l-24 md:border-fig md:border-border md:bg-surface-primary md:pb-0 md:shadow-sheet">
+     h-dvh, not h-screen: on mobile Safari and Chrome 100vh is the height with
+     the URL bar HIDDEN, so a 100vh shell is taller than what you can actually
+     see and the bottom nav sits below the fold until you scroll. dvh tracks the
+     visible viewport as the bar comes and goes. */
+  return (
+    <div className="flex h-dvh overflow-hidden bg-surface-foreground-01">
+      <AppNav profile={profile} isAdmin={profile.role === "admin"} />
+      {/* THE CONTENT SHEET (node 357:1074). A white surface that sits BESIDE the
+          nav rather than under it: rounded on its left corners only, so it reads
+          as sliding out from behind the sidebar and running off the right edge.
+
+          Rounding is desktop-only — below md the nav is a bottom bar, there is
+          nothing to slide out from behind, and two 24px notches at the top of a
+          full-bleed page is just odd. The scrolling is not: the sheet is the
+          scroll container at every width.
+
+          overscroll-contain stops a flick at the end of the list from chaining
+          out to the document and rubber-banding the whole shell. */}
+      <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain pb-24 md:rounded-l-24 md:border-fig md:border-border md:bg-surface-primary md:pb-0 md:shadow-sheet">
         {children}
       </main>
     </div>

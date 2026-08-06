@@ -162,7 +162,7 @@ export async function compileDaily(options?: {
     if (!found) {
       // Stage an EMPTY row rather than nothing: the day is accounted for, and
       // the reason travels with it to the morning band. Absent, never zero.
-      const problem = `No tracker row for ${format(parseISO(date), "MMM d")}. Relay reports this as absent, never as zero.`;
+      const problem = `No tracker row for ${format(parseISO(date), "MMM d")}.`;
       await upsertStagedRow({
         clientId: client.id,
         date,

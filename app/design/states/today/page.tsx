@@ -262,7 +262,7 @@ export default function TodayStatesPage() {
                 <HealthCard clients={clientProfiles} />
               </PageHeader>
             </div>
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-16">
               <DailyDigestBand entries={withLogos(specEntries.mixed)} />
               <Section
                 title={t.waitingTitle}
@@ -323,7 +323,7 @@ export default function TodayStatesPage() {
                 <HealthCard clients={healthySpecimen} />
               </PageHeader>
             </div>
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-16">
               <DailyDigestBand entries={withLogos(specEntries.allConfirmed)} />
               {/* No Waiting section. No Flags section. That is the state. */}
               <Section title={t.dueTitle}>

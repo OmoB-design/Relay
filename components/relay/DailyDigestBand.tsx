@@ -85,8 +85,10 @@ export type DigestEntry = {
    so that is what this draws. */
 const CARD =
   "overflow-hidden rounded-18 border-fig border-border bg-surface-primary shadow-card";
+/* The panel fill is bound to Surface/Dashboard in node 365:3662, where the
+   earlier digest frame carried a raw #fbfbfb. A variable beats a hex. */
 const PANEL =
-  "flex flex-col overflow-hidden rounded-14 border-fig border-border bg-panel";
+  "flex flex-col overflow-hidden rounded-14 border-fig border-border bg-surface-dashboard";
 
 const display = (key: MetricKey, value: number | undefined): string =>
   value === undefined ? "—" : formatMetric(key, value);
@@ -116,7 +118,7 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
     const kind = problem?.kind ?? "notCompiled";
     const Icon = kind === "notCompiled" ? Clock : CircleAlert;
     return (
-      <li className={CARD}>
+      <div className={CARD}>
         <div className="p-1">
           <div className={cn(PANEL, "gap-4 px-2 pb-3 pt-1")}>
             <div className="flex items-center gap-2">
@@ -153,7 +155,7 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
             </div>
           </div>
         </div>
-      </li>
+      </div>
     );
   }
 
@@ -204,7 +206,7 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   const reasonValid = reason.trim().length > 0;
 
   return (
-    <li className={CARD}>
+    <div className={CARD}>
       <div className="p-1">
         <div className={cn(PANEL, "gap-4 pb-3 pt-1")}>
           {/* Header — identity, source, the two numbers a buyer scans first,
@@ -369,7 +371,7 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
           </Button>
         </div>
       )}
-    </li>
+    </div>
   );
 }
 
@@ -456,18 +458,29 @@ export function DailyDigestBand({ entries }: { entries: DigestEntry[] }) {
           {dc.noRowsBody}
         </EmptyPanel>
       ) : (
-        <>
+        <div className="flex flex-col gap-2.5">
+          {/* A hairline between cards as well as the 8px gap (node 365:3662).
+              The cards are white on white, so the gap alone does not separate
+              them — the rule is what makes them read as a list. */}
           <ul className="flex flex-col gap-2">
-            {entries.map((entry) => (
-              <ClientRow key={entry.client.id} entry={entry} />
+            {entries.map((entry, i) => (
+              <li key={entry.client.id} className="flex flex-col gap-2">
+                {i > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="h-0 w-full divider-b border-border"
+                  />
+                )}
+                <ClientRow entry={entry} />
+              </li>
             ))}
           </ul>
           {allDone && (
-            <p className="font-geist text-fig-caption-1 text-caption-1">
+            <p className="font-geist text-fig-caption-2 text-heading-06">
               {dc.allConfirmed}
             </p>
           )}
-        </>
+        </div>
       )}
     </section>
   );

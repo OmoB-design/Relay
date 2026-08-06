@@ -161,6 +161,9 @@ export function DueEmpty() {
       title={config.copy.today.dueEmpty}
       glyph={<EditGlyph className="size-nav-icon text-icon-explainer" />}
       bodyTone="text-heading-06"
+      /* This one keeps Surface/Dashboard while first-run and the digest's empty
+         state moved to Foreground-01 — node 365:3662 draws it that way. */
+      wellTone="bg-surface-dashboard"
     >
       {config.copy.today.dueEmptyBody}
     </EmptyPanel>

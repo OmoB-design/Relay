@@ -239,7 +239,7 @@ export const specEntries = {
       client: specClients.huggers,
       problem: {
         kind: "stale" as const,
-        message: `Newest row is ${STALE_DATE}, not ${YESTERDAY}. Relay reports this as absent, never as zero.`,
+        message: `Newest row is ${STALE_DATE}, not ${YESTERDAY}.`,
       },
     },
   ],
@@ -264,7 +264,7 @@ export const specEntries = {
       client: specClients.huggers,
       problem: {
         kind: "stale" as const,
-        message: `Newest row is ${STALE_DATE}, not ${YESTERDAY}. Relay reports this as absent, never as zero.`,
+        message: `Newest row is ${STALE_DATE}, not ${YESTERDAY}.`,
       },
     },
   ],
