@@ -16,6 +16,7 @@ import { config } from "@/lib/config";
 import { formatMetric, metricLabel } from "@/lib/metrics";
 import type { DailyMetrics, DailyRow, ClientProfile } from "@/lib/types";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
+import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { Dot, SourceChip } from "@/components/relay/SourceChip";
 import { MetricField } from "@/components/relay/MetricField";
 import { Button } from "@/components/ui/button";
@@ -444,19 +445,16 @@ export function DailyDigestBand({ entries }: { entries: DigestEntry[] }) {
       </div>
 
       {entries.length === 0 ? (
-        <div className={CARD}>
-          <div className="flex flex-col items-center gap-2 px-6 py-10">
-            <span className="flex size-8 items-center justify-center rounded-8 border-fig border-border">
-              <Inbox size={14} aria-hidden="true" className="text-heading-06" />
-            </span>
-            <p className="font-geist text-fig-body fig-medium text-heading-01">
-              {dc.noRows}
-            </p>
-            <p className="text-center font-geist text-fig-caption-1 text-heading-05">
-              {dc.noRowsBody}
-            </p>
-          </div>
-        </div>
+        /* The same panel the due row and first-run use. Three empty states on
+           one page that each drew their own box was three boxes; this is one. */
+        <EmptyPanel
+          title={dc.noRows}
+          glyph={
+            <Inbox size={14} aria-hidden="true" className="text-icon-explainer" />
+          }
+        >
+          {dc.noRowsBody}
+        </EmptyPanel>
       ) : (
         <>
           <ul className="flex flex-col gap-2">

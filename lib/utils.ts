@@ -52,7 +52,7 @@ const FONT_SIZES = [
 ];
 
 /** Figma's Numbers/N radius scale, plus the client mark's two. */
-const RADII = ["4", "5", "6", "7", "8", "10", "12", "14", "18", "20"];
+const RADII = ["4", "5", "6", "7", "8", "10", "12", "14", "18", "20", "24"];
 
 /** Border WIDTHS expressed as named utilities — these look like colours to
  *  tailwind-merge unless declared. */
@@ -67,6 +67,7 @@ const SHADOWS = [
   "avatar",
   "avatar-well",
   "nav-profile",
+  "sheet",
 ];
 
 /** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB 500. */

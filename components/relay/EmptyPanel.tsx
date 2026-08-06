@@ -47,7 +47,10 @@ export function EmptyPanel({
         className,
       )}
     >
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-14 border-fig border-border bg-surface-dashboard px-2 pb-3 pt-1">
+      {/* The well is Surface/Foreground-01, not Dashboard — node 357:1074
+          changed it, and the digest's empty state moved with it so the three
+          empty states on Today read as one thing. */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-14 border-fig border-border bg-surface-foreground-01 px-2 pb-3 pt-1">
         <div className="flex flex-col items-center justify-center gap-2">
           <ClientAvatar name="" glyph={glyph} />
           <div className="flex flex-col items-center justify-center gap-3">

@@ -17,9 +17,19 @@ export default async function AppLayout({
   const profile = await requireProfile();
 
   return (
-    <div className="min-h-screen md:flex">
+    <div className="min-h-screen bg-surface-foreground-01 md:flex">
       <AppNav profile={profile} isAdmin={profile.role === "admin"} />
-      <main className="flex-1 pb-24 md:pb-0">{children}</main>
+      {/* THE CONTENT SHEET (node 357:1074). The page is a white surface that
+          sits BESIDE the nav rather than under it: rounded on its left corners
+          only, so it reads as sliding out from behind the sidebar and running
+          off the right edge of the window.
+
+          Desktop only. Below md the nav is a bottom bar, there is nothing to
+          slide out from behind, and 24px corners on a full-bleed page would
+          just be two odd notches at the top. */}
+      <main className="flex-1 pb-24 md:min-w-0 md:rounded-l-24 md:border-fig md:border-border md:bg-surface-primary md:pb-0 md:shadow-sheet">
+        {children}
+      </main>
     </div>
   );
 }

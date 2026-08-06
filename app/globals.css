@@ -128,6 +128,7 @@
   --radius-14: 14px;
   --radius-18: 18px;
   --radius-20: 20px; /* the due row's own card */
+  --radius-24: 24px; /* the content sheet's left corners */
 
   /* Type — one family. `geist` sets --font-geist-sans on <body>. */
   --font-geist: var(--font-geist-sans), system-ui, sans-serif;
@@ -251,9 +252,17 @@
   --spacing-nav-profile: 48px; /* the account card's row */
   --spacing-nav-icon: 14px;
   --spacing-nav-mark: 20px;
+  /* The account tile, revised by node 357:1074 — taller and with a bigger
+     avatar than the standalone nav frame drew it. */
+  --spacing-nav-card: 42px;
+  --spacing-nav-avatar: 25px;
 
   /* Centered reading-column widths (design.md §4). */
-  --container-column: 720px; /* Today, and general centered content */
+  --container-column: 720px; /* the screens still on the old design */
+  /* The redesign's column, from node 357:1074. Narrower than the legacy 720 on
+     purpose — the digest row, the waiting card and the due card were all drawn
+     at 550, so anything wider stretches them past their designed proportions. */
+  --container-sheet: 550px;
   --container-thread: 680px; /* Answer Desk thread (used from Phase 5) */
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
@@ -325,6 +334,13 @@
 @utility field-invalid {
   box-shadow: 0 0 1.5px 1px var(--color-red-200);
 }
+/* The content sheet (node 357:1139) — the white page surface the nav sits
+   beside. Barely there, and that is the point: it separates the page from the
+   nav's foreground-01 without drawing a line down the middle of the app. */
+@utility shadow-sheet {
+  box-shadow: 0 0 4px 0 rgb(208 208 208 / 0.15);
+}
+
 /* The sidebar's account card (Figma 357:2730): a faint outer lift plus two
    insets — a top white catch-light and a bottom shade — which together read as a
    pressed tile rather than a floating one. */

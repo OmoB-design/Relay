@@ -113,9 +113,12 @@ export default async function TodayPage({
 
   const today = format(now(), "EEEE, MMMM d");
 
+  /* Node 357:1074's measurements, inside the sheet: the column is centred at
+     550, opens 64px below the sheet's own 32px of headroom, and leaves 64px
+     between the header block and the first section. */
   return (
-    <div className="mx-auto max-w-column px-6 py-10">
-      <div className="mb-8">
+    <div className="flex flex-col items-center px-6 pt-8">
+      <div className="flex w-full max-w-sheet flex-col gap-16 pb-8 pt-16">
         <PageHeader
           date={today}
           /* The page's accessible name is "Today"; the greeting is the visible
@@ -168,7 +171,6 @@ export default async function TodayPage({
             <HealthCard clients={clients} />
           )}
         </PageHeader>
-      </div>
 
       {!showFirstRun && (
         <div className="flex flex-col gap-10">
@@ -224,6 +226,7 @@ export default async function TodayPage({
           </Section>
         </div>
       )}
+      </div>
     </div>
   );
 }

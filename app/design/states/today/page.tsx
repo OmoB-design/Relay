@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CatalogueHeader, Group, Slug, Spec } from "@/app/design/_ui";
 import { config } from "@/lib/config";
 import {
@@ -29,7 +28,6 @@ import { TodaySkeleton } from "@/components/relay/LoadingSkeletons";
 import { PageHeader } from "@/components/relay/PageHeader";
 import { HealthCard } from "@/components/relay/HealthCard";
 import { clientProfiles } from "@/lib/seed";
-import { Button } from "@/components/ui/button";
 
 /* ============================================================================
    Today — the complete state catalogue.
@@ -105,7 +103,6 @@ const SLUGS = [
   [
     "today/loaded",
     "today/quiet",
-    "today/first-run",
     "today/first-run-buyer",
     "today/loading",
   ],
@@ -139,7 +136,7 @@ export default function TodayStatesPage() {
   return (
     <>
       <CatalogueHeader title="Today — every state" count="3 of 3">
-        Thirty-three frames. Today has four sections and each has its own
+        Thirty-two frames. Today has four sections and each has its own
         absence and progress states, so the real matrix is much wider than the
         happy path. Design every slug listed here; annotate each Figma frame
         with its slug and the mapping back to code is unambiguous.
@@ -175,7 +172,7 @@ export default function TodayStatesPage() {
           when="Always. Mark, date right-aligned, greeting, orientation line."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <PageHeader
               date="Monday, July 13"
               greeting="Hey Angel."
@@ -190,7 +187,7 @@ export default function TodayStatesPage() {
           when="Sits under the greeting once clients exist. One segment per client, tinted by that client's worst account health."
           onPaper
         >
-          <div className="mx-auto flex max-w-column flex-col gap-6">
+          <div className="mx-auto flex max-w-sheet flex-col gap-6">
             <div className="flex flex-col gap-2">
               <Slug id="today/health/all-green" />
               <PageHeader
@@ -226,7 +223,7 @@ export default function TodayStatesPage() {
           when="RELAY_PILOT_NOW is set — a frozen date must never look like a bug"
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <PageHeader
               date="Monday, July 13"
               greeting="Hey Angel."
@@ -255,7 +252,7 @@ export default function TodayStatesPage() {
           when="The state to design first: mixed digest, questions waiting, open flags, all three due statuses. This is what a buyer sees most Mondays."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <div className="mb-8">
               <PageHeader
                 date="Monday, July 13"
@@ -316,7 +313,7 @@ export default function TodayStatesPage() {
           when="All rows confirmed, no flags, no questions waiting, nothing due. The ONLY frame that shows the page with two sections ABSENT — Flags and Waiting collapse entirely rather than rendering empty, so this is where the layout proves it holds together without them."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <div className="mb-8">
               <PageHeader
                 date="Monday, July 13"
@@ -337,42 +334,12 @@ export default function TodayStatesPage() {
         </Spec>
 
         <Spec
-          id="today/first-run"
-          title="First run, as an ADMIN — no clients at all"
-          when="Zero clients in the agency. Replaces the entire page body. The admin is the only role that can fix it, so this is the only version with a CTA."
-          onPaper
-        >
-          <div className="mx-auto max-w-column">
-            <PageHeader
-              date="Monday, July 13"
-              greeting="Hey Angel."
-              subline={t.firstRunSubline}
-              variant="first-run"
-            >
-              <EmptyPanel
-                title={t.emptyTitle}
-                glyph={
-                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
-                }
-                action={
-                  <Button asChild size="fig">
-                    <Link href="/admin">{t.emptyCta}</Link>
-                  </Button>
-                }
-              >
-                {t.emptyBody}
-              </EmptyPanel>
-            </PageHeader>
-          </div>
-        </Spec>
-
-        <Spec
           id="today/first-run-buyer"
-          title="First run, as a BUYER — nothing assigned"
+          title="First run, as a BUYER — nothing assigned (node 357:1074)"
           when="Covers two situations that look identical from here: no clients exist, or clients exist but none are this buyer's. Either way their next move is to ask, so there is no button — a CTA a buyer cannot use is worse than none."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <PageHeader
               date="Monday, July 13"
               greeting="Hey Angel."
@@ -414,7 +381,7 @@ export default function TodayStatesPage() {
           note="Click a client row to expand all eight metrics. Click Edit on a staged row to reach digest/editing."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.mixed)} />
           </div>
         </Spec>
@@ -425,7 +392,7 @@ export default function TodayStatesPage() {
           when="The compile ran; nobody has looked yet. Confirm is primary."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.staged)} />
           </div>
         </Spec>
@@ -436,7 +403,7 @@ export default function TodayStatesPage() {
           when="A human accepted the numbers as-is. No action remains."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.confirmed)} />
           </div>
         </Spec>
@@ -448,7 +415,7 @@ export default function TodayStatesPage() {
           note="Expand the row to see the override reason line."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.edited)} />
           </div>
         </Spec>
@@ -460,7 +427,7 @@ export default function TodayStatesPage() {
           note="Expand to see the three n/a cells and the reason line beneath."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.partial)} />
           </div>
         </Spec>
@@ -471,7 +438,7 @@ export default function TodayStatesPage() {
           when="The comparison that matters most — three different problems needing three different responses."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.allProblems)} />
           </div>
         </Spec>
@@ -482,7 +449,7 @@ export default function TodayStatesPage() {
           when="Relay hasn't looked. Fixed by re-running the compile → clock icon, ink-soft."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.notCompiled)} />
           </div>
         </Spec>
@@ -493,7 +460,7 @@ export default function TodayStatesPage() {
           when="Relay looked and the row wasn't there. Fixed in the sheet, not in Relay → alert icon, flag colour, plus a pointer to the tracker."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.absent)} />
           </div>
         </Spec>
@@ -504,7 +471,7 @@ export default function TodayStatesPage() {
           when="Something upstream stopped. Reported as absent, never as zero."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.stale)} />
           </div>
         </Spec>
@@ -515,7 +482,7 @@ export default function TodayStatesPage() {
           when="Nothing left waiting. The closing line is the reward."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.allConfirmed)} />
           </div>
         </Spec>
@@ -526,7 +493,7 @@ export default function TodayStatesPage() {
           when="Clients exist but no compile has ever run."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DailyDigestBand entries={withLogos(specEntries.empty)} />
           </div>
         </Spec>
@@ -545,7 +512,7 @@ export default function TodayStatesPage() {
           note="Live wiring: Dismiss opens reason capture; Edit & send copies the draft note. Actions point at fixture ids and will fail harmlessly."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <Section title={t.flagsTitle}>
               <TodayFlagList items={specFlagItems.all} />
             </Section>
@@ -558,7 +525,7 @@ export default function TodayStatesPage() {
           when="A draft note exists → both Dismiss and Edit & send."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <FlagCard flag={specFlags.withDraft} clientName="Birkenstock" />
           </div>
         </Spec>
@@ -569,7 +536,7 @@ export default function TodayStatesPage() {
           when="No note to send → Dismiss only. The button never leads nowhere."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <FlagCard flag={specFlags.noDraft} clientName="Northbrook" />
           </div>
         </Spec>
@@ -581,7 +548,7 @@ export default function TodayStatesPage() {
           note="Click Dismiss on the card below to open the textarea, then try to confirm with it empty to see the validation state."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <TodayFlagList items={specFlagItems.one} />
           </div>
         </Spec>
@@ -592,7 +559,7 @@ export default function TodayStatesPage() {
           when="A human decided this doesn't matter. The engine never overrides it."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <FlagCard flag={specFlags.dismissed} clientName="Switchup" />
           </div>
         </Spec>
@@ -603,7 +570,7 @@ export default function TodayStatesPage() {
           when="The condition stopped holding. Leaves the queue on its own; re-opens if it recurs."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <FlagCard flag={specFlags.resolved} clientName="Northbrook" />
           </div>
         </Spec>
@@ -614,7 +581,7 @@ export default function TodayStatesPage() {
           when="The section collapses entirely — the absence of urgency is itself information. There is deliberately no empty state here."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <p className="border-hair border-dashed border-line px-4 py-6 text-center font-ui text-13 text-ink-soft">
               Nothing renders at all — no heading, no card, no gap. The dashed
               outline is this catalogue marking the absence; the product shows
@@ -636,7 +603,7 @@ export default function TodayStatesPage() {
           when="One or more unanswered threads. Age is the point of the row."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <Section
               title={t.waitingTitle}
               glyph={<WaitingGlyph className="size-nav-icon" />}
@@ -683,7 +650,7 @@ export default function TodayStatesPage() {
           when="The usual case. Each row's action is determined by its status."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <Section title={t.dueTitle}>
               <DueList>
                 <DueRow
@@ -712,7 +679,7 @@ export default function TodayStatesPage() {
           when="Relay wrote it; nobody has read it. Action: Review draft (primary)."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DueList>
               <DueRow
                 narrative={specNarratives.drafted}
@@ -729,7 +696,7 @@ export default function TodayStatesPage() {
           when="A human approved it; it hasn't gone out. Action: Send (primary)."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DueList>
               <DueRow
                 narrative={specNarratives.reviewed}
@@ -746,7 +713,7 @@ export default function TodayStatesPage() {
           when="Done. Action drops to secondary weight: View sent (outline)."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <DueList>
               <DueRow
                 narrative={specNarratives.sent}
@@ -763,7 +730,7 @@ export default function TodayStatesPage() {
           when="No outstanding drafts and nothing sent recently. This section DOES get a zero-state, unlike Flags and Waiting."
           onPaper
         >
-          <div className="mx-auto max-w-column">
+          <div className="mx-auto max-w-sheet">
             <Section title={t.dueTitle}>
               <DueEmpty />
             </Section>

@@ -259,13 +259,17 @@ function AccountCard({
         aria-expanded={open}
         aria-label={`${name} — account`}
         className={cn(
-          "flex items-center gap-1.5 overflow-hidden rounded-10 border-fig border-border bg-surface-primary p-1.5 shadow-nav-profile",
-          collapsed ? "w-8 shrink-0 justify-center" : "w-full",
+          "flex items-center gap-1.5 overflow-hidden rounded-10 border-fig border-border bg-surface-primary shadow-nav-profile",
+          /* Node 357:1074 revised this tile: 42px tall with a 25px avatar,
+             where the standalone nav frame drew it shorter and tighter. */
+          collapsed
+            ? "size-8 shrink-0 justify-center p-1.5"
+            : "h-nav-card w-full px-1.5 py-2.5",
         )}
       >
         <span
           aria-hidden="true"
-          className="flex size-avatar-glyph shrink-0 items-center justify-center rounded-full bg-surface-foreground-01 font-geist text-fig-caption-2 fig-medium uppercase text-heading-06"
+          className="flex size-nav-avatar shrink-0 items-center justify-center rounded-full bg-surface-foreground-01 font-geist text-fig-caption-2 fig-medium uppercase text-heading-06"
         >
           {name.slice(0, 1)}
         </span>
