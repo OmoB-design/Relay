@@ -35,8 +35,14 @@ Load the schema + seed into the project (Supabase SQL Editor, in order):
 
 1. `supabase/schema.sql` — tables, enums, and the integrity CHECK constraints
 2. `supabase/seed.sql` — three seed clients and their data
-3. `supabase/migrations/0002_voice_and_whatsapp.sql`
-4. `supabase/migrations/0003_loom.sql`
+3. Then every file in `supabase/migrations/` **in numeric order**, `0002` through
+   `0013`. They are cumulative and each one is idempotent (`if not exists`), so
+   re-running one is safe; skipping one is not.
+
+The migration list is not optional reading — `0008_auth.sql` documents the
+bootstrap (the first account created becomes the agency admin, and there is no
+signup form), and `0013_client_identity.sql` is what lets an admin create a
+client from the app at all.
 
 Then:
 

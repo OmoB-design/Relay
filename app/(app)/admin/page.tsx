@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { getRequestClient } from "@/lib/supabase";
 import { config } from "@/lib/config";
 import { ProfileSchema, type Profile } from "@/lib/types";
 import { TeamAdmin, type AdminClient } from "@/components/relay/TeamAdmin";
+import { Button } from "@/components/ui/button";
 
 /* Agency admin. Role-gated rather than a separate app: one session, and the
    admin needs the same client list a buyer does.
@@ -48,13 +50,21 @@ export default async function AdminPage() {
 
   return (
     <div className="mx-auto max-w-column px-6 py-10">
-      <header className="mb-8">
-        <p className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
-          {config.copy.admin.title}
-        </p>
-        <h1 className="mt-1 font-geist text-28 fig-sb text-heading-01">
-          Who works here, and on what
-        </h1>
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
+            {config.copy.admin.title}
+          </p>
+          <h1 className="mt-1 font-geist text-28 fig-sb text-heading-01">
+            Who works here, and on what
+          </h1>
+        </div>
+        {/* The only route to a client existing at all. Until this shipped the
+            admin could assign clients but never create one, so the first-run
+            CTA pointed at a page with nothing to do on it. */}
+        <Button size="fig" asChild>
+          <Link href="/admin/clients/new">{config.copy.addClient.cta}</Link>
+        </Button>
       </header>
 
       <TeamAdmin

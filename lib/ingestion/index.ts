@@ -63,15 +63,20 @@ export async function runIngestion(options: {
     latestYesterday(clients),
   );
 
-  // Match a tab to a client by name — the agency's tab names are the clients.
-  const byName = new Map(clients.map((c) => [c.name.toLowerCase(), c] as const));
+  /* Match a tab to a client by its recorded tracker tab, falling back to the
+     name for the clients that predate the column. The fallback is why renaming
+     a client used to break ingestion silently: the tab stopped matching, so the
+     client compiled with no data and Today reported the row absent. */
+  const byTab = new Map(
+    clients.map((c) => [(c.trackerTab ?? c.name).toLowerCase(), c] as const),
+  );
   const prior = priorPeriodOf(period);
 
   const results: ClientIngestion[] = [];
   const unmatchedTabs: string[] = [];
 
   for (const tab of tabs) {
-    const client = byName.get(tab.tabName.toLowerCase());
+    const client = byTab.get(tab.tabName.toLowerCase());
     if (!client) {
       unmatchedTabs.push(tab.tabName);
       continue;

@@ -41,6 +41,10 @@ export interface Database {
         cadence: Json;
         channel: string;
         descriptor: string | null;
+        /* Nullable for the clients that predate migration 0013; ingestion falls
+           back to `name`, which is how it matched them before. */
+        tracker_tab: string | null;
+        domain: string | null;
         daily_to_client: boolean;
         account_timezone: string;
       }>;

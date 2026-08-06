@@ -113,6 +113,8 @@ function mapProfile(
     cadence: CadenceSchema.parse(client.cadence),
     channel: client.channel,
     descriptor: opt(client.descriptor),
+    trackerTab: opt(client.tracker_tab),
+    domain: opt(client.domain),
     dailyToClient: client.daily_to_client ?? false,
     accountTimezone: client.account_timezone ?? "Asia/Dubai",
     accounts: accounts.map(mapAccount),

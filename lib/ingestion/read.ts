@@ -112,6 +112,43 @@ export async function readLiveWorkbook(): Promise<RawWorkbook> {
   return workbook;
 }
 
+/** Just the tab names, for the admin's add-client form.
+ *
+ *  A separate call from readWorkbook because it answers a different question at
+ *  a different cost: `spreadsheets.get` returns the tab list alone, while
+ *  readWorkbook batch-reads every cell of every tab. The form checks a name
+ *  against this on each keystroke, so pulling the whole workbook to answer
+ *  "does this tab exist" would be several megabytes per character typed. */
+export async function listTrackerTabs(): Promise<{
+  tabs: string[];
+  source: "live" | "fixture";
+}> {
+  if (!hasLiveTrackerConfig()) {
+    return { tabs: Object.keys(await readFixtureWorkbook()), source: "fixture" };
+  }
+
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID!;
+  const credentials = await serviceAccountCredentials();
+  const { google } = await import("googleapis");
+  const auth = new google.auth.JWT({
+    email: credentials!.clientEmail,
+    key: credentials!.privateKey,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+  });
+  const sheets = google.sheets({ version: "v4", auth });
+  const meta = await sheets.spreadsheets.get({
+    spreadsheetId,
+    // Titles only. Without this the response carries every tab's grid data.
+    fields: "sheets.properties.title",
+  });
+  return {
+    tabs: (meta.data.sheets ?? [])
+      .map((s) => s.properties?.title)
+      .filter((t): t is string => Boolean(t)),
+    source: "live",
+  };
+}
+
 export function hasLiveTrackerConfig(): boolean {
   const hasCredentials =
     Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE) ||

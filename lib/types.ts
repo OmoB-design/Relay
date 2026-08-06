@@ -139,6 +139,15 @@ export const ClientSchema = z.object({
   cadence: CadenceSchema,
   channel: ChannelSchema,
   descriptor: z.string().optional(), // "DTC functional beverage brand"
+  /** Which tab of the agency's tracker workbook holds this client's numbers.
+   *  Optional only for the clients that predate the column — ingestion falls
+   *  back to `name`, which is how it matched before. Anything created through
+   *  the admin form sets it, because a name and a tab are not the same fact and
+   *  letting them drift makes a client silently report no data. */
+  trackerTab: z.string().optional(),
+  /** The client's own website. Collected at creation because that is the only
+   *  moment anyone knows it; a logo is looked up by domain. */
+  domain: z.string().optional(),
   /** May a client-FACING daily note go out? Internal digests compile for every
    *  client regardless; this governs what leaves the building. */
   dailyToClient: z.boolean().default(false),
