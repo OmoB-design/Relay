@@ -48,7 +48,7 @@ export function EmptyPanel({
   return (
     <div
       className={cn(
-        "flex min-h-due-empty flex-col rounded-18 border-fig border-dashed border-border bg-surface-primary p-1 shadow-card",
+        "flex min-h-due-empty flex-col rounded-18 border-dash border-border bg-surface-primary p-1 shadow-card",
         className,
       )}
     >

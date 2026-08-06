@@ -118,7 +118,7 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
       /* A DASHED shell, from node 309:17112 — the card is an outline around a
          hole, which is exactly what an absent row is. The panel inside stays
          solid; only the outer edge goes dashed. */
-      <div className={cn(CARD, "border-dashed")}>
+      <div className={cn(CARD, "border-dash")}>
         <div className="p-1">
           <div className={cn(PANEL, "gap-4 px-2 pb-3 pt-1")}>
             <div className="flex items-center gap-2">

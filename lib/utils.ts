@@ -56,7 +56,7 @@ const RADII = ["4", "5", "6", "7", "8", "10", "12", "14", "18", "20", "24"];
 
 /** Border WIDTHS expressed as named utilities — these look like colours to
  *  tailwind-merge unless declared. */
-const BORDER_WIDTHS = ["fig", "hair"];
+const BORDER_WIDTHS = ["fig", "hair", "dash"];
 
 /** box-shadow and drop-shadow utilities. */
 const SHADOWS = [
