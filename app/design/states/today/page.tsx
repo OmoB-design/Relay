@@ -25,6 +25,7 @@ import { WaitingList, WaitingRow } from "@/components/relay/WaitingRow";
 import { SectionHeading } from "@/components/relay/SectionHeading";
 import { ClientsGlyph, WaitingGlyph } from "@/components/relay/NavIcons";
 import { EmptyPanel } from "@/components/relay/EmptyPanel";
+import { TodaySkeleton } from "@/components/relay/LoadingSkeletons";
 import { PageHeader } from "@/components/relay/PageHeader";
 import { HealthCard } from "@/components/relay/HealthCard";
 import { clientProfiles } from "@/lib/seed";
@@ -107,6 +108,7 @@ const SLUGS = [
     "today/first-run",
     "today/first-run-buyer",
   ],
+  ["today/loaded", "today/quiet", "today/loading"],
   [
     "digest/mixed",
     "digest/staged",
@@ -137,7 +139,7 @@ export default function TodayStatesPage() {
   return (
     <>
       <CatalogueHeader title="Today — every state" count="3 of 3">
-        Thirty frames. Today has four sections and each has its own
+        Thirty-three frames. Today has four sections and each has its own
         absence and progress states, so the real matrix is much wider than the
         happy path. Design every slug listed here; annotate each Figma frame
         with its slug and the mapping back to code is unambiguous.
@@ -292,6 +294,109 @@ export default function TodayStatesPage() {
               </EmptyPanel>
             </PageHeader>
           </div>
+        </Spec>
+      </Group>
+
+      {/* ---------------------------------------------------------------- */}
+      <Group
+        id="assemblies"
+        title="Page assemblies — the whole of Today, per state"
+        blurb="The full page as one composition, for designing the entire view rather than a section. Everything inside is the real components with specimen data; only the arrangement is provisional until the full-page frame lands."
+      >
+        <Spec
+          id="today/loaded"
+          title="The working morning — everything populated"
+          when="The state to design first: mixed digest, questions waiting, open flags, all three due statuses. This is what a buyer sees most Mondays."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <div className="mb-8">
+              <PageHeader
+                date="Monday, July 13"
+                greeting="Hey Angel."
+                subline={t.greeting}
+              >
+                <HealthCard clients={clientProfiles} />
+              </PageHeader>
+            </div>
+            <div className="flex flex-col gap-10">
+              <DailyDigestBand entries={withLogos(specEntries.mixed)} />
+              <Section
+                title={t.waitingTitle}
+                glyph={<WaitingGlyph className="size-nav-icon" />}
+              >
+                <WaitingList>
+                  {specWaiting.map((w, i) => (
+                    <WaitingRow
+                      key={w.question}
+                      clientId={specClients.switchup.id}
+                      clientName={w.clientName}
+                      question={w.question}
+                      age={w.age}
+                      last={i === specWaiting.length - 1}
+                    />
+                  ))}
+                </WaitingList>
+              </Section>
+              <Section title={t.flagsTitle}>
+                <TodayFlagList items={specFlagItems.all} />
+              </Section>
+              <Section title={t.dueTitle}>
+                <DueList>
+                  <DueRow
+                    narrative={specNarratives.drafted}
+                    client={dueClients.northbrook}
+                    logo={config.clientLogos[dueClients.northbrook.name]}
+                  />
+                  <DueRow
+                    narrative={specNarratives.reviewed}
+                    client={dueClients.birkenstock}
+                    logo={config.clientLogos[dueClients.birkenstock.name]}
+                  />
+                  <DueRow
+                    narrative={specNarratives.sent}
+                    client={dueClients.switchup}
+                    logo={config.clientLogos[dueClients.switchup.name]}
+                  />
+                </DueList>
+              </Section>
+            </div>
+          </div>
+        </Spec>
+
+        <Spec
+          id="today/quiet"
+          title="The quiet morning — everything done, nothing burning"
+          when="All rows confirmed, no flags, no questions waiting, nothing due. The ONLY frame that shows the page with two sections ABSENT — Flags and Waiting collapse entirely rather than rendering empty, so this is where the layout proves it holds together without them."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <div className="mb-8">
+              <PageHeader
+                date="Monday, July 13"
+                greeting="Hey Angel."
+                subline={t.greeting}
+              >
+                <HealthCard clients={healthySpecimen} />
+              </PageHeader>
+            </div>
+            <div className="flex flex-col gap-10">
+              <DailyDigestBand entries={withLogos(specEntries.allConfirmed)} />
+              {/* No Waiting section. No Flags section. That is the state. */}
+              <Section title={t.dueTitle}>
+                <DueEmpty />
+              </Section>
+            </div>
+          </div>
+        </Spec>
+
+        <Spec
+          id="today/loading"
+          title="Loading — the shimmer"
+          when="What /today renders while the data loads. Every bar is sized from the component it stands in for, so nothing jumps when content lands. Tune the sweep at /design/skeletons."
+          onPaper
+        >
+          <TodaySkeleton />
         </Spec>
       </Group>
 
