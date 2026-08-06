@@ -179,7 +179,7 @@ export const specRows = {
     source: "Tracker",
     metrics: {},
     unavailable: {
-      [ROW_ABSENT_KEY]: `No tracker row for ${YESTERDAY}. Relay never interpolates a missing day.`,
+      [ROW_ABSENT_KEY]: `No tracker row for ${YESTERDAY}.`,
     },
     status: "staged",
     compiledAt: COMPILED_AT,

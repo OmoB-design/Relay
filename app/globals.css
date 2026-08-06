@@ -245,6 +245,9 @@
 
   /* --- Named sizes (semantic, so they survive the Figma swap). --- */
   --spacing-rule: 3px; /* the linked-evidence left rule (design.md §3) */
+  /* Half the 0.7px hairline. DashedOutline insets its svg by this so the
+     stroke straddles the element's edge exactly as a border would. */
+  --spacing-hair-half: 0.35px;
 
   /* Sidebar geometry (Figma node 357:2590, both variants). */
   --spacing-nav: 230px;
@@ -394,22 +397,6 @@
 @utility border-fig {
   border-width: 0.7px;
 }
-/* A DASHED hairline needs more weight than a solid one, so it is its own
-   utility rather than `border-fig border-dashed`.
-
-   Browsers derive dash length from border width — roughly 3× — so 0.7px gives
-   ~2px dashes with ~2px gaps, and at #eaeaea those anti-alias into a faint
-   continuous line. The dashes are drawn; you cannot see them. 1px is the
-   smallest width where the pattern survives, and the whole point of a dashed
-   edge is that it reads as "there is a hole here" from across the room.
-
-   The single-weight rule in border-fig is about concentric SOLID hairlines
-   banding together. This is a lone outer edge, so it is not that case. */
-@utility border-dash {
-  border-width: 1px;
-  border-style: dashed;
-}
-
 /* The rule under a card's header strip — same weight, one edge. */
 @utility divider-b {
   border-bottom-width: 0.7px;

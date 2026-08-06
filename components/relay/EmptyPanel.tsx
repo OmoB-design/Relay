@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
+import { DashedOutline } from "@/components/relay/DashedOutline";
 
 /* The card-shaped empty state — Figma node 365:3311, the due row's "All caught
    up" frame, generalised.
@@ -48,10 +49,11 @@ export function EmptyPanel({
   return (
     <div
       className={cn(
-        "flex min-h-due-empty flex-col rounded-18 border-dash border-border bg-surface-primary p-1 shadow-card",
+        "relative flex min-h-due-empty flex-col rounded-18 bg-surface-primary p-1 shadow-card",
         className,
       )}
     >
+      <DashedOutline />
       <div
         className={cn(
           "flex flex-1 flex-col items-center justify-center gap-4 rounded-14 border-fig border-border px-2 pb-3 pt-1",

@@ -129,19 +129,6 @@ const CASES: Case[] = [
     exact: "text-fig-caption-1-md",
     label: "Caption 1 and Caption 1 - MD are distinct sizes",
   },
-  /* border-dash sets width AND style, so it has to beat border-fig rather than
-     sit beside it — two border-widths on one element is a coin toss decided by
-     stylesheet order. */
-  {
-    input: ["border-fig", "border-dash", "border-border"],
-    keep: ["border-dash", "border-border"],
-    label: "the dashed hairline replaces the solid one",
-  },
-  {
-    input: ["border-dash", "border-fig"],
-    exact: "border-fig",
-    label: "and loses to a later solid hairline",
-  },
   // divider-t is a border WIDTH on one edge, and looks like a colour otherwise.
   {
     input: ["divider-t", "border-border"],

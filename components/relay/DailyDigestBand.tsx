@@ -14,6 +14,7 @@ import { config } from "@/lib/config";
 import { formatMetric, metricLabel } from "@/lib/metrics";
 import type { DailyMetrics, DailyRow, ClientProfile } from "@/lib/types";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
+import { DashedOutline } from "@/components/relay/DashedOutline";
 import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { Dot, SourceChip } from "@/components/relay/SourceChip";
 import { MetricField } from "@/components/relay/MetricField";
@@ -115,10 +116,12 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
   if (!row || problem) {
     const kind = problem?.kind ?? "notCompiled";
     return (
-      /* A DASHED shell, from node 309:17112 — the card is an outline around a
-         hole, which is exactly what an absent row is. The panel inside stays
-         solid; only the outer edge goes dashed. */
-      <div className={cn(CARD, "border-dash")}>
+      /* A DASHED shell (nodes 309:17112 absent, 309:17110 stale) — an outline
+         around a hole, which is what both of these rows are. The stroke is
+         PAINTED rather than bordered; see DashedOutline for why 0.7px dashed
+         cannot be a CSS border. The panel inside stays solid. */
+      <div className={cn(CARD, "relative border-0")}>
+        <DashedOutline />
         <div className="p-1">
           <div className={cn(PANEL, "gap-4 px-2 pb-3 pt-1")}>
             <div className="flex items-center gap-2">
@@ -145,10 +148,10 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
                 </span>
                 <span className="flex flex-wrap items-center gap-1.5 font-geist text-fig-caption-1 text-heading-06">
                   <span>{problem?.message}</span>
-                  {/* "Relay hasn't looked" is fixed by re-running; a missing
-                      row and a stale one are both fixed in the sheet, so those
-                      two get the instruction and notCompiled does not. */}
-                  {kind !== "notCompiled" && (
+                  {/* Absent alone gets the instruction. Node 309:17110 draws
+                      stale as a single line — its message already names both
+                      dates, which says what to look at without being told. */}
+                  {kind === "absent" && (
                     <>
                       <Dot />
                       <span>{dc.goToTracker}</span>
