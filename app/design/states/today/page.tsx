@@ -101,14 +101,14 @@ const dueClients: Record<string, DueClient> = {
 };
 
 const SLUGS = [
+  ["today/page-header", "today/pilot-clock", "today/health"],
   [
-    "today/page-header",
-    "today/pilot-clock",
-    "today/health",
+    "today/loaded",
+    "today/quiet",
     "today/first-run",
     "today/first-run-buyer",
+    "today/loading",
   ],
-  ["today/loaded", "today/quiet", "today/loading"],
   [
     "digest/mixed",
     "digest/staged",
@@ -167,7 +167,7 @@ export default function TodayStatesPage() {
       <Group
         id="page"
         title="Page level"
-        blurb="The frame around everything, and the two states that replace the whole page."
+        blurb="The frame around everything — the masthead, the health line, and the pinned-clock notice."
       >
         <Spec
           id="today/page-header"
@@ -241,60 +241,6 @@ export default function TodayStatesPage() {
           </div>
         </Spec>
 
-        <Spec
-          id="today/first-run"
-          title="First run, as an ADMIN — no clients at all"
-          when="Zero clients in the agency. Replaces the entire page body. The admin is the only role that can fix it, so this is the only version with a CTA."
-          onPaper
-        >
-          <div className="mx-auto max-w-column">
-            <PageHeader
-              date="Monday, July 13"
-              greeting="Hey Angel."
-              subline={t.firstRunSubline}
-              variant="first-run"
-            >
-              <EmptyPanel
-                title={t.emptyTitle}
-                glyph={
-                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
-                }
-                action={
-                  <Button asChild size="fig">
-                    <Link href="/admin">{t.emptyCta}</Link>
-                  </Button>
-                }
-              >
-                {t.emptyBody}
-              </EmptyPanel>
-            </PageHeader>
-          </div>
-        </Spec>
-
-        <Spec
-          id="today/first-run-buyer"
-          title="First run, as a BUYER — nothing assigned"
-          when="Covers two situations that look identical from here: no clients exist, or clients exist but none are this buyer's. Either way their next move is to ask, so there is no button — a CTA a buyer cannot use is worse than none."
-          onPaper
-        >
-          <div className="mx-auto max-w-column">
-            <PageHeader
-              date="Monday, July 13"
-              greeting="Hey Angel."
-              subline={t.firstRunSubline}
-              variant="first-run"
-            >
-              <EmptyPanel
-                title={config.copy.auth.noClients}
-                glyph={
-                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
-                }
-              >
-                {config.copy.auth.noClientsBody}
-              </EmptyPanel>
-            </PageHeader>
-          </div>
-        </Spec>
       </Group>
 
       {/* ---------------------------------------------------------------- */}
@@ -387,6 +333,61 @@ export default function TodayStatesPage() {
                 <DueEmpty />
               </Section>
             </div>
+          </div>
+        </Spec>
+
+        <Spec
+          id="today/first-run"
+          title="First run, as an ADMIN — no clients at all"
+          when="Zero clients in the agency. Replaces the entire page body. The admin is the only role that can fix it, so this is the only version with a CTA."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <PageHeader
+              date="Monday, July 13"
+              greeting="Hey Angel."
+              subline={t.firstRunSubline}
+              variant="first-run"
+            >
+              <EmptyPanel
+                title={t.emptyTitle}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
+                }
+                action={
+                  <Button asChild size="fig">
+                    <Link href="/admin">{t.emptyCta}</Link>
+                  </Button>
+                }
+              >
+                {t.emptyBody}
+              </EmptyPanel>
+            </PageHeader>
+          </div>
+        </Spec>
+
+        <Spec
+          id="today/first-run-buyer"
+          title="First run, as a BUYER — nothing assigned"
+          when="Covers two situations that look identical from here: no clients exist, or clients exist but none are this buyer's. Either way their next move is to ask, so there is no button — a CTA a buyer cannot use is worse than none."
+          onPaper
+        >
+          <div className="mx-auto max-w-column">
+            <PageHeader
+              date="Monday, July 13"
+              greeting="Hey Angel."
+              subline={t.firstRunSubline}
+              variant="first-run"
+            >
+              <EmptyPanel
+                title={config.copy.auth.noClients}
+                glyph={
+                  <ClientsGlyph className="size-nav-icon text-icon-explainer" />
+                }
+              >
+                {config.copy.auth.noClientsBody}
+              </EmptyPanel>
+            </PageHeader>
           </div>
         </Spec>
 
