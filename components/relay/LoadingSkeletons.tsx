@@ -66,7 +66,7 @@ export function DigestSkeleton({ rows = 4 }: { rows?: number }) {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeadingSkeleton />
-      <CardWell fill="bg-panel">
+      <CardWell>
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
@@ -187,19 +187,33 @@ export function NavSkeleton({ collapsed = false }: { collapsed?: boolean }) {
   );
 }
 
-/** The whole Today page, header included. */
+/** The whole Today page, header included.
+ *
+ *  The wrapper here MIRRORS app/(app)/today/page.tsx exactly — same 550 column,
+ *  same px-6 pt-8 outside it, same pt-16 pb-8 gap-16 inside. It drifted once
+ *  already: the page moved to the sheet's 550 and this stayed on the legacy 720,
+ *  so the skeleton was visibly wider than what replaced it. If one changes, both
+ *  change. */
 export function TodaySkeleton() {
   return (
-    <div className="mx-auto max-w-column px-6 py-10">
-      <header className="mb-8 flex flex-col gap-2">
-        <Bar className="h-3 w-44" />
-        <Bar className="h-7 w-72 max-w-full" />
-        <Bar className="h-3.5 w-96 max-w-full" />
-      </header>
-      <div className="flex flex-col gap-10">
-        <DigestSkeleton />
-        <WaitingSkeleton />
-        <DueSkeleton />
+    <div className="flex flex-col items-center px-6 pt-8">
+      <div className="flex w-full max-w-sheet flex-col gap-16 pb-8 pt-16">
+        {/* The masthead: 30px mark, the date right-aligned, greeting, subline. */}
+        <header className="flex w-full flex-col items-start gap-3.5">
+          <Bar className="size-mark-lg rounded-8" />
+          <Bar className="h-3.5 w-32 self-end" />
+          <div className="flex w-full flex-col gap-3">
+            <Bar className="h-5 w-48" />
+            <Bar className="h-4 w-40" />
+          </div>
+          {/* The health card: p-2.5 around a 13px headline and a 12px sub-line. */}
+          <Bar className="h-14 w-full rounded-18" />
+        </header>
+        <div className="flex flex-col gap-16">
+          <DigestSkeleton />
+          <WaitingSkeleton />
+          <DueSkeleton />
+        </div>
       </div>
     </div>
   );

@@ -6,8 +6,6 @@ import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import {
   ChevronRight,
-  CircleAlert,
-  Clock,
   Inbox,
   RefreshCw,
 } from "lucide-react";
@@ -116,9 +114,11 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
      and "the tracker row is missing" call for opposite actions. */
   if (!row || problem) {
     const kind = problem?.kind ?? "notCompiled";
-    const Icon = kind === "notCompiled" ? Clock : CircleAlert;
     return (
-      <div className={CARD}>
+      /* A DASHED shell, from node 309:17112 — the card is an outline around a
+         hole, which is exactly what an absent row is. The panel inside stays
+         solid; only the outer edge goes dashed. */
+      <div className={cn(CARD, "border-dashed")}>
         <div className="p-1">
           <div className={cn(PANEL, "gap-4 px-2 pb-3 pt-1")}>
             <div className="flex items-center gap-2">
@@ -128,23 +128,27 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
                   <span className="font-geist text-fig-body fig-w450 text-heading-01">
                     {client.name}
                   </span>
+                  {/* No border and no icon — the wash carries it. The frame
+                      covers absent and stale; notCompiled is not a warning
+                      about the DATA but about Relay not having looked yet, so
+                      it keeps the neutral grey and only borrows the shape. */}
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1 rounded-full border-fig px-1.5 py-1 font-geist text-fig-caption-2",
+                      "inline-flex items-center rounded-full px-1.5 py-1 font-geist text-fig-caption-2",
                       kind === "notCompiled"
-                        ? "border-border bg-surface-foreground-01 text-heading-05"
-                        : "border-yellow-100 bg-yellow-100 text-yellow-700",
+                        ? "bg-surface-foreground-01 text-heading-05"
+                        : "bg-yellow-50 text-yellow-700",
                     )}
                   >
-                    <Icon size={10} aria-hidden="true" />
                     {PROBLEM_CHIP[kind]}
                   </span>
                 </span>
                 <span className="flex flex-wrap items-center gap-1.5 font-geist text-fig-caption-1 text-heading-06">
                   <span>{problem?.message}</span>
-                  {/* "Relay hasn't looked" is fixed by re-running; "the row
-                          isn't in the tracker" is fixed in the sheet. Say which. */}
-                  {kind === "absent" && (
+                  {/* "Relay hasn't looked" is fixed by re-running; a missing
+                      row and a stale one are both fixed in the sheet, so those
+                      two get the instruction and notCompiled does not. */}
+                  {kind !== "notCompiled" && (
                     <>
                       <Dot />
                       <span>{dc.goToTracker}</span>

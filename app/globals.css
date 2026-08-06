@@ -80,6 +80,7 @@
   --color-yellow-700: #8f5e1c;
   --color-yellow-600: #be7d25; /* flag category label */
   --color-yellow-100: #fcebd5;
+  --color-yellow-50: #fdf5ea; /* the absent/stale chip's wash (node 309:17112) */
 
   /* Red — error, destructive */
   --color-red-700: #991616; /* validation copy */
