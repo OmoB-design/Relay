@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Check, CircleAlert, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
-import type { Profile } from "@/lib/types";
+import { DEFAULT_ANCHOR_TIME, type Profile } from "@/lib/types";
 import {
   createClientAction,
   trackerTabsAction,
@@ -124,6 +124,7 @@ export function AddClientForm({ buyers }: { buyers: Profile[] }) {
   const [accountTimezone, setAccountTimezone] = useState("Asia/Dubai");
   const [cadence, setCadence] = useState("weekly");
   const [anchorDay, setAnchorDay] = useState("mon");
+  const [anchorTime, setAnchorTime] = useState(DEFAULT_ANCHOR_TIME);
   const [channel, setChannel] = useState("whatsapp");
   const [buyerIds, setBuyerIds] = useState<string[]>([]);
 
@@ -172,7 +173,7 @@ export function AddClientForm({ buyers }: { buyers: Profile[] }) {
         sourceOfTruth,
         currency,
         accountTimezone,
-        cadence: { primary: cadence, anchorDay },
+        cadence: { primary: cadence, anchorDay, anchorTime },
         channel,
         buyerIds,
       });
@@ -288,11 +289,23 @@ export function AddClientForm({ buyers }: { buyers: Profile[] }) {
             />
           </Field>
           <Field label={t.anchorLabel} hint={t.anchorHint}>
-            <Select
-              value={anchorDay}
-              onChange={setAnchorDay}
-              options={DAYS.map((d) => ({ value: d, label: DAY_LABEL[d] }))}
-            />
+            <div className="flex items-center gap-2">
+              <Select
+                value={anchorDay}
+                onChange={setAnchorDay}
+                options={DAYS.map((d) => ({ value: d, label: DAY_LABEL[d] }))}
+              />
+              {/* A real clock control rather than a dropdown of half-hours: the
+                  send time is a threshold someone has agreed with a client, not
+                  a value to pick off a list. */}
+              <input
+                type="time"
+                value={anchorTime}
+                onChange={(e) => setAnchorTime(e.target.value)}
+                aria-label={t.timeLabel}
+                className={cn(FIELD, "w-auto shrink-0")}
+              />
+            </div>
           </Field>
         </div>
       </section>

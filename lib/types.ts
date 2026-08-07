@@ -126,8 +126,25 @@ export const CadenceSchema = z.object({
   anchorDay: z
     .enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"])
     .optional(),
+  /** When the update is expected to have gone out, "HH:mm" on a 24-hour clock,
+   *  read in the CLIENT's account timezone rather than the agency's — a Dubai
+   *  client's 09:00 is five hours before a London one's.
+   *
+   *  It is what turns "late" into a threshold instead of a guess. Without it the
+   *  earliest anything can be called late is midnight, by which point the day it
+   *  was meant to land on is over. Optional, because every client that predates
+   *  the field has one; DEFAULT_ANCHOR_TIME stands in for them. */
+  anchorTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use a 24-hour time like 09:00.")
+    .optional(),
   note: z.string().optional(),
 });
+
+/** Assumed send time for a client whose cadence predates `anchorTime`. Start of
+ *  the working day: late enough that a buyer has had the morning's digest, early
+ *  enough that "not sent yet" still leaves the day to fix it. */
+export const DEFAULT_ANCHOR_TIME = "09:00";
 export type Cadence = z.infer<typeof CadenceSchema>;
 
 /** The Client Graph: everything Relay knows about how to talk to a client. */

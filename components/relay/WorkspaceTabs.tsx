@@ -111,6 +111,7 @@ export function WorkspaceTabs({
               clientId={profile.id}
               cadence={profile.cadence}
               channel={profile.channel}
+              timezone={profile.accountTimezone}
             />
           </Card>
 

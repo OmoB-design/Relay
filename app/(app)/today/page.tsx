@@ -10,8 +10,7 @@ import {
   getOpenFlags,
   getWaitingThreads,
 } from "@/lib/data";
-import { yesterdayFor } from "@/lib/daily/compile";
-import { ROW_ABSENT_KEY } from "@/lib/types";
+import { buildDigest } from "@/lib/daily/digest";
 import {
   DailyDigestBand,
   type DigestEntry,
@@ -74,42 +73,9 @@ export default async function TodayPage({
   const showFirstRun = forceEmpty || clients.length === 0;
 
   /* The morning queue: every client, with yesterday's row or an honest account
-     of why it's missing. Three distinct absences, because they need three
-     different responses from the buyer:
-       · notCompiled — Relay hasn't looked yet        → re-run the compile
-       · absent      — Relay looked, the row isn't there → go fill the tracker
-       · stale       — the newest row is for an older day → investigate     */
-  const digest: DigestEntry[] = clients.map((client) => {
-    const match = dailyRows.find((d) => d.client.id === client.id);
-    const expected = yesterdayFor(client);
-    const logo = config.clientLogos[client.name];
-
-    if (!match) {
-      return {
-        client,
-        logo,
-        problem: {
-          kind: "notCompiled",
-          message: `Not compiled for ${expected} yet.`,
-        },
-      };
-    }
-    if (match.row.date !== expected) {
-      return {
-        client,
-        logo,
-        problem: {
-          kind: "stale",
-          message: `Newest row is ${match.row.date}, not ${expected}.`,
-        },
-      };
-    }
-    // A row staged with no metrics means Relay looked and found nothing.
-    const absent = match.row.unavailable[ROW_ABSENT_KEY];
-    return absent
-      ? { client, logo, problem: { kind: "absent", message: absent } }
-      : { client, logo, row: match.row };
-  });
+     of why it's missing. Shared with the admin overview — two surfaces working
+     out "absent" separately is how they come to disagree. */
+  const digest: DigestEntry[] = buildDigest(clients, dailyRows);
 
   const today = format(now(), "EEEE, MMMM d");
 

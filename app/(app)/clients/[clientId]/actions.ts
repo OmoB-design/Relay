@@ -82,6 +82,13 @@ const CommsInput = z.object({
   clientId: z.string().uuid(),
   cadencePrimary: z.enum(["weekly", "weekly-lite", "monthly"]),
   channel: z.enum(["whatsapp", "email"]),
+  anchorDay: z
+    .enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"])
+    .optional(),
+  anchorTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional(),
 });
 
 export async function updateCommsAction(input: z.infer<typeof CommsInput>) {
@@ -89,8 +96,12 @@ export async function updateCommsAction(input: z.infer<typeof CommsInput>) {
   await updateComms(p.clientId, {
     cadencePrimary: p.cadencePrimary,
     channel: p.channel,
+    anchorDay: p.anchorDay,
+    anchorTime: p.anchorTime,
   });
   revalidate(p.clientId);
+  // The admin's overview reads this to decide whether a client is late.
+  revalidatePath("/overview");
 }
 
 const StakeholderInput = z.object({

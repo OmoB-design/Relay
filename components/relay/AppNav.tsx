@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { Gauge, LogOut, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
 import type { Profile } from "@/lib/types";
@@ -57,6 +57,16 @@ const NAV: NavItem[] = [
   { label: "Clients", href: "/clients", Glyph: ClientsGlyph },
   { label: "Answer Desk", href: "/answer-desk", Glyph: AnswerDeskGlyph },
   { label: "Library", href: "/library", Glyph: LibraryGlyph },
+  /* Above Team, because it is the page an admin opens every morning — Team is
+     something you visit when somebody joins or leaves. */
+  {
+    label: config.copy.overview.title,
+    href: "/overview",
+    Glyph: ({ className }) => (
+      <Gauge aria-hidden="true" className={cn("size-nav-icon", className)} />
+    ),
+    adminOnly: true,
+  },
   {
     label: config.copy.admin.title,
     href: "/admin",

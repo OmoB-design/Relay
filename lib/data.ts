@@ -1408,6 +1408,12 @@ export async function updateComms(
   patch: {
     cadencePrimary: "weekly" | "weekly-lite" | "monthly";
     channel: "whatsapp" | "email";
+    /** The agreed moment, in the CLIENT's timezone. Undefined leaves whatever
+     *  is already recorded — the admin overview treats a client with no anchor
+     *  day as unscheduled rather than late, so clearing one by accident would
+     *  quietly remove it from oversight. */
+    anchorDay?: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+    anchorTime?: string;
   },
 ): Promise<void> {
   const sb = await getSupabase();
@@ -1421,6 +1427,8 @@ export async function updateComms(
   const cadence = {
     ...(data!.cadence as object),
     primary: patch.cadencePrimary,
+    ...(patch.anchorDay ? { anchorDay: patch.anchorDay } : {}),
+    ...(patch.anchorTime ? { anchorTime: patch.anchorTime } : {}),
   };
   const { error: updateError } = await sb
     .from("clients")

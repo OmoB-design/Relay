@@ -599,6 +599,7 @@ export default function ComponentsPage() {
             clientId={specClients.northbrook.id}
             cadence={nb.cadence}
             channel={nb.channel}
+            timezone={nb.accountTimezone}
           />
         </Spec>
 
