@@ -265,6 +265,21 @@ const ConfigSchema = z.object({
       riskUnconfirmed: z.string(),
       riskFlags: z.string(),
     }),
+    /** Setting up an empty agency. Steps are ordered by dependency, not by
+     *  importance — see AdminFirstRun. */
+    firstRun: z.object({
+      title: z.string(),
+      body: z.string(),
+      doneSuffix: z.string(),
+      inviteTitle: z.string(),
+      inviteBody: z.string(),
+      clientTitle: z.string(),
+      clientBody: z.string(),
+      assignTitle: z.string(),
+      assignBody: z.string(),
+      assignCta: z.string(),
+      complete: z.string(),
+    }),
     dismissReasonPlaceholder: z.string(),
     dismissReasonRequired: z.string(),
     dismissedPrefix: z.string(),
@@ -624,6 +639,23 @@ export const config: Config = ConfigSchema.parse({
       riskTracker: "No usable row",
       riskUnconfirmed: "Unconfirmed",
       riskFlags: "Open flags",
+    },
+    firstRun: {
+      title: "Setting up",
+      body: "Three things, in this order — a client added before there is anyone to carry it starts out invisible.",
+      doneSuffix: "done",
+      inviteTitle: "Invite your media buyers",
+      inviteBody:
+        "They sign in with their own email and see only what you assign them.",
+      clientTitle: "Add your clients",
+      clientBody:
+        "Each one reads a tab of the tracker workbook. You can assign a buyer on the same screen.",
+      assignTitle: "Make sure everyone is covered",
+      assignBody:
+        "A client with nobody on it never appears on anyone's Today, so nobody works on it.",
+      assignCta: "Assign clients",
+      complete:
+        "Set up. Relay compiles yesterday's numbers each morning; your buyers confirm them and send the Monday update.",
     },
     dismissReasonPlaceholder: "Why are you dismissing this? (required)",
     dismissReasonRequired: "A reason is required before dismissing.",

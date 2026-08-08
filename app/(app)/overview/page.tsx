@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { config } from "@/lib/config";
 import { getOverview } from "@/lib/admin/overview";
 import { AdminOverview } from "@/components/relay/AdminOverview";
+import { AdminFirstRun, adminSteps } from "@/components/relay/AdminFirstRun";
 import { Button } from "@/components/ui/button";
 
 /* The admin's oversight page. Its own route rather than a role-branch inside
@@ -17,9 +18,27 @@ export const dynamic = "force-dynamic";
 
 const t = config.copy.overview;
 
-export default async function OverviewPage() {
+export default async function OverviewPage({
+  searchParams,
+}: {
+  searchParams: { empty?: string };
+}) {
   await requireAdmin();
   const overview = await getOverview();
+
+  // ?empty=1 forces the first-run view for demos, without touching data — the
+  // same switch Today carries, for the same reason.
+  const forceEmpty = searchParams.empty === "1";
+
+  const steps = adminSteps(
+    forceEmpty
+      ? { buyers: 0, clients: 0, uncovered: 0 }
+      : {
+          buyers: overview.coverage.length,
+          clients: overview.delivery.length,
+          uncovered: overview.uncovered.length,
+        },
+  );
 
   return (
     <div className="mx-auto max-w-column px-6 py-10">
@@ -40,7 +59,16 @@ export default async function OverviewPage() {
         </Button>
       </header>
 
-      <AdminOverview overview={overview} />
+      <div className="flex flex-col gap-4">
+        {/* Setup stays up while anything is outstanding — a half-set-up agency
+            is the state most likely to look fine and behave badly. The panels
+            appear as soon as there is a single client to report on, because an
+            empty Coverage card is indistinguishable from a broken one. */}
+        {steps.some((s) => !s.done) && <AdminFirstRun steps={steps} />}
+        {!forceEmpty && overview.delivery.length > 0 && (
+          <AdminOverview overview={overview} />
+        )}
+      </div>
     </div>
   );
 }
