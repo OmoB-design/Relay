@@ -160,7 +160,15 @@ export function AddClientForm({ buyers }: { buyers: Profile[] }) {
      outage at Google a reason nobody can onboard — and the unique index still
      catches a genuine collision at the insert. */
   const blocked = tabState.kind === "missing" || tabState.kind === "taken";
-  const submittable = name.trim() !== "" && tab.trim() !== "" && !blocked;
+  /* `checking` blocks too, or the check is decorative: the workbook takes a
+     second to answer and a fast typist can submit inside that window, which is
+     precisely the typo the form exists to catch. The server re-checks anyway —
+     this is what stops the button lying about it. */
+  const submittable =
+    name.trim() !== "" &&
+    tab.trim() !== "" &&
+    !blocked &&
+    tabState.kind !== "checking";
 
   function submit() {
     setError(null);

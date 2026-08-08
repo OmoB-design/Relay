@@ -83,6 +83,29 @@ export async function createClientAction(
 
   const sb = await getRequestClient();
 
+  /* THE TAB HAS TO EXIST, and the server is what decides it.
+     The form greys out the button while the workbook is still being read, but
+     that is a courtesy: a server action is a public endpoint, and the check the
+     whole feature rests on cannot live only in the browser. A client pointed at
+     a tab that is not there compiles with no data and reports absent every
+     morning — silently, which is the failure this exists to prevent.
+
+     An unreadable workbook does NOT block. Google being down should not be the
+     reason nobody can onboard a client, and the unique index still guards the
+     collision case. */
+  try {
+    const { tabs } = await listTrackerTabs();
+    const needle = c.trackerTab.trim().toLowerCase();
+    if (!tabs.some((x) => x.trim().toLowerCase() === needle)) {
+      return {
+        ok: false,
+        error: `The tracker workbook has no tab called "${c.trackerTab}".`,
+      };
+    }
+  } catch {
+    // Left deliberately empty — see above.
+  }
+
   /* Two clients on one tab means one of them silently shows the other's
      numbers. The unique index in migration 0013 is the real guard; this exists
      to say so in a sentence instead of a Postgres constraint name. */

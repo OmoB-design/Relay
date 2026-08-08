@@ -126,7 +126,26 @@ if (figSize) {
   );
 }
 
-/* ---- 4. …and cn keeps all of it ------------------------------------------ */
+/* ---- 4. The add-client tab check is not browser-only --------------------- */
+
+const clientActions = readFileSync(
+  "app/(app)/admin/clients/actions.ts",
+  "utf8",
+);
+check(
+  "the server verifies the tracker tab exists, not just the form",
+  /listTrackerTabs\(\)/.test(clientActions) &&
+    /has no tab called/.test(clientActions),
+  "the form can be submitted before the workbook answers; only the server settles it",
+);
+const addForm = readFileSync("components/relay/AddClientForm.tsx", "utf8");
+check(
+  "the form refuses to submit while the check is still in flight",
+  /tabState\.kind !== "checking"/.test(addForm),
+  "otherwise a fast typist submits inside the window the check needs",
+);
+
+/* ---- 5. …and cn keeps all of it ------------------------------------------ */
 
 check(
   "tailwind-merge is taught the named heights",
