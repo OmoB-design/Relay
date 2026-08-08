@@ -9,6 +9,7 @@ import type { Answer, LoomHeadline } from "@/lib/types";
 import { AnswerCard } from "@/components/relay/AnswerCard";
 import { AppNav } from "@/components/relay/AppNav";
 import { ClaimSpan } from "@/components/relay/ClaimSpan";
+import { ClientAvatar } from "@/components/relay/ClientAvatar";
 import { CommsControls } from "@/components/relay/CommsControls";
 import { DueEmpty, DueList, DueRow } from "@/components/relay/DueRow";
 import { ClientsGlyph } from "@/components/relay/NavIcons";
@@ -18,6 +19,7 @@ import { EvidenceCard } from "@/components/relay/EvidenceCard";
 import { FlagCard } from "@/components/relay/FlagCard";
 import { HealthDot } from "@/components/relay/HealthDot";
 import { KpiList } from "@/components/relay/KpiList";
+import { LogoControl } from "@/components/relay/LogoControl";
 import {
   ColumnSkeleton,
   ListSkeleton,
@@ -620,6 +622,92 @@ export default function ComponentsPage() {
               <option value="weekly-lite">Weekly — lite</option>
               <option value="monthly">Monthly</option>
             </TokenSelect>
+          </div>
+        </Spec>
+      </Group>
+
+      {/* ================================================================ */}
+      <Group
+        id="logo"
+        title="Client logo"
+        blurb="Admin-only, on the Profile tab. The mark is fetched ONCE — at creation or on demand — and stored; it is never loaded from the client's own site while a page renders. The states differ by where the mark came from, because an icon scraped off a homepage is a guess in a way an upload is not, and the admin has to be able to tell."
+      >
+        <Spec
+          id="LogoControl/no-domain"
+          title="No website on file"
+          when="A client added without one, or every client that predates the field. Nothing to look up, so 'Look up again' is disabled rather than hidden — the reason is in its tooltip and under the mark."
+          note="Interactive; submits fail against the fixture id."
+        >
+          <LogoControl
+            clientId={specClients.northbrook.id}
+            clientName="Northbrook"
+          />
+        </Spec>
+
+        <Spec
+          id="LogoControl/lookup-failed"
+          title="Looked, found nothing"
+          when="A domain that does not resolve, a site that blocks the fetcher, or one with no usable icon. The reason is kept on the row and shown — 'no logo' on its own leaves the admin guessing whether it is broken or just absent."
+        >
+          <LogoControl
+            clientId={specClients.northbrook.id}
+            clientName="Northbrook"
+            domain="northbrook.com"
+            logoError="northbrook.com does not resolve — check the address."
+          />
+        </Spec>
+
+        <Spec
+          id="LogoControl/from-website"
+          title="Found on their website"
+          when="The automatic path. apple-touch-icon first, then the web manifest's icons, then <link rel=icon>, then favicon.ico last because 16px is mush at 34."
+        >
+          <LogoControl
+            clientId={specClients.northbrook.id}
+            clientName="Northbrook"
+            domain="northbrook.com"
+            logoUrl={config.clientLogos.Northbrook}
+            logoSource="website"
+          />
+        </Spec>
+
+        <Spec
+          id="LogoControl/uploaded"
+          title="Uploaded"
+          when="The escape hatch, and the one that always wins. Whatever the automatic sources find, an admin holding the real asset can put it in and be done."
+        >
+          <LogoControl
+            clientId={specClients.northbrook.id}
+            clientName="Northbrook"
+            domain="northbrook.com"
+            logoUrl={config.clientLogos.Switchup}
+            logoSource="upload"
+          />
+        </Spec>
+
+        <Spec
+          id="LogoControl/from-google-ads"
+          title="From Google Ads"
+          when="The brand's own LOGO asset, off an AssetGroup. Better than any favicon because the advertiser uploaded it themselves — but only accounts running Performance Max or responsive display have one."
+          note="Not reachable yet: it needs the Google Ads connector (Phase 7.5b). The state is drawn here because the label is what tells an admin the mark is authoritative."
+        >
+          <LogoControl
+            clientId={specClients.northbrook.id}
+            clientName="Northbrook"
+            domain="northbrook.com"
+            logoUrl={config.clientLogos.Birkenstock}
+            logoSource="google-ads"
+          />
+        </Spec>
+
+        <Spec
+          id="ClientAvatar/fallback"
+          title="ClientAvatar — the initials fallback"
+          when="What every state above degrades to. No agency has a logo for every client, so this is the shape the component needs regardless — never a broken image, never a grey box."
+        >
+          <div className="flex items-center gap-4">
+            <ClientAvatar name="Huggers" />
+            <ClientAvatar name="Northbrook" logo={config.clientLogos.Northbrook} />
           </div>
         </Spec>
       </Group>
