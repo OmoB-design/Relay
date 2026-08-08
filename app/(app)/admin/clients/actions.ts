@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { getRequestClient } from "@/lib/supabase";
 import { listTrackerTabs } from "@/lib/ingestion/read";
+import { autoResolveLogo } from "@/lib/logos/store";
 import {
   NewClientSchema,
   type ActionResult,
@@ -156,8 +157,19 @@ export async function createClientAction(
     }
   }
 
+  /* The logo, inline rather than in the background. It adds a second or two to
+     creation, and in exchange the admin sees the result immediately and can
+     upload one there and then if the lookup found nothing. A background job
+     would hand them a page that is right eventually and wrong on arrival.
+
+     autoResolveLogo NEVER throws: a client that could not be given a picture is
+     still a client, and failing creation over one would be absurd. The reason
+     is recorded on the row so the UI can say what happened. */
+  await autoResolveLogo({ clientId: id, domain: c.domain });
+
   revalidatePath("/admin");
   revalidatePath("/today");
   revalidatePath("/clients");
+  revalidatePath("/overview");
   return { ok: true, data: { id } };
 }

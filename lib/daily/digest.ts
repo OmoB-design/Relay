@@ -1,4 +1,4 @@
-import { config } from "@/lib/config";
+import { logoFor } from "@/lib/logos";
 import { yesterdayFor } from "@/lib/daily/compile";
 import { ROW_ABSENT_KEY, type ClientProfile } from "@/lib/types";
 import type { DailyRowWithClient } from "@/lib/data";
@@ -26,7 +26,7 @@ export function buildDigest(
   return clients.map((client) => {
     const match = dailyRows.find((d) => d.client.id === client.id);
     const expected = yesterdayFor(client);
-    const logo = config.clientLogos[client.name];
+    const logo = logoFor(client);
 
     if (!match) {
       return {

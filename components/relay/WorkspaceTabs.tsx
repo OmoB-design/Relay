@@ -21,6 +21,7 @@ import { StakeholderList } from "@/components/relay/StakeholderList";
 import { TimelineFeed } from "@/components/relay/TimelineFeed";
 import { StatusWord } from "@/components/relay/StatusMark";
 import { NumbersTab } from "@/components/relay/NumbersTab";
+import { LogoControl } from "@/components/relay/LogoControl";
 
 /* The workspace body: Profile / Timeline / Narratives tabs (design.md §4.2).
    Narratives is a Phase 3 stub. Profile is the Client Graph, two-column on
@@ -51,6 +52,7 @@ export function WorkspaceTabs({
   dailyRows,
   loomNarrativeIds = [],
   defaultTab = "profile",
+  isAdmin = false,
 }: {
   profile: ClientProfile;
   timeline: TimelineEntry[];
@@ -59,6 +61,8 @@ export function WorkspaceTabs({
   dailyRows: DailyRow[];
   loomNarrativeIds?: string[];
   defaultTab?: string;
+  /** Gates the admin-only cards. Server-side checks stand regardless. */
+  isAdmin?: boolean;
 }) {
   return (
     <Tabs defaultValue={defaultTab}>
@@ -105,6 +109,21 @@ export function WorkspaceTabs({
               clientId={profile.id}
             />
           </Card>
+
+          {/* Admins only. A buyer has no reason to decide what a client's mark
+              looks like, and the actions refuse them server-side regardless. */}
+          {isAdmin && (
+            <Card title={config.copy.logo.title}>
+              <LogoControl
+                clientId={profile.id}
+                clientName={profile.name}
+                logoUrl={profile.logoUrl}
+                logoSource={profile.logoSource}
+                logoError={profile.logoError}
+                domain={profile.domain}
+              />
+            </Card>
+          )}
 
           <Card title="Cadence & channel">
             <CommsControls

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
+import { logoFor } from "@/lib/logos";
 import type { DeliveryState, Overview } from "@/lib/admin/overview";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
 
@@ -94,7 +95,7 @@ export function AdminOverview({ overview }: { overview: Overview }) {
               <li key={client.id} className={ROW}>
                 <ClientAvatar
                   name={client.name}
-                  logo={config.clientLogos[client.name]}
+                  logo={logoFor(client)}
                 />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="flex flex-wrap items-center gap-2">
@@ -138,7 +139,7 @@ export function AdminOverview({ overview }: { overview: Overview }) {
           <ul className="mt-2 flex flex-col divide-y divide-border">
             {uncovered.map((c) => (
               <li key={c.id} className={ROW}>
-                <ClientAvatar name={c.name} logo={config.clientLogos[c.name]} />
+                <ClientAvatar name={c.name} logo={logoFor(c)} />
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                   <span className="font-geist text-fig-body fig-w450 text-heading-01">
                     {c.name}

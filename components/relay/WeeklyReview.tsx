@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
+import { logoFor } from "@/lib/logos";
 import { formatMetric } from "@/lib/metrics";
 import {
   RECONCILED,
@@ -120,7 +121,7 @@ function ReviewCard({ row, weekStart }: { row: ReviewRow; weekStart: string }) {
       <div className="flex flex-wrap items-center gap-2.5">
         <ClientAvatar
           name={row.client.name}
-          logo={config.clientLogos[row.client.name]}
+          logo={logoFor(row.client)}
         />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex flex-wrap items-center gap-2">

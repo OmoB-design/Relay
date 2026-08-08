@@ -165,6 +165,14 @@ export const ClientSchema = z.object({
   /** The client's own website. Collected at creation because that is the only
    *  moment anyone knows it; a logo is looked up by domain. */
   domain: z.string().optional(),
+  /** Stored mark, served from Supabase Storage. Never the client's own server:
+   *  Today draws one of these per client per load. */
+  logoUrl: z.string().optional(),
+  /** Where it came from, so the admin can judge whether to trust it — an icon
+   *  scraped off a homepage is a guess in a way an upload is not. */
+  logoSource: z.enum(["upload", "google-ads", "website"]).optional(),
+  /** Why the last automatic lookup failed. "No logo" then says something. */
+  logoError: z.string().optional(),
   /** May a client-FACING daily note go out? Internal digests compile for every
    *  client regardless; this governs what leaves the building. */
   dailyToClient: z.boolean().default(false),

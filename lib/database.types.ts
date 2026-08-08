@@ -45,6 +45,11 @@ export interface Database {
            back to `name`, which is how it matched them before. */
         tracker_tab: string | null;
         domain: string | null;
+        /* Logo, stored once in the client-logos bucket (migration 0017). */
+        logo_url: string | null;
+        logo_source: string | null;
+        logo_fetched_at: string | null;
+        logo_error: string | null;
         daily_to_client: boolean;
         account_timezone: string;
       }>;

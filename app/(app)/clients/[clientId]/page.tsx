@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requireProfile } from "@/lib/auth";
 import { config, formatCadenceLine } from "@/lib/config";
 import {
   getClientProfile,
@@ -23,6 +24,7 @@ export default async function ClientWorkspacePage({
   params: { clientId: string };
   searchParams: { tab?: string };
 }) {
+  const me = await requireProfile();
   const profile = await getClientProfile(params.clientId);
   if (!profile) notFound();
 
@@ -70,6 +72,7 @@ export default async function ClientWorkspacePage({
         narratives={narratives}
         dailyRows={dailyRows}
         loomNarrativeIds={loomNarrativeIds}
+        isAdmin={me.role === "admin"}
         defaultTab={
           TABS.includes(searchParams.tab ?? "") ? searchParams.tab : "profile"
         }

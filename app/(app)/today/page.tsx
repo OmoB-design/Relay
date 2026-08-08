@@ -11,6 +11,7 @@ import {
   getWaitingThreads,
 } from "@/lib/data";
 import { buildDigest } from "@/lib/daily/digest";
+import { logoFor } from "@/lib/logos";
 import {
   DailyDigestBand,
   type DigestEntry,
@@ -184,7 +185,7 @@ export default async function TodayPage({
                     key={narrative.id}
                     narrative={narrative}
                     client={client}
-                    logo={config.clientLogos[client.name]}
+                    logo={logoFor(client)}
                   />
                 ))}
               </DueList>
