@@ -136,6 +136,8 @@ export interface Database {
         override_reason: string | null;
         confirmed_at: string | null;
         confirmed_by: string | null;
+        /* Real attester (migration 0015). Null only on rows that predate it. */
+        confirmed_by_id: string | null;
         compiled_at: string;
       }>;
       loom_briefs: Row<{

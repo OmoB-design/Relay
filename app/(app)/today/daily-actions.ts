@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { requireProfile } from "@/lib/auth";
 import { confirmDailyRow } from "@/lib/data";
 import { compileDaily } from "@/lib/daily/compile";
 
@@ -30,8 +31,12 @@ export async function confirmDailyRowAction(
   input: z.infer<typeof ConfirmInput>,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const p = ConfirmInput.parse(input);
+  /* The attester comes from the SESSION, never from the request body. A server
+     action is a public endpoint; letting the caller name who confirmed a row
+     would make the whole accountability trail forgeable. */
+  const me = await requireProfile();
   try {
-    await confirmDailyRow(p);
+    await confirmDailyRow({ ...p, confirmedBy: me });
   } catch (e) {
     return {
       ok: false,

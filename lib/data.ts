@@ -25,6 +25,7 @@ import {
   TimelineEntrySchema,
   type AnswerThread,
   type ClientProfile,
+  type Profile,
   type DailyMetrics,
   type DailyRow,
   type EvidenceSnapshot,
@@ -950,6 +951,10 @@ export async function confirmDailyRow(input: {
   rowId: string;
   metrics?: DailyMetrics;
   overrideReason?: string;
+  /** Who is attesting. Required — this is the record the admin's weekly review
+   *  examines, and an attestation with no name on it is not an attestation.
+   *  It was a hardcoded demo string until migration 0015. */
+  confirmedBy: Profile;
 }): Promise<void> {
   const edited = Boolean(input.metrics);
   const reason = input.overrideReason?.trim();
@@ -969,7 +974,10 @@ export async function confirmDailyRow(input: {
       ...metricPatch,
       status: "confirmed",
       confirmed_at: nowIso(),
-      confirmed_by: config.voice.demoBuyerKey,
+      confirmed_by_id: input.confirmedBy.id,
+      // Also denormalised, so a row still reads correctly after the person
+      // leaves and long after anyone remembers which uuid they were.
+      confirmed_by: input.confirmedBy.name || input.confirmedBy.email,
       edited,
       override_reason: reason ?? null,
     })

@@ -11,11 +11,37 @@ import { getSupabase } from "../lib/supabase";
 import { runWithServiceRole } from "../lib/supabase";
 import { compileDaily } from "../lib/daily/compile";
 import { confirmDailyRow, getLatestDailyRows, getClients } from "../lib/data";
+import { ProfileSchema, type Profile } from "../lib/types";
+
+/* Migration 0015 made the attester a required argument: a confirmed row has to
+   say who confirmed it, and confirmed_by_id is a real foreign key. This script
+   runs with no signed-in user, so it borrows a real profile rather than
+   inventing one — an invented uuid would fail the constraint, which is the
+   whole point of having it. */
+async function anAttester(): Promise<Profile> {
+  const sb = await getSupabase();
+  const { data } = await sb
+    .from("profiles")
+    .select("*")
+    .eq("status", "active")
+    .order("created_at")
+    .limit(1);
+  const row = data?.[0];
+  if (!row) throw new Error("No active profile to attribute a confirmation to.");
+  return ProfileSchema.parse({
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    role: row.role,
+    status: row.status,
+  });
+}
 
 const LT = "11111111-0000-4000-8000-000000000001";
 
 async function main() {
   const sb = await getSupabase();
+  const attester = await anAttester();
 
   const first = await compileDaily();
   console.log("1. compile   →");
@@ -43,6 +69,7 @@ async function main() {
     await confirmDailyRow({
       rowId: lt.row.id,
       metrics: { ...lt.row.metrics, spend: 9999 },
+      confirmedBy: attester,
     });
   } catch {
     refused = true;
@@ -55,6 +82,7 @@ async function main() {
     metrics: { ...lt.row.metrics, spend: 6900 },
     overrideReason:
       "Sheet had a transposed digit; corrected against Google Ads.",
+    confirmedBy: attester,
   });
   const edited = (await getLatestDailyRows()).find(
     (r) => r.client.id === LT,

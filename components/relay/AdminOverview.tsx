@@ -177,6 +177,14 @@ export function AdminOverview({ overview }: { overview: Overview }) {
 
       <Panel title={t.riskTitle}>
         <p className={HINT}>{t.riskBody}</p>
+        <p className="mt-1">
+          <Link
+            href="/overview/logs"
+            className="font-geist text-fig-caption-2 text-heading-02 underline underline-offset-4"
+          >
+            {config.copy.logs.title} →
+          </Link>
+        </p>
         <dl className="mt-3 grid gap-3 sm:grid-cols-3">
           <Metric
             label={t.riskTracker}
