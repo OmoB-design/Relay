@@ -177,13 +177,19 @@ export function AdminOverview({ overview }: { overview: Overview }) {
 
       <Panel title={t.riskTitle}>
         <p className={HINT}>{t.riskBody}</p>
-        <p className="mt-1">
-          <Link
-            href="/overview/logs"
-            className="font-geist text-fig-caption-2 text-heading-02 underline underline-offset-4"
-          >
-            {config.copy.logs.title} →
-          </Link>
+        <p className="mt-1 flex flex-wrap gap-4">
+          {[
+            { href: "/overview/logs", label: config.copy.logs.title },
+            { href: "/overview/review", label: config.copy.review.title },
+          ].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="font-geist text-fig-caption-2 text-heading-02 underline underline-offset-4"
+            >
+              {l.label} →
+            </Link>
+          ))}
         </p>
         <dl className="mt-3 grid gap-3 sm:grid-cols-3">
           <Metric

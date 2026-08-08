@@ -140,6 +140,22 @@ export interface Database {
         confirmed_by_id: string | null;
         compiled_at: string;
       }>;
+      /* The admin's reconciliation of logged vs actual (migration 0016).
+         `logged` is frozen into the row at review time, so a later edit to a
+         daily row cannot rewrite what was signed off. */
+      weekly_reviews: Row<{
+        id: string;
+        client_id: string;
+        week_start: string;
+        week_end: string;
+        reviewer_id: string | null;
+        status: string;
+        logged: Json;
+        actual: Json;
+        note: string | null;
+        created_at: string;
+        reviewed_at: string | null;
+      }>;
       loom_briefs: Row<{
         id: string;
         client_id: string;
