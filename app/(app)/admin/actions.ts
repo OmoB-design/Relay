@@ -79,24 +79,33 @@ export async function setBuyerStatusAction(
   return { ok: true };
 }
 
-/** Assign or unassign a client. A buyer sees only what is assigned to them. */
+/** Assign a client at a permission, or take it away.
+ *
+ *  Three states, not two. "none" deletes the row — a buyer with no assignment
+ *  cannot see the client at all, which is a different thing from seeing it and
+ *  not being able to change it. RLS enforces all three (migration 0018); this
+ *  is the way an admin expresses them. */
 export async function setAssignmentAction(
   clientId: string,
   buyerId: string,
-  assigned: boolean,
+  permission: "none" | "view" | "edit",
 ): Promise<ActionResult> {
   await requireAdmin();
   const sb = await getRequestClient();
 
-  const { error } = assigned
-    ? await sb
-        .from("client_assignments")
-        .upsert({ client_id: clientId, buyer_id: buyerId })
-    : await sb
-        .from("client_assignments")
-        .delete()
-        .eq("client_id", clientId)
-        .eq("buyer_id", buyerId);
+  const { error } =
+    permission === "none"
+      ? await sb
+          .from("client_assignments")
+          .delete()
+          .eq("client_id", clientId)
+          .eq("buyer_id", buyerId)
+      : await sb
+          .from("client_assignments")
+          .upsert(
+            { client_id: clientId, buyer_id: buyerId, permission },
+            { onConflict: "client_id,buyer_id" },
+          );
 
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin");

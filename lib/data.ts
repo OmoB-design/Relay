@@ -255,6 +255,32 @@ export async function getClients(): Promise<ClientProfile[]> {
   );
 }
 
+/** Which clients the signed-in user may CHANGE, not merely see.
+ *
+ *  RLS is the enforcement — a view-only buyer's write matches zero rows however
+ *  the page was rendered. This exists so the UI does not offer a button that is
+ *  going to fail: showing Confirm to someone who cannot confirm teaches them
+ *  the app is broken rather than that they are read-only. */
+export async function getEditableClientIds(
+  profile: Profile,
+  clientIds: string[],
+): Promise<Set<string>> {
+  // The admin oversees everything and carries no assignments of their own.
+  if (profile.role === "admin") return new Set(clientIds);
+
+  const sb = await getSupabase();
+  const { data } = await sb
+    .from("client_assignments")
+    .select("client_id, permission")
+    .eq("buyer_id", profile.id);
+
+  return new Set(
+    (data ?? [])
+      .filter((r) => r.permission !== "view")
+      .map((r) => r.client_id),
+  );
+}
+
 export async function getClientProfile(
   id: string,
 ): Promise<ClientProfile | undefined> {

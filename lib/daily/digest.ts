@@ -22,8 +22,13 @@ import type { DigestEntry } from "@/components/relay/DailyDigestBand";
 export function buildDigest(
   clients: ClientProfile[],
   dailyRows: DailyRowWithClient[],
+  /** Clients the reader may change. Omitted → everything, which is what the
+   *  admin overview wants: it reports on rows rather than offering to edit
+   *  them. */
+  editable?: Set<string>,
 ): DigestEntry[] {
   return clients.map((client) => {
+    const canEdit = editable ? editable.has(client.id) : true;
     const match = dailyRows.find((d) => d.client.id === client.id);
     const expected = yesterdayFor(client);
     const logo = logoFor(client);
@@ -32,6 +37,7 @@ export function buildDigest(
       return {
         client,
         logo,
+        canEdit,
         problem: {
           kind: "notCompiled" as const,
           message: `Not compiled for ${expected} yet.`,
@@ -42,6 +48,7 @@ export function buildDigest(
       return {
         client,
         logo,
+        canEdit,
         problem: {
           kind: "stale" as const,
           message: `Newest row is ${match.row.date}, not ${expected}.`,
@@ -51,7 +58,12 @@ export function buildDigest(
     // A row staged with no metrics means Relay looked and found nothing.
     const absent = match.row.unavailable[ROW_ABSENT_KEY];
     return absent
-      ? { client, logo, problem: { kind: "absent" as const, message: absent } }
-      : { client, logo, row: match.row };
+      ? {
+          client,
+          logo,
+          canEdit,
+          problem: { kind: "absent" as const, message: absent },
+        }
+      : { client, logo, canEdit, row: match.row };
   });
 }

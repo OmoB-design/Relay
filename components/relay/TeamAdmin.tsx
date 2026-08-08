@@ -41,8 +41,10 @@ export function TeamAdmin({
   me: Profile;
   buyers: Profile[];
   clients: AdminClient[];
-  /** buyerId → clientIds they cover. */
-  assignments: Record<string, string[]>;
+  /** buyerId → clientId → permission. Absent means unassigned, which is a
+   *  third state: a buyer with no row cannot SEE the client at all, which is
+   *  different from seeing it and not being able to change it. */
+  assignments: Record<string, Record<string, "view" | "edit">>;
   /** Invited, but has not finished /auth/set-password yet. */
   pendingIds: string[];
 }) {
@@ -128,7 +130,7 @@ export function TeamAdmin({
         ) : (
           <ul className="flex flex-col gap-2">
             {buyers.map((b) => {
-              const covered = assignments[b.id] ?? [];
+              const covered = assignments[b.id] ?? {};
               const revoked = b.status === "revoked";
               const isMe = b.id === me.id;
               const invited = pendingIds.includes(b.id);
@@ -188,29 +190,47 @@ export function TeamAdmin({
                   {b.role !== "admin" && (
                     <div className="flex flex-wrap gap-1.5">
                       {clients.map((c) => {
-                        const on = covered.includes(c.id);
+                        const current = covered[c.id];
+                        /* One control cycling none → edit → view → none rather
+                           than three. The states are ordered by how often they
+                           are wanted, so the common case is one click and the
+                           rare one is two. The label always says which state it
+                           is IN, never which it would move to. */
+                        const next =
+                          current === undefined
+                            ? "edit"
+                            : current === "edit"
+                              ? "view"
+                              : "none";
                         return (
                           <button
                             key={c.id}
                             type="button"
                             disabled={pending}
-                            aria-pressed={on}
+                            aria-label={`${c.name}: ${
+                              current ? a.permission[current] : a.permission.none
+                            }. Change to ${a.permission[next]}.`}
                             onClick={() =>
                               run(
-                                () => setAssignmentAction(c.id, b.id, !on),
-                                on
-                                  ? `${c.name} unassigned`
-                                  : `${c.name} assigned`,
+                                () => setAssignmentAction(c.id, b.id, next),
+                                `${c.name} — ${a.permission[next].toLowerCase()}`,
                               )
                             }
                             className={cn(
                               "rounded-full border-fig px-1.5 py-1 font-geist text-fig-caption-2",
-                              on
+                              current === "edit"
                                 ? "border-blue-500 bg-blue-50 text-blue-500"
-                                : "border-border bg-surface-foreground-01 text-heading-06",
+                                : current === "view"
+                                  ? "border-border bg-surface-foreground-01 text-heading-05"
+                                  : "border-border bg-surface-primary text-caption-1",
                             )}
                           >
                             {c.name}
+                            {current === "view" && (
+                              <span className="ml-1 fig-regular">
+                                · {a.permission.view.toLowerCase()}
+                              </span>
+                            )}
                           </button>
                         );
                       })}

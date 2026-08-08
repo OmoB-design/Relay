@@ -22,7 +22,7 @@ export default async function AdminPage() {
   const [profiles, clients, assignments] = await Promise.all([
     sb.from("profiles").select("*").order("created_at"),
     sb.from("clients").select("id, name").order("name"),
-    sb.from("client_assignments").select("client_id, buyer_id"),
+    sb.from("client_assignments").select("client_id, buyer_id, permission"),
   ]);
 
   const buyers: Profile[] = (profiles.data ?? []).flatMap((r) => {
@@ -36,9 +36,10 @@ export default async function AdminPage() {
     return parsed.success ? [parsed.data] : [];
   });
 
-  const byBuyer: Record<string, string[]> = {};
+  const byBuyer: Record<string, Record<string, "view" | "edit">> = {};
   for (const row of assignments.data ?? []) {
-    (byBuyer[row.buyer_id] ??= []).push(row.client_id);
+    (byBuyer[row.buyer_id] ??= {})[row.client_id] =
+      row.permission === "view" ? "view" : "edit";
   }
 
   /* Invited but not yet arrived. The row exists from the moment the invite is

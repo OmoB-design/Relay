@@ -77,6 +77,10 @@ export type DigestEntry = {
   problem?: DigestProblem;
   /** Path under /public. Absent → the avatar falls back to initials. */
   logo?: string;
+  /** May the reader change this row? A view-only buyer sees the numbers and is
+   *  offered nothing to press — RLS would refuse the write anyway, and a button
+   *  that fails reads as a broken app rather than as a permission. */
+  canEdit?: boolean;
 };
 
 /* ONE shell. Figma nests three at radius 18, but concentric hairlines at the same
@@ -101,7 +105,7 @@ const PROBLEM_CHIP: Record<DigestProblem["kind"], string> = {
 };
 
 function ClientRow({ entry }: { entry: DigestEntry }) {
-  const { client, row, problem, logo } = entry;
+  const { client, row, problem, logo, canEdit = true } = entry;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -268,7 +272,10 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
               </span>
             </button>
 
-            {!confirmed && !editing ? (
+            {/* A view-only buyer gets the chevron, never Confirm. RLS refuses
+                their write regardless; offering the button would teach them the
+                app is broken rather than that they are read-only. */}
+            {canEdit && !confirmed && !editing ? (
               <Button
                 size="fig"
                 variant={pending ? "working" : "secondary"}
@@ -354,6 +361,7 @@ function ClientRow({ entry }: { entry: DigestEntry }) {
                     )}
                   </div>
                 ) : (
+                  canEdit &&
                   !confirmed && (
                     <Button size="fig" onClick={beginEdit}>
                       {dc.edit}

@@ -193,6 +193,11 @@ const ConfigSchema = z.object({
       noBuyers: z.string(),
       pending: z.string(),
       pendingBody: z.string(),
+      permission: z.object({
+        none: z.string(),
+        view: z.string(),
+        edit: z.string(),
+      }),
     }),
     /** The add-client form. Field labels are nouns, hints say what the value
      *  DOES rather than restating the label. */
@@ -634,6 +639,11 @@ export const config: Config = ConfigSchema.parse({
       noBuyers: "No buyers yet — invite one above.",
       pending: "Invited",
       pendingBody: "Hasn't finished setting up yet. You can assign clients now.",
+      permission: {
+        none: "Not assigned",
+        view: "View only",
+        edit: "Can edit",
+      },
     },
     addClient: {
       cta: "Add a client",

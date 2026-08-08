@@ -32,6 +32,9 @@ export interface Database {
         client_id: string;
         buyer_id: string;
         assigned_at: string;
+        /* 'view' | 'edit' (migration 0018). The permission boundary itself —
+           see private.can_edit_client. */
+        permission: string;
       }>;
       clients: Row<{
         id: string;

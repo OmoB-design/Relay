@@ -6,6 +6,7 @@ import { firstName, requireProfile } from "@/lib/auth";
 import {
   getClients,
   getDueThisWeek,
+  getEditableClientIds,
   getLatestDailyRows,
   getOpenFlags,
   getWaitingThreads,
@@ -76,7 +77,11 @@ export default async function TodayPage({
   /* The morning queue: every client, with yesterday's row or an honest account
      of why it's missing. Shared with the admin overview — two surfaces working
      out "absent" separately is how they come to disagree. */
-  const digest: DigestEntry[] = buildDigest(clients, dailyRows);
+  const editable = await getEditableClientIds(
+    profile,
+    clients.map((c) => c.id),
+  );
+  const digest: DigestEntry[] = buildDigest(clients, dailyRows, editable);
 
   const today = format(now(), "EEEE, MMMM d");
 
