@@ -52,7 +52,7 @@ const TAB_TRIGGER = cn(
   "font-geist text-fig-body fig-w450 text-heading-06",
   "data-[state=active]:bg-transparent data-[state=active]:text-heading-01 data-[state=active]:shadow-none",
   /* The 2px Blue/500 underline (node 422:5959), riding the bar's hairline. */
-  "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-t-2 after:bg-blue-500 after:opacity-0",
+  "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-t-2 after:bg-blue-500 after:opacity-0 after:transition-opacity",
   "data-[state=active]:after:opacity-100",
 )
 
