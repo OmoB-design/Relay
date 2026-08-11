@@ -4,6 +4,7 @@ import { getRequestClient } from "@/lib/supabase";
 import { config } from "@/lib/config";
 import { ProfileSchema, type Profile } from "@/lib/types";
 import { TeamAdmin, type AdminClient } from "@/components/relay/TeamAdmin";
+import { MarkTeamSeen } from "@/components/relay/MarkTeamSeen";
 import { Button } from "@/components/ui/button";
 
 /* Agency admin. Role-gated rather than a separate app: one session, and the
@@ -49,6 +50,19 @@ export default async function AdminPage() {
     .filter((r) => r.accepted_at === null)
     .map((r) => r.id);
 
+  /* Accepted since this admin last opened Team. Both halves are already in the
+     rows above, so this costs no extra query. */
+  const seenAt =
+    (profiles.data ?? []).find((r) => r.id === me.id)?.team_seen_at ?? null;
+  const newJoinIds = (profiles.data ?? [])
+    .filter(
+      (r) =>
+        r.id !== me.id &&
+        r.accepted_at !== null &&
+        (seenAt === null || r.accepted_at > seenAt),
+    )
+    .map((r) => r.id);
+
   return (
     <div className="mx-auto max-w-column px-6 py-10">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -74,7 +88,11 @@ export default async function AdminPage() {
         clients={(clients.data ?? []) as AdminClient[]}
         assignments={byBuyer}
         pendingIds={pendingIds}
+        newJoinIds={newJoinIds}
       />
+
+      {/* Clears the nav marker: arriving here IS the acknowledgement. */}
+      <MarkTeamSeen pending={newJoinIds.length > 0} />
     </div>
   );
 }

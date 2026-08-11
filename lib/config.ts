@@ -193,6 +193,7 @@ const ConfigSchema = z.object({
       noBuyers: z.string(),
       pending: z.string(),
       pendingBody: z.string(),
+      justJoined: z.string(),
       permission: z.object({
         none: z.string(),
         view: z.string(),
@@ -639,6 +640,7 @@ export const config: Config = ConfigSchema.parse({
       noBuyers: "No buyers yet — invite one above.",
       pending: "Invited",
       pendingBody: "Hasn't finished setting up yet. You can assign clients now.",
+      justJoined: "Just joined",
       permission: {
         none: "Not assigned",
         view: "View only",

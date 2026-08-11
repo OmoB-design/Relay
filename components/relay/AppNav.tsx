@@ -95,9 +95,14 @@ function displayName(profile: Profile): string {
 export function AppNav({
   profile,
   isAdmin = false,
+  newTeamJoins = 0,
 }: {
   profile: Profile;
   isAdmin?: boolean;
+  /** Colleagues who accepted an invite since Team was last opened. Marks the
+   *  nav item, because an invite is accepted hours after it is sent and a
+   *  message that only lands while someone is watching would mostly not. */
+  newTeamJoins?: number;
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -175,6 +180,7 @@ export function AppNav({
           >
             {items.map(({ label, href, Glyph }) => {
               const active = isActive(pathname, href);
+              const badge = href === "/admin" ? newTeamJoins : 0;
               return (
                 <Link
                   key={href}
@@ -189,7 +195,15 @@ export function AppNav({
                       : "hover:bg-surface-primary/60",
                   )}
                 >
-                  <Glyph className={cn("size-nav-icon", glyphTone(active))} />
+                  <span className="relative shrink-0">
+                    <Glyph className={cn("size-nav-icon", glyphTone(active))} />
+                    {/* Collapsed, the label is gone and the glyph is all there
+                        is — so the dot rides the glyph rather than the row, and
+                        survives the collapse. */}
+                    {badge > 0 && collapsed && (
+                      <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-blue-500" />
+                    )}
+                  </span>
                   <span
                     className={cn(
                       "whitespace-nowrap font-geist text-fig-caption-1-md fig-medium text-heading-01",
@@ -198,6 +212,14 @@ export function AppNav({
                   >
                     {label}
                   </span>
+                  {badge > 0 && !collapsed && (
+                    <span
+                      className="ml-auto shrink-0 rounded-full bg-blue-500 px-1.5 py-0.5 font-geist text-fig-caption-2 text-primary-foreground"
+                      aria-label={`${badge} new ${badge === 1 ? "colleague" : "colleagues"}`}
+                    >
+                      {badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}

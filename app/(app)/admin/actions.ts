@@ -113,3 +113,20 @@ export async function setAssignmentAction(
   revalidatePath("/clients");
   return { ok: true };
 }
+
+/** Stamp "the admin has now seen the team list", clearing the nav marker.
+ *
+ *  A server action rather than a write during the page's render: rendering a
+ *  server component is not allowed to have side effects, and Next may render it
+ *  more than once per request. Called from the client once the page is on
+ *  screen — which is the only moment that honestly means "seen". */
+export async function markTeamSeenAction(): Promise<ActionResult> {
+  const me = await requireAdmin();
+  const sb = await getRequestClient();
+  const { error } = await sb
+    .from("profiles")
+    .update({ team_seen_at: new Date().toISOString() })
+    .eq("id", me.id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}

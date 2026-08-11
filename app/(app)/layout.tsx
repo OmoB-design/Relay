@@ -1,5 +1,30 @@
 import { requireProfile } from "@/lib/auth";
+import { getRequestClient } from "@/lib/supabase";
 import { AppNav } from "@/components/relay/AppNav";
+import { LiveRefresh } from "@/components/relay/LiveRefresh";
+
+/* Colleagues who have accepted an invite since the admin last opened Team.
+   Null team_seen_at means they never have, so on a fresh account everyone
+   counts — on first run every colleague is news. */
+async function countNewJoins(adminId: string): Promise<number> {
+  const sb = await getRequestClient();
+  const { data: me } = await sb
+    .from("profiles")
+    .select("team_seen_at")
+    .eq("id", adminId)
+    .maybeSingle();
+
+  let q = sb
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("role", "buyer")
+    .not("accepted_at", "is", null)
+    .neq("id", adminId);
+  if (me?.team_seen_at) q = q.gt("accepted_at", me.team_seen_at);
+
+  const { count } = await q;
+  return count ?? 0;
+}
 
 /* App shell. AppNav owns the whole sidebar now — logo strip, items and account
    card are a single Figma frame (357:2590), and splitting them between the
@@ -15,6 +40,8 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireProfile();
+  const isAdmin = profile.role === "admin";
+  const newTeamJoins = isAdmin ? await countNewJoins(profile.id) : 0;
 
   /* THE SHELL IS EXACTLY ONE VIEWPORT TALL and never scrolls itself; the content
      sheet is the only scroll container. That is what keeps the sidebar and the
@@ -26,7 +53,15 @@ export default async function AppLayout({
      visible viewport as the bar comes and goes. */
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-foreground-01">
-      <AppNav profile={profile} isAdmin={profile.role === "admin"} />
+      {/* Renders nothing. Re-runs this layout and the page under it when the
+          reader comes back to the tab, or when a buyer's own assignments
+          change while they are watching. */}
+      <LiveRefresh buyerId={isAdmin ? null : profile.id} />
+      <AppNav
+        profile={profile}
+        isAdmin={isAdmin}
+        newTeamJoins={newTeamJoins}
+      />
       {/* THE CONTENT SHEET (node 357:1074). A white surface that sits BESIDE the
           nav rather than under it: rounded on its left corners only, so it reads
           as sliding out from behind the sidebar and running off the right edge.

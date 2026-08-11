@@ -49,7 +49,13 @@ export default function RootLayout({
         className={`${GeistSans.variable} ${fraunces.variable} ${newsreader.variable} ${archivo.variable}`}
       >
         <TooltipProvider>{children}</TooltipProvider>
-        <Toaster />
+        {/* TOP RIGHT, not sonner's default bottom. Below md the nav is a fixed
+            bottom bar, so a bottom toast lands on top of it.
+
+            The 60px right inset keeps it clear of the scrollbar and off the
+            sheet's rounded top-right corner, so it reads as floating above the
+            page rather than clipped to its edge. */}
+        <Toaster position="top-right" offset={{ top: 24, right: 60 }} />
       </body>
     </html>
   );

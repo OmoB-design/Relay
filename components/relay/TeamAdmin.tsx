@@ -37,6 +37,7 @@ export function TeamAdmin({
   clients,
   assignments,
   pendingIds,
+  newJoinIds = [],
 }: {
   me: Profile;
   buyers: Profile[];
@@ -47,6 +48,10 @@ export function TeamAdmin({
   assignments: Record<string, Record<string, "view" | "edit">>;
   /** Invited, but has not finished /auth/set-password yet. */
   pendingIds: string[];
+  /** Accepted since the admin last opened this page. Marked rather than
+   *  announced: the invite is accepted hours after it is sent, so a message
+   *  that only lands while someone is watching would mostly not land. */
+  newJoinIds?: string[];
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -134,6 +139,7 @@ export function TeamAdmin({
               const revoked = b.status === "revoked";
               const isMe = b.id === me.id;
               const invited = pendingIds.includes(b.id);
+              const justJoined = newJoinIds.includes(b.id);
               return (
                 <li key={b.id} className={cn(CARD, "flex flex-col gap-3 p-4")}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -157,6 +163,13 @@ export function TeamAdmin({
                         {invited && !revoked && (
                           <span className="rounded-full border-fig border-border px-1.5 py-1 font-geist text-fig-caption-2 text-heading-06">
                             {a.pending}
+                          </span>
+                        )}
+                        {/* The counterpart to "Invited": the moment it stops
+                            being true is otherwise completely silent. */}
+                        {justJoined && !revoked && (
+                          <span className="rounded-full bg-blue-50 px-1.5 py-1 font-geist text-fig-caption-2 text-blue-500">
+                            {a.justJoined}
                           </span>
                         )}
                       </span>

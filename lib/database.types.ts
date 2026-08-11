@@ -27,6 +27,10 @@ export interface Database {
         /* Null until they finish /auth/set-password — invited, not yet arrived.
            See 0012_profile_accepted_at.sql for why auth.users cannot answer this. */
         accepted_at: string | null;
+        /* When this admin last opened Team. Null means never, which is why a
+           fresh admin account shows the marker: on first run everyone is news.
+           See 0019_live_updates.sql. */
+        team_seen_at: string | null;
       }>;
       client_assignments: Row<{
         client_id: string;
