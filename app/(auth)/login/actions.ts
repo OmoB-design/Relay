@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getRequestClient } from "@/lib/supabase";
+import { breachCount } from "@/lib/breached-password";
+import { config } from "@/lib/config";
 
 /* Sign in, sign out, and set a password after an invite.
 
@@ -49,6 +51,14 @@ export async function setPasswordAction(
     return { ok: false, error: "Your name is required." };
   if (password.length < 8) {
     return { ok: false, error: "Use at least 8 characters." };
+  }
+
+  /* Supabase's own leaked-password check is Pro-only, and the composition
+     rules it leaves behind reject `password` while accepting `Passw0rd!` —
+     175,727 breaches. Checked here so the project's plan does not decide
+     whether a compromised password gets in. */
+  if ((await breachCount(password)) > 0) {
+    return { ok: false, error: config.copy.auth.breached };
   }
 
   const sb = await getRequestClient();

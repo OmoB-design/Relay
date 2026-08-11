@@ -170,6 +170,7 @@ const ConfigSchema = z.object({
       nameLabel: z.string(),
       newPasswordLabel: z.string(),
       passwordHint: z.string(),
+      breached: z.string(),
       inviteOnly: z.string(),
       noClients: z.string(),
       noClientsBody: z.string(),
@@ -606,6 +607,13 @@ export const config: Config = ConfigSchema.parse({
       nameLabel: "Your name",
       newPasswordLabel: "Choose a password",
       passwordHint: "At least 8 characters.",
+      /* Named, not scolded. "Too weak" invites an argument with someone who
+         just met four composition rules; "has appeared in a data breach" is a
+         fact about the world, and it tells them the real reason — that this
+         exact string is on a list attackers already have. */
+      breached:
+        "That password has appeared in a public data breach, so it is already " +
+        "on the lists attackers try first. Please choose a different one.",
       inviteOnly: "Relay is invite-only. Ask your agency admin for access.",
       /* First run, seen by a BUYER. Covers two situations that look identical
          from here — no clients exist yet, or clients exist but none are yours —
