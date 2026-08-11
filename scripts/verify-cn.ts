@@ -115,6 +115,18 @@ const CASES: Case[] = [
     exact: "shadow-popover",
     label: "the dropdown panel's lift replaces a card shadow",
   },
+  {
+    input: ["shadow-field", "shadow-field-active"],
+    exact: "shadow-field-active",
+    label: "the active selector's halo replaces the resting one",
+  },
+  /* The active stroke: a plain `border` (1px) must beat border-fig, or the
+     Selected state renders at hairline weight. */
+  {
+    input: ["border-fig", "border"],
+    exact: "border",
+    label: "the 1px active stroke replaces the 0.7px hairline",
+  },
   // The sidebar's account tile (Figma 357:2730) is a third box-shadow.
   {
     input: ["shadow-card", "shadow-nav-profile"],

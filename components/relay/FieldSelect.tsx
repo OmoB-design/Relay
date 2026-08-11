@@ -35,7 +35,11 @@ const PANEL =
 const OPTION =
   "flex w-full items-center justify-between gap-1.5 rounded-10 px-1.5 py-2.5 text-left font-geist text-fig-caption-1-md fig-medium text-heading-02 outline-none hover:bg-surface-foreground-01 focus-visible:bg-surface-foreground-01";
 const TRIGGER =
-  "flex h-auto w-full items-center justify-between gap-3 rounded-8 border-fig border-border bg-surface-primary py-1.5 pl-2 pr-2 font-geist text-fig-caption-1 text-heading-03 shadow-field";
+  "flex h-auto w-full items-center justify-between gap-3 rounded-8 border-fig border-border bg-surface-primary py-1.5 pl-2 pr-2 font-geist text-fig-caption-1 text-heading-03 shadow-field outline-none focus-visible:border focus-visible:border-blue-500 focus-visible:shadow-field-active";
+/* The Selectors component's Selected variant (node 429:7122): 1px Blue/500
+   with the Blue/150 halo. Worn while the panel is OPEN, and by keyboard focus
+   above, so the two ways of operating the field look the same. */
+const TRIGGER_ACTIVE = "border border-blue-500 shadow-field-active";
 
 /** Close on pointer-down outside `ref`, and on Escape. */
 function useDismiss(
@@ -126,7 +130,7 @@ export function FieldSelect<T extends string>({
             setOpen(true);
           }
         }}
-        className={TRIGGER}
+        className={cn(TRIGGER, open && TRIGGER_ACTIVE)}
       >
         <span className="truncate">{current?.label ?? value}</span>
         <SelectChevronGlyph className="shrink-0 text-icon-explainer" />
@@ -254,7 +258,7 @@ export function FieldTimeSelect({
             setOpen(true);
           }
         }}
-        className={TRIGGER}
+        className={cn(TRIGGER, open && TRIGGER_ACTIVE)}
       >
         <span className="truncate">
           {display} {meridiem}
