@@ -168,6 +168,21 @@ export function PanelToggleGlyph({
 
 /** The pencil in the middle of "All caught up" (Figma 365:3405). Same 1.75 as
  *  the waiting mark — both stand alone rather than in a column. */
+/** The row chevron (node 418:5768). Same geometry in both states — the frame
+ *  draws it #777777 at rest and #050505 on the hovered row, which is a text
+ *  colour, not a second icon. currentColor lets the row own that. */
+export function ChevronGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...NAV_SVG} aria-hidden="true" className={className}>
+      <path
+        d="M4.95833 11.9583L9.91667 7L4.95833 2.04167"
+        stroke="currentColor"
+        {...STROKE}
+      />
+    </svg>
+  );
+}
+
 export function EditGlyph({ className }: GlyphProps) {
   return (
     <svg {...NAV_SVG} aria-hidden="true" className={className}>

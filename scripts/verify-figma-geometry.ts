@@ -195,7 +195,37 @@ check(
   "max-w-column is wider than the well, so it constrained nothing",
 );
 
-/* ---- 6. …and cn keeps all of it ------------------------------------------ */
+/* ---- 6. The client list (node 417:3381) ---------------------------------- */
+
+const clientList = readFileSync("components/relay/ClientList.tsx", "utf8").replace(
+  /\/\*[\s\S]*?\*\//g,
+  "",
+);
+check(
+  "the list card declares its width",
+  /"w-full rounded-18/.test(clientList),
+  "shrink-to-fit again — the card would be as wide as the longest client name",
+);
+/* The height sits on the li BECAUSE the li carries the divider. Tailwind is
+   border-box, so 55px there includes the hairline and every row measures the
+   same. On the link instead, each row after the first came out 1px taller. */
+check(
+  "the row height is on the element carrying the divider",
+  /<li[\s\S]{0,200}?"h-client-row",[\s\S]{0,120}?divider-t/.test(clientList),
+  "put it on the link and the divider adds its width to every row below the first",
+);
+check(
+  "client-row is registered with tailwind-merge",
+  /"client-row"/.test(utils),
+  "an unregistered height is silently deleted by cn — see verify-cn.ts",
+);
+check(
+  "both text caps come from the frame, not from taste",
+  /max-w-client-text/.test(clientList) && /max-w-client-meta/.test(clientList),
+  "450 and 421 decide where a long descriptor starts truncating",
+);
+
+/* ---- 7. …and cn keeps all of it ------------------------------------------ */
 
 check(
   "tailwind-merge is taught the named heights",

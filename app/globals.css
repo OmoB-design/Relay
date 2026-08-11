@@ -129,6 +129,12 @@
      Pinning the height puts those borders back inside, which is where the frame
      has them, and guarantees the rows agree with each other. */
   --spacing-digest-row: 63px;
+  /* A client row is 55px, every one of them — node 418:4608 lays four out at
+     y = 4, 59, 114, 169 inside a 228px card. Pinned for the same reason the
+     digest row is: the frame insets its 0.4px row strokes and CSS adds them
+     outside, so a divider between rows made every row after the first 1px
+     taller than the one above it. */
+  --spacing-client-row: 55px;
   /* Likewise the Button component set (node 300:8781): every variant is 26px
      tall. Left to padding alone ours came out 28.4px, and an 8px radius on a
      28.4px box reads squarer than the same radius on a 26px one — which is what
@@ -293,6 +299,14 @@
      purpose — the digest row, the waiting card and the due card were all drawn
      at 550, so anything wider stretches them past their designed proportions. */
   --container-sheet: 550px;
+  /* A client row's two text caps (node 418:4623 / 418:5333). The row is 550
+     wide; the name and its meta line stop at 450, and the meta line itself at
+     421. 421 looks arbitrary because it is — it is the width the frame gives
+     that row, and it decides where a long descriptor starts truncating, so it
+     is carried rather than rounded. Both are MAXIMUMS, so a narrow viewport
+     still shrinks them. */
+  --container-client-text: 450px;
+  --container-client-meta: 421px;
   --container-thread: 680px; /* Answer Desk thread (used from Phase 5) */
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */

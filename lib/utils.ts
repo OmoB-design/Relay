@@ -74,9 +74,9 @@ const SHADOWS = [
 /** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB 500. */
 const FONT_WEIGHTS = ["fig-regular", "fig-w450", "fig-medium", "fig-sb"];
 
-/** Named heights, for the two boxes Figma pins outright rather than deriving
- *  from their padding. `h-9` and friends must still be able to override them. */
-const HEIGHTS = ["digest-row", "button-fig"];
+/** Named heights, for the boxes Figma pins outright rather than deriving from
+ *  their padding. `h-9` and friends must still be able to override them. */
+const HEIGHTS = ["digest-row", "client-row", "button-fig"];
 
 const twMerge = extendTailwindMerge({
   extend: {

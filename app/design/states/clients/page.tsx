@@ -3,6 +3,8 @@ import { config } from "@/lib/config";
 import { ClientsGlyph } from "@/components/relay/NavIcons";
 import { EmptyPanel } from "@/components/relay/EmptyPanel";
 import { SectionHeader } from "@/components/relay/SectionHeader";
+import { ClientList } from "@/components/relay/ClientList";
+import { clientProfiles } from "@/lib/seed";
 
 /* Clients — page-level states.
    Separate from today/ because they are separate frames and separate pages;
@@ -14,7 +16,7 @@ const t = config.copy.clientsPage;
 export default function ClientStatesPage() {
   return (
     <div className="flex flex-col gap-10">
-      <CatalogueHeader title="Clients — page states" count="1 state">
+      <CatalogueHeader title="Clients — page states" count="2 states">
         What /clients renders, by what the reader has. Slugs match the Figma
         frame names so a change can be pointed at by id rather than described.
       </CatalogueHeader>
@@ -41,6 +43,20 @@ export default function ClientStatesPage() {
               >
                 {t.emptyBody}
               </EmptyPanel>
+            </SectionHeader>
+          </div>
+        </Spec>
+
+        <Spec
+          id="clients/list-buyer"
+          title="The list (node 417:3381)"
+          when="One row per client the reader carries: name, then cadence · channel · descriptor. The descriptor is the only part that can run long, so it takes the remaining width and truncates."
+          note="Hover a row: the frame changes the CHEVRON and nothing else — #777777 at rest, #050505 hovered — so no background wash was invented for it."
+          onPaper
+        >
+          <div className="mx-auto max-w-sheet">
+            <SectionHeader title={t.title} subline={t.subline}>
+              <ClientList clients={clientProfiles} />
             </SectionHeader>
           </div>
         </Spec>
