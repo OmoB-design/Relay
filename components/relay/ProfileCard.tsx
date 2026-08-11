@@ -137,9 +137,22 @@ export function ProfileRowBody({
       <span className="truncate font-geist text-fig-body fig-w450 text-heading-01">
         {title}
       </span>
-      <span className="flex min-w-0 flex-wrap items-center gap-1.5 font-geist text-fig-caption-1 text-heading-06">
+      {/* ONE line, always. The row is pinned at 59px, so a meta line that
+          wraps does not grow the row — it overflows it and lands on the next
+          one (Northbrook's "spend pace" did exactly this). Longer metrics
+          truncate instead; each segment carries its own ellipsis. */}
+      <span className="flex min-w-0 items-center gap-1.5 overflow-hidden font-geist text-fig-caption-1 text-heading-06">
+        {/* Earlier facts hold their width; only the LAST segment gives way.
+            Ellipsis spread across every segment reads like damage — one
+            ellipsis at the tail reads like a longer line. */}
         {meta.map((part, i) => (
-          <span key={i} className="flex min-w-0 items-center gap-1.5">
+          <span
+            key={i}
+            className={cn(
+              "flex items-center gap-1.5",
+              i === meta.length - 1 ? "min-w-0" : "shrink-0",
+            )}
+          >
             {i > 0 && (
               <span
                 aria-hidden="true"
