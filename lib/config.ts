@@ -814,11 +814,11 @@ export const config: Config = ConfigSchema.parse({
     logo: {
       title: "Logo",
       none: "No logo — showing initials",
-      noDomain: "Add a website to look one up.",
+      noDomain: "Add a website to lookup one",
       upload: "Upload",
       refetch: "Look up again",
       clear: "Remove",
-      working: "Looking…",
+      working: "Looking",
       uploaded: "Logo updated",
       refetched: "Logo updated",
       cleared: "Logo removed",

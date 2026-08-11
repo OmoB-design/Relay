@@ -405,6 +405,13 @@
 @utility shadow-field-active {
   filter: drop-shadow(0 0 0.75px var(--color-blue-150));
 }
+/* The ACTIVE text input (node 305:12049 via the Logo set): the same Blue/150
+   under the same 1px Blue/500, but as a box-shadow WITH SPREAD — an input's
+   halo hugs all four edges where the selector's drop reads as a glow. Two
+   variables, two utilities, per the frames. */
+@utility shadow-input-active {
+  box-shadow: 0 0 1.5px 1px var(--color-blue-150);
+}
 /* The client mark's outer tile carries a heavier drop than its well. */
 @utility shadow-avatar {
   filter: drop-shadow(0 2px 1.5px rgb(171 171 171 / 0.12));

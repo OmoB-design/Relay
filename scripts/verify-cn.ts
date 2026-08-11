@@ -120,6 +120,11 @@ const CASES: Case[] = [
     exact: "shadow-field-active",
     label: "the active selector's halo replaces the resting one",
   },
+  {
+    input: ["shadow-field", "shadow-input-active"],
+    exact: "shadow-input-active",
+    label: "the active input's halo replaces the resting one",
+  },
   /* The active stroke: a plain `border` (1px) must beat border-fig, or the
      Selected state renders at hairline weight. */
   {

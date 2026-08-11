@@ -168,6 +168,52 @@ export function PanelToggleGlyph({
 
 /** The pencil in the middle of "All caught up" (Figma 365:3405). Same 1.75 as
  *  the waiting mark — both stand alone rather than in a column. */
+/** The lookup-in-flight spinner (node 429:7966 via the Logo set): a faded
+ *  ring with a solid quarter arc — drawn to rotate, so the SPIN lives on the
+ *  element (animate-spin), not in the asset. Exported paths, verbatim. */
+export function SpinnerGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        opacity={0.4}
+        d="M7 13.2222C3.56914 13.2222 0.777778 10.4309 0.777778 7C0.777778 3.56914 3.56914 0.777778 7 0.777778C10.4309 0.777778 13.2222 3.56914 13.2222 7C13.2222 10.4309 10.4309 13.2222 7 13.2222ZM7 1.94444C4.21244 1.94444 1.94444 4.21244 1.94444 7C1.94444 9.78756 4.21244 12.0556 7 12.0556C9.78756 12.0556 12.0556 9.78756 12.0556 7C12.0556 4.21244 9.78756 1.94444 7 1.94444Z"
+        fill="currentColor"
+      />
+      <path
+        d="M12.6389 7.58333C12.3168 7.58333 12.0556 7.32208 12.0556 7C12.0556 4.21244 9.78756 1.94444 7 1.94444C6.67792 1.94444 6.41667 1.68319 6.41667 1.36111C6.41667 1.03903 6.67792 0.777778 7 0.777778C10.4309 0.777778 13.2222 3.56914 13.2222 7C13.2222 7.32208 12.961 7.58333 12.6389 7.58333Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+/** The logo card's remove trash (node 447:2440) — exported paths, verbatim. */
+export function TrashGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={12}
+      height={12}
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M1.83315 3.16657H10.1665" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4.5 3.16685V1.83352C4.5 1.46685 4.79867 1.16685 5.16667 1.16685H6.83333C7.20133 1.16685 7.5 1.46685 7.5 1.83352V3.16685" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4.91685 5.83343L5.06165 8.83343" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7.08314 5.83343L6.93834 8.83343" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.13191 5.16629L8.90011 9.56629C8.86277 10.2797 8.27744 10.833 7.56877 10.833H4.43213C3.7228 10.833 3.13813 10.2796 3.10079 9.56629L2.869 5.16629" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** The selected option's check (node 432:8675). Figma's export of this one is
  *  degenerate — a single-point path — so the glyph is drawn as the plain 10px
  *  check the frame renders, at the export's stroke colour and weight. */

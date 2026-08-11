@@ -64,6 +64,7 @@ const SHADOWS = [
   "card",
   "popover",
   "field-active",
+  "input-active",
   "field",
   "control",
   "control-sm",
