@@ -6,9 +6,13 @@ import {
   Bar,
   DigestSkeleton,
   DueSkeleton,
+  LogGridSkeleton,
   NavSkeleton,
+  OverviewSkeleton,
+  TeamSkeleton,
   TodaySkeleton,
   WaitingSkeleton,
+  WeeklyReviewSkeleton,
 } from "@/components/relay/LoadingSkeletons";
 
 /* ============================================================================
@@ -317,6 +321,37 @@ export default function SkeletonTweakPage() {
         note="What /today actually renders while it loads."
       >
         <TodaySkeleton />
+      </Specimen>
+
+      {/* The admin pages. Provisional in the same sense the pages are — no
+          Figma frame exists for admin yet, so these are measured from the
+          pages rather than from a drawing. */}
+      <Specimen
+        title="Overview, whole page"
+        note="Setup checklist plus the coverage and delivery panels."
+      >
+        <OverviewSkeleton />
+      </Specimen>
+
+      <Specimen
+        title="Team, whole page"
+        note="Invite card, then one card per colleague with its assignment chips."
+      >
+        <TeamSkeleton />
+      </Specimen>
+
+      <Specimen
+        title="Log grid, whole page"
+        note="One row per client, one 10px cell per day — the accountability view."
+      >
+        <LogGridSkeleton />
+      </Specimen>
+
+      <Specimen
+        title="Weekly review, whole page"
+        note="Week stepper, then logged / actual / delta per client."
+      >
+        <WeeklyReviewSkeleton />
       </Specimen>
     </div>
   );

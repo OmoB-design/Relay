@@ -281,3 +281,181 @@ export function ColumnSkeleton({ rows = 4 }: { rows?: number }) {
     </div>
   );
 }
+
+/* ============================================================================
+   The admin pages: Overview, Team, Log grid, Weekly review.
+
+   These four share one header shape — an uppercase eyebrow, a 28px title, an
+   optional lede and a control on the right — so the header is one component and
+   only the body differs. They are provisional in the same sense the pages are:
+   no Figma frame exists for admin yet, so the measurements come from the pages
+   themselves rather than from a drawing.
+
+   Every one of them was a blank white screen for ~1s before this, because a
+   route with no loading.tsx shows nothing at all while its data is in flight.
+   ========================================================================== */
+
+/** Eyebrow, 28px title, optional lede, optional right-hand control. */
+function AdminHeaderSkeleton({
+  lede = false,
+  action = true,
+}: {
+  lede?: boolean;
+  action?: boolean;
+}) {
+  return (
+    <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col">
+        {/* 12px uppercase eyebrow, then the 28px heading. */}
+        <Bar className="h-2.5 w-16" />
+        <Bar className="mt-2 h-6 w-72 max-w-full" />
+        {lede && <Bar className="mt-3 h-3 w-96 max-w-full" />}
+      </div>
+      {action && <Bar className="h-8 w-24 rounded-8" />}
+    </header>
+  );
+}
+
+/** A card shell at the admin CARD measurements: rounded-18, hairline, lift. */
+function CardSkeleton({
+  className,
+  children,
+}: {
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-18 border-fig border-border bg-surface-primary p-4 shadow-card",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** /overview — the setup checklist and the coverage/delivery panels. */
+export function OverviewSkeleton() {
+  return (
+    <div className="mx-auto max-w-column px-6 py-10">
+      <AdminHeaderSkeleton lede />
+      <div className="flex flex-col gap-4">
+        {[0, 1].map((i) => (
+          <CardSkeleton key={i} className="flex flex-col gap-4">
+            <Bar className="h-3.5 w-40" />
+            {[0, 1, 2].map((r) => (
+              <div key={r} className="flex items-center gap-3">
+                <Bar className="size-avatar shrink-0 rounded-10" />
+                <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <Bar className="h-3.5 w-32" />
+                  <Bar className="h-3 w-full max-w-96" />
+                </span>
+                <Bar className="h-3 w-12 shrink-0" />
+              </div>
+            ))}
+          </CardSkeleton>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** /admin — the invite card, then one card per colleague. */
+export function TeamSkeleton() {
+  return (
+    <div className="mx-auto max-w-column px-6 py-10">
+      <AdminHeaderSkeleton />
+      <div className="flex flex-col gap-6">
+        <CardSkeleton className="flex flex-col gap-3">
+          <Bar className="h-3.5 w-40" />
+          <div className="flex items-end gap-2">
+            <Bar className="h-9 flex-1 rounded-8" />
+            <Bar className="h-8 w-24 shrink-0 rounded-8" />
+          </div>
+        </CardSkeleton>
+        <div className="flex flex-col gap-2">
+          <Bar className="h-3.5 w-24" />
+          <Bar className="h-3 w-full max-w-96" />
+          {[0, 1].map((i) => (
+            <CardSkeleton key={i} className="flex flex-col gap-3">
+              <Bar className="h-3.5 w-44" />
+              <Bar className="h-3 w-56" />
+              {/* The assignment chips: one pill per client. */}
+              <div className="flex flex-wrap gap-1.5">
+                {[0, 1, 2, 3].map((c) => (
+                  <Bar key={c} className="h-5 w-20 rounded-full" />
+                ))}
+              </div>
+            </CardSkeleton>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** /overview/logs — one row per client, one 10px cell per day. */
+export function LogGridSkeleton({ days = 14 }: { days?: number }) {
+  return (
+    <div className="mx-auto max-w-5xl px-6 py-10">
+      <AdminHeaderSkeleton />
+      <CardSkeleton className="flex flex-col gap-4">
+        {[0, 1, 2].map((buyer) => (
+          <div key={buyer} className="flex flex-col gap-2">
+            <Bar className="h-3.5 w-36" />
+            {[0, 1].map((row) => (
+              <div key={row} className="flex items-center gap-3">
+                <Bar className="h-3 w-28 shrink-0" />
+                <span className="flex flex-1 flex-wrap gap-1">
+                  {Array.from({ length: days }, (_, d) => (
+                    <Bar key={d} className="size-2.5 rounded-4" />
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </CardSkeleton>
+    </div>
+  );
+}
+
+/** /overview/review — the week stepper, then one reconciliation row per client. */
+export function WeeklyReviewSkeleton() {
+  return (
+    <div className="mx-auto max-w-column px-6 py-10">
+      <header className="mb-8 flex flex-col">
+        <Bar className="h-2.5 w-16" />
+        <Bar className="mt-2 h-6 w-72 max-w-full" />
+        <Bar className="mt-3 h-3 w-96 max-w-full" />
+        {/* Previous / week label / Next. */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Bar className="h-8 w-24 rounded-8" />
+          <Bar className="h-3.5 w-40" />
+          <Bar className="h-8 w-16 rounded-8" />
+        </div>
+      </header>
+      <div className="flex flex-col gap-4">
+        {[0, 1, 2].map((i) => (
+          <CardSkeleton key={i} className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <Bar className="size-avatar shrink-0 rounded-10" />
+              <Bar className="h-3.5 w-32" />
+            </div>
+            {/* logged / actual / delta, three columns. */}
+            <div className="grid grid-cols-3 gap-3">
+              {[0, 1, 2].map((c) => (
+                <span key={c} className="flex flex-col gap-1.5">
+                  <Bar className="h-2.5 w-14" />
+                  <Bar className="h-8 w-full rounded-8" />
+                </span>
+              ))}
+            </div>
+          </CardSkeleton>
+        ))}
+      </div>
+    </div>
+  );
+}
