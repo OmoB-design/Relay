@@ -173,13 +173,17 @@ async function main() {
 
   const row = candidateRows.find((r) => r.client_id === clientId)!;
 
-  // A client they are NOT assigned to, for the outer boundary.
-  const { data: others } = await admin
-    .from("clients")
-    .select("id, name")
-    .neq("id", clientId)
-    .limit(1);
-  const other = others?.[0];
+  /* A client they are NOT assigned to, for the outer boundary. "Any client
+     other than the one under test" is not the same thing once a buyer carries
+     two — that picked a client they legitimately could see and called the pass
+     a failure. Exclude everything they hold. */
+  const { data: allTheirs } = await admin
+    .from("client_assignments")
+    .select("client_id")
+    .eq("buyer_id", buyer.id);
+  const carried = new Set((allTheirs ?? []).map((r) => r.client_id));
+  const { data: others } = await admin.from("clients").select("id, name");
+  const other = (others ?? []).find((c) => !carried.has(c.id));
 
   const setPermission = (p: "view" | "edit") =>
     admin

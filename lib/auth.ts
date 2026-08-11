@@ -6,6 +6,7 @@ import {
   type RelayClient,
 } from "@/lib/supabase";
 import { ProfileSchema, type Profile } from "@/lib/types";
+import { perRequest } from "@/lib/per-request";
 
 /* ============================================================================
    Who is signed in, and what they may do.
@@ -29,8 +30,22 @@ import { ProfileSchema, type Profile } from "@/lib/types";
    that, so there is deliberately no delete path.
    ========================================================================== */
 
-/** The signed-in profile, or null. Never throws — callers decide what to do. */
-export async function currentProfile(): Promise<Profile | null> {
+/* MEMOISED PER REQUEST, and this is the single biggest thing keeping a
+   navigation under a second.
+
+   Supabase is reached over HTTPS, and from here that is ~130ms of round trip
+   before the database has done any work at all — measured: a primary-key lookup
+   costs 174ms and a 200-row scan costs 200ms, so essentially ALL of it is
+   travel. Page time is therefore not "how much data" but "how many trips".
+
+   Without this, every navigation made the same two calls twice: the layout
+   needs the profile to draw the nav, the page needs it to decide what to show,
+   and neither knew the other had already asked. Two extra trips, ~350ms, for an
+   answer that cannot change inside one request.
+
+   React's cache() is per-request, not a cross-request cache — nothing is shared
+   between users and no staleness is introduced. It is deduplication. */
+const currentProfileRow = perRequest(async () => {
   const sb = await getRequestClient();
   const {
     data: { user },
@@ -42,6 +57,12 @@ export async function currentProfile(): Promise<Profile | null> {
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
+  return data ?? null;
+});
+
+/** The signed-in profile, or null. Never throws — callers decide what to do. */
+export async function currentProfile(): Promise<Profile | null> {
+  const data = await currentProfileRow();
   if (!data) return null;
 
   const parsed = ProfileSchema.safeParse({
@@ -52,6 +73,13 @@ export async function currentProfile(): Promise<Profile | null> {
     status: data.status,
   });
   return parsed.success ? parsed.data : null;
+}
+
+/** When this admin last opened Team. Free: the row is already in hand, and
+ *  fetching it separately was a whole round trip for one column. */
+export async function currentTeamSeenAt(): Promise<string | null> {
+  const row = await currentProfileRow();
+  return row?.team_seen_at ?? null;
 }
 
 /** For a page that requires a signed-in, active account.

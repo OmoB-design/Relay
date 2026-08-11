@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { cookies } from "next/headers";
+import { perRequest } from "@/lib/per-request";
 import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
@@ -64,8 +65,13 @@ function getServiceClient(): RelayClient {
   return serviceClient;
 }
 
-/** The signed-in user's client. RLS applies. Requires a request scope. */
-export async function getRequestClient(): Promise<RelayClient> {
+/** The signed-in user's client. RLS applies. Requires a request scope.
+ *
+ *  Memoised per request: every data-layer call asks for one, and building a
+ *  fresh client each time re-reads cookies and, more importantly, starts a new
+ *  connection instead of reusing the keep-alive socket to Supabase. Same
+ *  request, same cookies, same client — there is nothing to vary. */
+export const getRequestClient = perRequest(async (): Promise<RelayClient> => {
   const store = await cookies();
   return createServerClient<Database>(
     env("NEXT_PUBLIC_SUPABASE_URL"),
@@ -86,7 +92,7 @@ export async function getRequestClient(): Promise<RelayClient> {
       },
     },
   );
-}
+});
 
 /** The client every data-layer call goes through.
  *

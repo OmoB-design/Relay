@@ -1,4 +1,4 @@
-import { requireProfile } from "@/lib/auth";
+import { currentTeamSeenAt, requireProfile } from "@/lib/auth";
 import { getRequestClient } from "@/lib/supabase";
 import { AppNav } from "@/components/relay/AppNav";
 import { LiveRefresh } from "@/components/relay/LiveRefresh";
@@ -7,12 +7,10 @@ import { LiveRefresh } from "@/components/relay/LiveRefresh";
    Null team_seen_at means they never have, so on a fresh account everyone
    counts — on first run every colleague is news. */
 async function countNewJoins(adminId: string): Promise<number> {
+  // Already in hand from the profile read — asking again would be a whole
+  // round trip for one column.
+  const seenAt = await currentTeamSeenAt();
   const sb = await getRequestClient();
-  const { data: me } = await sb
-    .from("profiles")
-    .select("team_seen_at")
-    .eq("id", adminId)
-    .maybeSingle();
 
   let q = sb
     .from("profiles")
@@ -20,7 +18,7 @@ async function countNewJoins(adminId: string): Promise<number> {
     .eq("role", "buyer")
     .not("accepted_at", "is", null)
     .neq("id", adminId);
-  if (me?.team_seen_at) q = q.gt("accepted_at", me.team_seen_at);
+  if (seenAt) q = q.gt("accepted_at", seenAt);
 
   const { count } = await q;
   return count ?? 0;
