@@ -43,7 +43,7 @@ const t = config.copy.logo;
    not the selector's drop. Height pinned so the 0.7 -> 1px border change
    cannot resize the box (the inside-stroke rule). */
 const FIELD =
-  "h-field w-full max-w-60 rounded-8 border-fig border-border bg-surface-primary px-2 font-geist text-fig-caption-1 text-heading-03 md:text-fig-caption-1 shadow-field outline-none placeholder:text-caption-1 focus-visible:border focus-visible:border-blue-500 focus-visible:shadow-input-active focus-visible:ring-0";
+  "h-field w-full max-w-logo-input rounded-8 border-fig border-border bg-surface-primary px-2 font-geist text-fig-caption-1 text-heading-03 md:text-fig-caption-1 shadow-field outline-none placeholder:text-caption-1 focus-visible:border focus-visible:border-blue-500 focus-visible:shadow-input-active focus-visible:ring-0";
 
 export function LogoControl({
   clientId,
@@ -154,12 +154,20 @@ export function LogoControl({
       {/* The website lives here because it is the only thing that uses it, and
           because without it a client added without a domain could never have a
           logo looked up at all. */}
-      <div className="flex items-end gap-0.5">
-        <label className="flex w-full max-w-60 flex-col gap-1">
-          <span className="font-geist text-fig-caption-2 text-heading-06">
-            {t.domainLabel}
-          </span>
+      <div className="flex flex-col gap-1">
+        <label
+          htmlFor="logo-domain"
+          className="font-geist text-fig-caption-2 text-heading-06"
+        >
+          {t.domainLabel}
+        </label>
+        {/* The field's row. 18px to the button — the frame's 8px wrapper side
+            plus its 10px row gap — and items-center rather than the frame's
+            bottom alignment: the frame's own offsets leave the button 2px off
+            the field's centre, and centred was the requested correction. */}
+        <div className="flex items-center gap-4.5">
           <Input
+            id="logo-domain"
             value={site}
             onChange={(e) => setSite(e.target.value)}
             onFocus={() => setInputFocused(true)}
@@ -170,7 +178,6 @@ export function LogoControl({
             placeholder="www.northbrook.com"
             className={FIELD}
           />
-        </label>
         {showSave && (
           <Button
             size="fig"
@@ -203,6 +210,7 @@ export function LogoControl({
             {t.clear}
           </Button>
         )}
+        </div>
       </div>
       </ProfileWell>
 

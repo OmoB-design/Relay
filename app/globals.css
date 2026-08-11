@@ -336,6 +336,9 @@
      sheet: an 800 column holding two 392 columns with a 16px gutter. */
   --container-profile: 800px;
   --container-profile-col: 392px;
+  /* The logo card's website field (node 429:7751): a 250 wrapper with 8px
+     sides, so the FIELD itself is 234. */
+  --container-logo-input: 234px;
   --container-thread: 680px; /* Answer Desk thread (used from Phase 5) */
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
