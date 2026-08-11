@@ -49,7 +49,18 @@ export function EmptyPanel({
   return (
     <div
       className={cn(
-        "relative flex min-h-due-empty flex-col rounded-18 bg-surface-primary p-1 shadow-card",
+        /* w-full is not decoration. Figma pins this at w-550 (447:2875) — the
+           full column — and every parent here is a flex COLUMN with
+           items-start, under which a child's width is shrink-to-fit, not the
+           container. Figma's items-start does not mean that, because its
+           children carry explicit widths.
+
+           Without it the panel is as wide as its longest line and no wider, so
+           it silently tracks the COPY: Today's first run happened to measure
+           550 only because its sentence is long enough to clamp there, and the
+           moment Clients got a shorter one it came out at 408. Two panels the
+           frame draws identically, differing by a sentence. */
+        "relative flex w-full min-h-due-empty flex-col rounded-18 bg-surface-primary p-1 shadow-card",
         className,
       )}
     >

@@ -178,6 +178,17 @@ check(
   /whitespace-pre-line/.test(emptyPanel),
   "the \n in the copy would collapse to a space and the block would run wide",
 );
+/* The panel is pinned at the column width (447:2875 draws it at 550). Every
+   parent is a flex COLUMN with items-start, under which a child's width is
+   shrink-to-fit — so without w-full the panel is as wide as its longest LINE.
+   Today's first run measured 550 only because its sentence is long enough to
+   clamp there; Clients, with a shorter one, came out at 408. Two panels the
+   frame draws identically, differing by a sentence. */
+check(
+  "the empty panel declares its width instead of inheriting it from the copy",
+  /"relative flex w-full min-h-due-empty/.test(emptyPanel),
+  "shrink-to-fit makes the panel track the sentence, not the column",
+);
 check(
   "…and no longer uses the pre-redesign 720px column",
   !/max-w-column/.test(emptyPanel),
