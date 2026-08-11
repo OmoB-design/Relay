@@ -143,6 +143,12 @@
      rows at y = 0, 59, 118, 177). Same reason as the client row: the frame
      pins it and padding arithmetic cannot reach it once hairlines differ. */
   --spacing-profile-row: 59px;
+  /* A selector field is 30px in BOTH states (node 429:7062/7125): Figma draws
+     its strokes inside the box, so going 0.6px -> 1px on activation never
+     changes the frame. CSS borders resize the box, so the height is pinned and
+     the border eats into the padding instead — the on-screen behaviour Figma's
+     inside strokes give for free. */
+  --spacing-field: 30px;
   /* Likewise the Button component set (node 300:8781): every variant is 26px
      tall. Left to padding alone ours came out 28.4px, and an 8px radius on a
      28.4px box reads squarer than the same radius on a 26px one — which is what

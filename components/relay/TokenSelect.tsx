@@ -27,7 +27,7 @@ export function TokenSelect({
   return (
     <span className={cn("relative block w-full", className)}>
       <select
-        className="h-auto w-full appearance-none rounded-8 border-fig border-border bg-surface-primary py-1.5 pl-2 pr-6 font-geist text-fig-caption-1 text-heading-03 shadow-field outline-none focus:border focus:border-blue-500 focus:shadow-field-active"
+        className="h-field w-full appearance-none rounded-8 border-fig border-border bg-surface-primary pl-2 pr-6 font-geist text-fig-caption-1 text-heading-03 shadow-field outline-none focus:border focus:border-blue-500 focus:shadow-field-active"
         {...props}
       />
       <SelectChevronGlyph className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-icon-explainer" />

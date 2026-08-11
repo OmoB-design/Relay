@@ -183,6 +183,11 @@ const CASES: Case[] = [
     label: "the 59px profile row survives its hairline",
   },
   {
+    input: ["h-auto", "h-field"],
+    exact: "h-field",
+    label: "the pinned field height replaces h-auto",
+  },
+  {
     input: ["text-fig-body", "text-heading-03"],
     keep: ["text-fig-body", "text-heading-03"],
     label: "the Edit label keeps 13px AND Heading-03",

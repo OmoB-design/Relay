@@ -78,7 +78,7 @@ const FONT_WEIGHTS = ["fig-regular", "fig-w450", "fig-medium", "fig-sb"];
 
 /** Named heights, for the boxes Figma pins outright rather than deriving from
  *  their padding. `h-9` and friends must still be able to override them. */
-const HEIGHTS = ["digest-row", "client-row", "profile-row", "button-fig"];
+const HEIGHTS = ["digest-row", "client-row", "profile-row", "button-fig", "field"];
 
 const twMerge = extendTailwindMerge({
   extend: {
