@@ -125,6 +125,11 @@ const CASES: Case[] = [
     exact: "shadow-input-active",
     label: "the active input's halo replaces the resting one",
   },
+  {
+    input: ["shadow-input-active", "shadow-invalid-active"],
+    exact: "shadow-invalid-active",
+    label: "the invalid halo replaces the valid one",
+  },
   /* The active stroke: a plain `border` (1px) must beat border-fig, or the
      Selected state renders at hairline weight. */
   {
@@ -191,6 +196,16 @@ const CASES: Case[] = [
     input: ["h-auto", "h-field"],
     exact: "h-field",
     label: "the pinned field height replaces h-auto",
+  },
+  {
+    input: ["h-field", "h-field-lg"],
+    exact: "h-field-lg",
+    label: "the modal's taller field replaces the standard one",
+  },
+  {
+    input: ["min-h-textarea", "border-fig"],
+    keep: ["min-h-textarea", "border-fig"],
+    label: "the constraint box keeps its minimum with its hairline",
   },
   {
     input: ["text-fig-body", "text-heading-03"],

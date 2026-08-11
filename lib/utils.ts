@@ -65,6 +65,7 @@ const SHADOWS = [
   "popover",
   "field-active",
   "input-active",
+  "invalid-active",
   "field",
   "control",
   "control-sm",
@@ -79,7 +80,7 @@ const FONT_WEIGHTS = ["fig-regular", "fig-w450", "fig-medium", "fig-sb"];
 
 /** Named heights, for the boxes Figma pins outright rather than deriving from
  *  their padding. `h-9` and friends must still be able to override them. */
-const HEIGHTS = ["digest-row", "client-row", "profile-row", "button-fig", "field"];
+const HEIGHTS = ["digest-row", "client-row", "profile-row", "button-fig", "field", "field-lg"];
 
 const twMerge = extendTailwindMerge({
   extend: {
@@ -94,6 +95,7 @@ const twMerge = extendTailwindMerge({
       shadow: [{ shadow: SHADOWS }, "field-focus", "field-invalid"],
       "font-weight": FONT_WEIGHTS,
       h: [{ h: HEIGHTS }],
+      "min-h": [{ "min-h": ["due-empty", "textarea"] }],
     },
   },
 });

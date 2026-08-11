@@ -86,11 +86,16 @@ export function FieldSelect<T extends string>({
   onChange,
   options,
   ariaLabel,
+  size = "field",
 }: {
   value: T;
   onChange: (next: T) => void;
   options: { value: T; label: string }[];
   ariaLabel: string;
+  /** "field" is the cadence card's 30px selector; "field-lg" the modal's 38px
+   *  one (node 433:9405 draws the same control at px-8 py-10). The panel's
+   *  options step down with it: 10px rows on the card, 8px in the modal. */
+  size?: "field" | "field-lg";
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -130,7 +135,7 @@ export function FieldSelect<T extends string>({
             setOpen(true);
           }
         }}
-        className={cn(TRIGGER, open && TRIGGER_ACTIVE)}
+        className={cn(TRIGGER, size === "field-lg" && "h-field-lg", open && TRIGGER_ACTIVE)}
       >
         <span className="truncate">{current?.label ?? value}</span>
         <SelectChevronGlyph className="shrink-0 text-icon-explainer" />
@@ -158,7 +163,11 @@ export function FieldSelect<T extends string>({
                     onChange(option.value);
                     close();
                   }}
-                  className={cn(OPTION, selected && "bg-surface-foreground-01")}
+                  className={cn(
+                    OPTION,
+                    size === "field-lg" && "py-2",
+                    selected && "bg-surface-foreground-01",
+                  )}
                 >
                   <span className="truncate">{option.label}</span>
                   {selected && (

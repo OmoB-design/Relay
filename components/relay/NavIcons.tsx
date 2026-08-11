@@ -168,6 +168,16 @@ export function PanelToggleGlyph({
 
 /** The pencil in the middle of "All caught up" (Figma 365:3405). Same 1.75 as
  *  the waiting mark — both stand alone rather than in a column. */
+/** The modal's close (node 446:2305) — exported paths, verbatim. */
+export function CloseGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...NAV_SVG} aria-hidden="true" className={className}>
+      <path d="M10.8889 3.11111L3.11111 10.8889" stroke="currentColor" {...STROKE} />
+      <path d="M3.11111 3.11111L10.8889 10.8889" stroke="currentColor" {...STROKE} />
+    </svg>
+  );
+}
+
 /** The lookup-in-flight spinner (node 429:7966 via the Logo set): a faded
  *  ring with a solid quarter arc — drawn to rotate, so the SPIN lives on the
  *  element (animate-spin), not in the asset. Exported paths, verbatim. */

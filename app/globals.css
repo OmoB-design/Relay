@@ -149,6 +149,13 @@
      the border eats into the padding instead — the on-screen behaviour Figma's
      inside strokes give for free. */
   --spacing-field: 30px;
+  /* The modal's Selectors run taller — px-8 py-10 around the same 12px value
+     (node 433:9405) — so they get their own pin for the same inside-stroke
+     reason. */
+  --spacing-field-lg: 38px;
+  /* The constraint box (Digest Input Field, node 433:9409): pt-12 pb-40
+     around one 12/1.4 line ≈ 70. A minimum, so pasted paragraphs still grow. */
+  --spacing-textarea: 70px;
   /* Likewise the Button component set (node 300:8781): every variant is 26px
      tall. Left to padding alone ours came out 28.4px, and an 8px radius on a
      28.4px box reads squarer than the same radius on a 26px one — which is what
@@ -352,6 +359,15 @@
   --shadow-popover:
     0px 1.5px 2px 0px rgb(226 224 224 / 0.1),
     0px 0px 12px 0px rgb(45 45 45 / 0.08);
+  /* The ACTIVE text input (node 305:12049 via the Logo set): Blue/150 as a
+     box-shadow WITH SPREAD, hugging all four edges — distinct from the
+     selector's drop-shadow glow. And the same halo in the INVALID colour for
+     the sensitivity modal's empty constraint (node 433:9264). THEME shadows,
+     not @utility box-shadows, because the shadcn field primitives compose
+     box-shadow from ring variables — a utility that sets the property
+     directly is silently overwritten the moment any ring class is active. */
+  --shadow-input-active: 0 0 1.5px 1px var(--color-blue-150);
+  --shadow-invalid-active: 0 0 1.5px 1px var(--color-red-200);
 }
 
 /* Hairline 1.5px border/underline weight (empty-state border, claim underline).
@@ -408,13 +424,7 @@
 @utility shadow-field-active {
   filter: drop-shadow(0 0 0.75px var(--color-blue-150));
 }
-/* The ACTIVE text input (node 305:12049 via the Logo set): the same Blue/150
-   under the same 1px Blue/500, but as a box-shadow WITH SPREAD — an input's
-   halo hugs all four edges where the selector's drop reads as a glow. Two
-   variables, two utilities, per the frames. */
-@utility shadow-input-active {
-  box-shadow: 0 0 1.5px 1px var(--color-blue-150);
-}
+
 /* The client mark's outer tile carries a heavier drop than its well. */
 @utility shadow-avatar {
   filter: drop-shadow(0 2px 1.5px rgb(171 171 171 / 0.12));

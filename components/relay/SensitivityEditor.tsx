@@ -2,30 +2,48 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
 import type { Sensitivity } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SensitivityChip } from "@/components/relay/SensitivityChip";
 import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
-import { TokenSelect } from "@/components/relay/TokenSelect";
+import { FieldSelect } from "@/components/relay/FieldSelect";
+import { CloseGlyph, TrashGlyph } from "@/components/relay/NavIcons";
 import {
   deleteSensitivityAction,
   saveSensitivityAction,
 } from "@/app/(app)/clients/[clientId]/actions";
 
-/* Sensitivities: chip list + structured add/edit Dialog (design.md §4.2).
-   Always a typed object — constraint text + type enum. Never a notes area.
-   Clicking a chip opens it for editing; "Add sensitivity" opens a blank one. */
+/* Sensitivities: chip list + the Add/Edit modal — Figma component set
+   433:9379, all six variants.
+
+   THE MODAL INVERTS THE PROFILE CARD: a white shell whose BODY sits on the
+   Surface/Dashboard wash, with the footer back on the white. Header (15px
+   Medium title, the one-line reason, a 14px close) rules itself off with a
+   hairline inside the wash.
+
+   THE CONSTRAINT FIELD IS RED WHEN EMPTY — the set draws required-and-missing
+   as the resting state, not as a post-submit scolding: 1px Red/600 with the
+   10px Red/700 line under it, Red/200 spread halo while focused-empty, then
+   BLUE the moment there is text (the input-active state), and a plain
+   hairline at rest once filled (the Edit variant's shape).
+
+   The frame's own field carries digest placeholder copy ("What did you
+   change…") — the Digest Input Field component reused verbatim, like the
+   Stakeholders "Add KPI" slip. Visual states are the frame's; the words are
+   this field's own.
+
+   Clicking a chip opens it for editing; Add opens a blank one. */
 
 type SensitivityType = Sensitivity["type"];
 
@@ -45,6 +63,7 @@ export function SensitivityEditor({
   const [type, setType] = useState<SensitivityType>("framing");
   const [text, setText] = useState("");
   const [pending, startTransition] = useTransition();
+  const [constraintFocused, setConstraintFocused] = useState(false);
 
   const textValid = text.trim().length > 0;
 
@@ -113,68 +132,124 @@ export function SensitivityEditor({
             </Button>
           </DialogTrigger>
         </ProfileFooter>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="font-geist text-fig-body-lg fig-medium text-heading-01">
-              {editingId ? "Edit sensitivity" : "Add sensitivity"}
-            </DialogTitle>
-            <DialogDescription className="font-geist text-fig-caption-1 text-heading-06">
-              A structured constraint the narrative layer must obey — typed, not
-              a note.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="font-geist text-fig-caption-2 text-heading-06">Type</span>
-              <TokenSelect
-                value={type}
-                onChange={(e) => setType(e.target.value as SensitivityType)}
-              >
-                {TYPES.map((value) => (
-                  <option key={value} value={value}>
-                    {config.copy.sensitivityTypeLabel[value]}
-                  </option>
-                ))}
-              </TokenSelect>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="font-geist text-fig-caption-2 text-heading-06">Constraint</span>
-              <Textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder='e.g. "Frame cost per order weekly, never daily."'
-                aria-invalid={!textValid}
-              />
-            </label>
-            {!textValid && (
-              <p className="font-geist text-fig-caption-2 text-red-700">
-                The constraint text is required.
-              </p>
-            )}
+        <DialogContent
+          showCloseButton={false}
+          className="w-full gap-0 rounded-18 border-fig border-border bg-surface-primary p-0 shadow-card sm:max-w-sheet"
+        >
+          {/* The wash body, inset 4px on the white shell (node 433:9387). */}
+          <div className="p-1">
+            <div className="flex w-full flex-col gap-4 rounded-14 border-fig border-border bg-surface-dashboard pb-3 pt-2">
+              {/* Header: title, the one-line reason, the 14px close. */}
+              <div className="flex w-full items-start gap-2.5 px-4 pb-3 divider-b border-border">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <DialogTitle className="font-geist text-fig-body-lg fig-medium text-heading-01">
+                    {editingId ? "Edit Sensitivity" : "Add Sensitivity"}
+                  </DialogTitle>
+                  <DialogDescription className="font-geist text-fig-caption-1 text-heading-06">
+                    A structured constraint the narrative layer must obey —
+                    typed, not a note.
+                  </DialogDescription>
+                </div>
+                <DialogClose
+                  aria-label={config.copy.actions.cancel}
+                  className="shrink-0 text-heading-01 outline-none hover:text-heading-05 focus-visible:text-heading-05"
+                >
+                  <CloseGlyph />
+                </DialogClose>
+              </div>
+
+              <div className="flex w-full flex-col gap-2 px-4">
+                <div className="flex flex-col gap-1 pb-1">
+                  <span
+                    id="sensitivity-type-label"
+                    className="font-geist text-fig-caption-1 text-heading-06"
+                  >
+                    Type
+                  </span>
+                  <FieldSelect
+                    value={type}
+                    onChange={setType}
+                    ariaLabel="Type"
+                    size="field-lg"
+                    options={TYPES.map((value) => ({
+                      value,
+                      label: config.copy.sensitivityTypeLabel[value],
+                    }))}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 pb-1">
+                  <label
+                    htmlFor="sensitivity-constraint"
+                    className="font-geist text-fig-caption-1 text-heading-06"
+                  >
+                    Constraint
+                  </label>
+                  <div className="flex w-full flex-col gap-1.5">
+                    {/* Required-and-missing is the RESTING state: red at 1px
+                        with its hint, a Red/200 spread halo while focused,
+                        then the input-active blue the moment text exists, and
+                        the plain hairline once filled and resting. */}
+                    <Textarea
+                      id="sensitivity-constraint"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      onFocus={() => setConstraintFocused(true)}
+                      onBlur={() => setConstraintFocused(false)}
+                      placeholder='e.g. "Frame cost per order weekly, never daily."'
+                      aria-invalid={!textValid}
+                      className={cn(
+                        "min-h-textarea w-full rounded-12 bg-surface-primary px-2 pt-3 font-geist text-fig-caption-1 text-heading-02 shadow-none outline-none ring-0 placeholder:text-caption-1 focus-visible:ring-0 md:text-fig-caption-1",
+                        textValid
+                          ? constraintFocused
+                            ? "border border-blue-500 shadow-input-active"
+                            : "border-fig border-border"
+                          : cn(
+                              "border border-red-600",
+                              constraintFocused && "shadow-invalid-active",
+                            ),
+                      )}
+                    />
+                    {!textValid && (
+                      <p className="font-geist text-fig-caption-2 text-red-700">
+                        The constraint text is required.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <DialogFooter className="gap-2 sm:justify-between">
-            {editingId ? (
+
+          {/* Footer on the white shell (node 433:9422). Edit carries Remove
+              on the left; both end Cancel then Save. */}
+          <div
+            className={cn(
+              "flex w-full items-center gap-1.5 p-2.5",
+              editingId ? "justify-between" : "justify-end",
+            )}
+          >
+            {editingId && (
               <Button
                 size="fig"
                 variant="ghost"
                 onClick={remove}
                 disabled={pending}
-                className="text-red-700"
+                className="gap-1 text-red-600 hover:text-red-600"
               >
+                <TrashGlyph className="shrink-0" />
                 {config.copy.actions.remove}
               </Button>
-            ) : (
-              <span />
             )}
-            <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setOpen(false)}>
+            <div className="flex items-center gap-1.5">
+              <Button size="fig" variant="ghost" onClick={() => setOpen(false)}>
                 {config.copy.actions.cancel}
               </Button>
-              <Button onClick={save} disabled={pending || !textValid}>
+              <Button size="fig" onClick={save} disabled={pending || !textValid}>
                 {config.copy.actions.save}
               </Button>
             </div>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
