@@ -18,11 +18,16 @@ import { ChevronGlyph } from "@/components/relay/NavIcons";
  *  last corners come from the well's own radius and overflow-hidden, which is
  *  what Figma's rounded-t/rounded-b on the end rows describes.
  *
- *  HOVER IS THE CHEVRON, and only the chevron. The frame draws it #777777 at
- *  rest and #050505 on the row it is showing hovered, with no change to the row
- *  behind it — so this does not invent a background wash the design does not
- *  have. A focus ring is added because the frame cannot describe keyboard
- *  focus and a list of links without one is unusable from the keyboard. */
+ *  HOVER is the same wash every clickable row on Today uses — see WaitingRow,
+ *  which is this shape exactly: an <li> carrying the divider and a <Link>
+ *  taking Surface/Foreground-01 underneath. The frame only changes the chevron
+ *  (#777777 at rest, #050505 hovered), and that is kept too, but a 14px glyph
+ *  is not enough feedback on a 550x55 target — and a client row behaving
+ *  differently from every other row in the app is a worse answer than the
+ *  frame being silent about it.
+ *
+ *  Focus gets the same wash, because a frame cannot describe keyboard focus
+ *  and a list of links without it is unusable from the keyboard. */
 
 /* w-full for the same reason EmptyPanel carries it: every parent is a flex
    COLUMN with items-start, under which a child's width is shrink-to-fit. The
@@ -63,7 +68,7 @@ export function ClientList({ clients }: { clients: ClientProfile[] }) {
             >
               <Link
                 href={`/clients/${client.id}`}
-                className="group flex h-full items-center justify-between gap-2 px-2.5 outline-none focus-visible:bg-surface-foreground-01"
+                className="group flex h-full items-center justify-between gap-2 px-2.5 outline-none hover:bg-surface-foreground-01 focus-visible:bg-surface-foreground-01"
               >
                 <span className="flex min-w-0 max-w-client-text flex-1 flex-col gap-0.5">
                   <span className="truncate font-geist text-fig-body fig-w450 text-heading-01">

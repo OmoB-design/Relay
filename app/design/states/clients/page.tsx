@@ -51,7 +51,7 @@ export default function ClientStatesPage() {
           id="clients/list-buyer"
           title="The list (node 417:3381)"
           when="One row per client the reader carries: name, then cadence · channel · descriptor. The descriptor is the only part that can run long, so it takes the remaining width and truncates."
-          note="Hover a row: the frame changes the CHEVRON and nothing else — #777777 at rest, #050505 hovered — so no background wash was invented for it."
+          note="Hover a row: Surface/Foreground-01 underneath, the same wash WaitingRow uses on Today, plus the chevron darkening the frame specifies. The frame shows only the chevron, but 14px of glyph is not enough feedback on a 550x55 target."
           onPaper
         >
           <div className="mx-auto max-w-sheet">
