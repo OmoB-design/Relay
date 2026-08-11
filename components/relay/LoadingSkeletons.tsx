@@ -459,3 +459,53 @@ export function WeeklyReviewSkeleton() {
     </div>
   );
 }
+
+/** /clients — the section header, then the list card at its real row pitch.
+ *
+ *  The rows are h-client-row like the real ones (55px, pinned on the element
+ *  carrying the divider) rather than a guess, so the card is the same height
+ *  before and after the data lands and nothing shifts under the reader.
+ *
+ *  Four rows because that is what the agency has. It is a placeholder, not a
+ *  prediction: if the count is wrong the list simply grows or shrinks once,
+ *  which is a smaller lie than a card of the wrong SHAPE. */
+export function ClientsSkeleton({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="flex flex-col items-center px-6 pt-8">
+      <div className="flex w-full max-w-sheet flex-col gap-16 pb-8 pt-16">
+        <div className="flex w-full flex-col items-start gap-12">
+          {/* 23px title, then its 13px line. */}
+          <div className="flex w-full flex-col items-start gap-1">
+            <Bar className="h-6 w-28" />
+            <Bar className="mt-1 h-3 w-44" />
+          </div>
+
+          <div className="w-full rounded-18 border-fig border-border bg-surface-primary shadow-card">
+            <div className="p-1">
+              <div className="flex flex-col overflow-hidden rounded-14 border-fig border-border bg-surface-primary">
+                {Array.from({ length: rows }, (_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-client-row",
+                      i > 0 && "divider-t border-border",
+                    )}
+                  >
+                    <div className="flex h-full items-center justify-between gap-2 px-2.5">
+                      <span className="flex min-w-0 max-w-client-text flex-1 flex-col gap-0.5">
+                        {/* 13px name, then the 12px cadence line. */}
+                        <Bar className="h-3.5 w-32" />
+                        <Bar className="mt-1 h-3 w-full max-w-80" />
+                      </span>
+                      <Bar className="size-nav-icon shrink-0 rounded-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

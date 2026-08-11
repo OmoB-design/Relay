@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Bar,
+  ClientsSkeleton,
   DigestSkeleton,
   DueSkeleton,
   LogGridSkeleton,
@@ -326,6 +327,13 @@ export default function SkeletonTweakPage() {
       {/* The admin pages. Provisional in the same sense the pages are — no
           Figma frame exists for admin yet, so these are measured from the
           pages rather than from a drawing. */}
+      <Specimen
+        title="Clients, whole page"
+        note="Rows at the real 55px pitch, so the card is the same height before and after the data lands."
+      >
+        <ClientsSkeleton />
+      </Specimen>
+
       <Specimen
         title="Overview, whole page"
         note="Setup checklist plus the coverage and delivery panels."
