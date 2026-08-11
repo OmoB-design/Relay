@@ -11,6 +11,13 @@
    So this signs in as an actual buyer, over the anon key, exactly as the
    browser would, and tries to write.
 
+   IF THERE IS NO BUYER, IT MAKES ONE. This used to skip, which meant the only
+   check that actually tests the security boundary ran only when the agency
+   happened to have a second user — and quietly passed the suite when it did
+   not. A proof you can't run isn't a proof. The probe account is created with
+   the admin API (no email is sent), assigned one client, and deleted at the
+   end; deleting the auth user cascades the profile and the assignment with it.
+
    It restores whatever it changed, including on failure. */
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
@@ -68,48 +75,103 @@ function checkSource() {
   check("…and Edit numbers too", /canEdit &&\s+!confirmed && \(/.test(band));
 }
 
+/** A throwaway buyer. `email_confirm` means no invite mail is ever sent, and
+ *  the address is on the IETF's reserved example.com, which cannot receive. */
+const PROBE_EMAIL = "relay-rls-probe@example.com";
+
+type Admin = ReturnType<typeof adminAuthClient>;
+
+async function provisionProbeBuyer(admin: Admin) {
+  // A leftover from an interrupted run would collide on the unique email.
+  const { data: existing } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("email", PROBE_EMAIL)
+    .maybeSingle();
+  if (existing) await admin.auth.admin.deleteUser(existing.id);
+
+  const { data, error } = await admin.auth.admin.createUser({
+    email: PROBE_EMAIL,
+    email_confirm: true,
+    user_metadata: { name: "RLS probe" },
+  });
+  if (error) throw error;
+  const id = data.user.id;
+
+  /* handle_new_user() already made the profile a buyer — this is belt and
+     braces against the bootstrap branch, which would make it an ADMIN on an
+     empty database and turn every assertion below green for the wrong reason. */
+  await admin
+    .from("profiles")
+    .update({
+      role: "buyer",
+      status: "active",
+      accepted_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  return id;
+}
+
 async function main() {
   checkSource();
   const admin = adminAuthClient();
 
-  const { data: buyers } = await admin
-    .from("profiles")
-    .select("id, email")
-    .eq("role", "buyer")
-    .eq("status", "active")
-    .limit(1);
-  const buyer = buyers?.[0];
-  if (!buyer) {
-    console.log("  ~ no active buyer to test with — skipping");
-    return;
-  }
-
-  const { data: assignments } = await admin
-    .from("client_assignments")
-    .select("client_id, permission")
-    .eq("buyer_id", buyer.id)
-    .limit(1);
-  const assignment = assignments?.[0];
-  if (!assignment) {
-    console.log(`  ~ ${buyer.email} carries no clients — skipping`);
-    return;
-  }
-
-  const clientId = assignment.client_id;
-  const original = assignment.permission;
-
-  // Something of theirs to try writing to.
-  const { data: rows } = await admin
+  /* Whatever client is used must have a daily row, because "can they write"
+     needs something to write to. Pick the rows first, then a buyer who can
+     reach one. */
+  const { data: candidateRows } = await admin
     .from("daily_rows")
-    .select("id, status")
-    .eq("client_id", clientId)
+    .select("id, client_id")
     .order("date", { ascending: false })
-    .limit(1);
-  const row = rows?.[0];
-  if (!row) {
-    console.log("  ~ no daily row for that client — skipping");
+    .limit(500);
+
+  if (!candidateRows?.length) {
+    console.log("  ~ no daily rows in this database — skipping the live half");
     return;
   }
+
+  /* Prefer a real buyer who ALREADY carries a client: that exercises the true
+     production shape. Falling back to a probe covers the case this script kept
+     tripping over — an instance whose only buyer has not been assigned
+     anything yet, where the honest options are "make an account" or "test
+     nothing", and testing nothing is how a broken policy ships. Never fabricate
+     an assignment on a real account; handing a buyer a client they were not
+     given is a data change, not a test. */
+  const { data: liveAssignments } = await admin
+    .from("client_assignments")
+    .select("client_id, buyer_id, permission, profiles!inner(email, role, status)");
+
+  const usable = (liveAssignments ?? []).find(
+    (a) =>
+      (a.profiles as unknown as { role: string; status: string }).role ===
+        "buyer" &&
+      (a.profiles as unknown as { status: string }).status === "active" &&
+      candidateRows.some((r) => r.client_id === a.client_id),
+  );
+
+  let buyer: { id: string; email: string };
+  let probeId: string | null = null;
+  let clientId: string;
+  let original: string | null = null;
+
+  if (usable) {
+    buyer = {
+      id: usable.buyer_id,
+      email: (usable.profiles as unknown as { email: string }).email,
+    };
+    clientId = usable.client_id;
+    original = usable.permission;
+  } else {
+    probeId = await provisionProbeBuyer(admin);
+    buyer = { id: probeId, email: PROBE_EMAIL };
+    clientId = candidateRows[0]!.client_id;
+    await admin
+      .from("client_assignments")
+      .insert({ client_id: clientId, buyer_id: probeId, permission: "edit" });
+    console.log(`  · no assigned buyer to borrow — provisioned ${PROBE_EMAIL}`);
+  }
+
+  const row = candidateRows.find((r) => r.client_id === clientId)!;
 
   // A client they are NOT assigned to, for the outer boundary.
   const { data: others } = await admin
@@ -209,8 +271,33 @@ async function main() {
     }
   } finally {
     // Always, even if an assertion above threw.
-    await setPermission(original as "view" | "edit");
-    console.log(`  · restored ${buyer.email} to "${original}"`);
+    if (original) {
+      await setPermission(original as "view" | "edit");
+      console.log(`  · restored ${buyer.email} to "${original}"`);
+    }
+    /* If the insert-under-view assertion FAILED, a probe flag is now sitting in
+       a real client's list. Clearing it unconditionally is cheaper than
+       reasoning about which branch ran. */
+    await admin
+      .from("flags")
+      .delete()
+      .eq("client_id", clientId)
+      .eq("metric_label", "probe");
+
+    if (probeId) {
+      // Cascades the profile and the assignment.
+      await admin.auth.admin.deleteUser(probeId);
+      const { data: left } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("id", probeId)
+        .maybeSingle();
+      check(
+        "the probe account left nothing behind",
+        !left,
+        "a test fixture is still in the profiles table",
+      );
+    }
   }
 }
 
