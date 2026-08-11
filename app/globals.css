@@ -376,6 +376,16 @@
   border-width: 1.5px;
 }
 
+/* Reserve the scrollbar gutter whether or not content overflows. With classic
+   (space-consuming) scrollbars — external mouse, or macOS "Always show scroll
+   bars" — a scroll container's inner width otherwise changes by ~15px whenever
+   the bar appears or vanishes, so toggling between a tall tab and a short one
+   reflows everything inside (the client page's tab-toggle shrink). Overlay
+   scrollbars have no gutter, so this is a no-op there. */
+@utility scrollbar-stable {
+  scrollbar-gutter: stable;
+}
+
 /* The claim affordance (design.md §3 ClaimSpan): dotted 1.5px underline in
    verdigris at 45% opacity; hover/selected raise to 100%. Border-bottom, not
    text-decoration, so the dots sit consistently under multi-line spans. */
