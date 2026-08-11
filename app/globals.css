@@ -337,6 +337,12 @@
 
   /* --- Elevation: borders over shadows; one shadow token only. --- */
   --shadow-raised: 0 1px 3px rgb(23 32 28 / 0.07);
+  /* The dropdown panel (node 432:8169): a lift close to the card plus a wide
+     soft halo — the only element in the redesign that floats OVER content, so
+     the only one that earns a second shadow layer. */
+  --shadow-popover:
+    0px 1.5px 2px 0px rgb(226 224 224 / 0.1),
+    0px 0px 12px 0px rgb(45 45 45 / 0.08);
 }
 
 /* Hairline 1.5px border/underline weight (empty-state border, claim underline).

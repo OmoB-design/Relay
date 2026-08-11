@@ -37,7 +37,11 @@ export function ProfileCard({
   return (
     <section
       className={cn(
-        "w-full overflow-hidden rounded-18 border-fig border-border bg-surface-dashboard shadow-card",
+        /* NO overflow-hidden, deliberately: the cadence card's dropdowns open
+           4px below their fields and must float over whatever is beneath the
+           card. Corner clipping is owned by the children that need it —
+           ProfileRows and ProfileWell round and clip themselves. */
+        "w-full rounded-18 border-fig border-border bg-surface-dashboard shadow-card",
         className,
       )}
     >
@@ -72,7 +76,8 @@ export function ProfileWell({
   return (
     <div
       className={cn(
-        "mx-1 overflow-hidden rounded-14 border-fig border-border bg-surface-primary",
+        // Same reason as the card: a dropdown inside must be free to overhang.
+        "mx-1 rounded-14 border-fig border-border bg-surface-primary",
         last && "mb-1",
         className,
       )}

@@ -62,6 +62,7 @@ const BORDER_WIDTHS = ["fig", "hair"];
 /** box-shadow and drop-shadow utilities. */
 const SHADOWS = [
   "card",
+  "popover",
   "field",
   "control",
   "control-sm",

@@ -110,6 +110,11 @@ const CASES: Case[] = [
     exact: "shadow-control",
     label: "two custom shadows — the later wins",
   },
+  {
+    input: ["shadow-card", "shadow-popover"],
+    exact: "shadow-popover",
+    label: "the dropdown panel's lift replaces a card shadow",
+  },
   // The sidebar's account tile (Figma 357:2730) is a third box-shadow.
   {
     input: ["shadow-card", "shadow-nav-profile"],

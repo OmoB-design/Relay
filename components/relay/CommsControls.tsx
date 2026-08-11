@@ -6,7 +6,10 @@ import { config } from "@/lib/config";
 import { DEFAULT_ANCHOR_TIME, type Cadence, type Channel } from "@/lib/types";
 import { DAYS, DAY_LABEL } from "@/lib/clients/new-client";
 import { Button } from "@/components/ui/button";
-import { TokenSelect } from "@/components/relay/TokenSelect";
+import {
+  FieldSelect,
+  FieldTimeSelect,
+} from "@/components/relay/FieldSelect";
 import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
 import { updateCommsAction } from "@/app/(app)/clients/[clientId]/actions";
 
@@ -66,52 +69,45 @@ export function CommsControls({
   return (
     <>
       <ProfileWell className="grid gap-x-2.5 gap-y-2 px-2 py-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="font-geist text-fig-caption-2 text-heading-06">
             Cadence
           </span>
-          <TokenSelect
+          <FieldSelect
             value={primary}
-            onChange={(e) => setPrimary(e.target.value as Selectable)}
-          >
-            {SELECTABLE.map((v) => (
-              <option key={v} value={v}>
-                {config.copy.cadenceLabel[v]}
-              </option>
-            ))}
-          </TokenSelect>
-        </label>
-        <label className="flex flex-col gap-1">
+            onChange={setPrimary}
+            ariaLabel="Cadence"
+            options={SELECTABLE.map((v) => ({
+              value: v,
+              label: config.copy.cadenceLabel[v],
+            }))}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <span className="font-geist text-fig-caption-2 text-heading-06">
             Channel
           </span>
-          <TokenSelect
+          <FieldSelect
             value={chan}
-            onChange={(e) => setChan(e.target.value as Channel)}
-          >
-            {(Object.keys(config.copy.channelLabel) as Channel[]).map((v) => (
-              <option key={v} value={v}>
-                {config.copy.channelLabel[v]}
-              </option>
-            ))}
-          </TokenSelect>
-        </label>
-        <label className="flex flex-col gap-1">
+            onChange={setChan}
+            ariaLabel="Channel"
+            options={(Object.keys(config.copy.channelLabel) as Channel[]).map(
+              (v) => ({ value: v, label: config.copy.channelLabel[v] }),
+            )}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <span className="font-geist text-fig-caption-2 text-heading-06">
             Send day
           </span>
-          <TokenSelect
+          <FieldSelect
             value={day}
-            onChange={(e) => setDay(e.target.value as AnchorDay)}
-          >
-            {DAYS.map((d) => (
-              <option key={d} value={d}>
-                {DAY_LABEL[d]}
-              </option>
-            ))}
-          </TokenSelect>
-        </label>
-        <label className="flex flex-col gap-1">
+            onChange={setDay}
+            ariaLabel="Send day"
+            options={DAYS.map((d) => ({ value: d, label: DAY_LABEL[d] }))}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           {/* The 2px dot is the frame's (node 429:7096) — a size below even
               the chip dot, because both halves of this label are captions. */}
           <span className="flex items-center gap-1 font-geist text-fig-caption-2 text-heading-06">
@@ -123,14 +119,11 @@ export function CommsControls({
             {timezone}
           </span>
           {/* The client's clock, not the agency's. A Dubai 09:00 passes five
-              hours before a London one, and "late" is measured against theirs. */}
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="rounded-8 border-fig border-border bg-surface-primary px-2 py-1.5 font-geist text-fig-caption-1 text-heading-01 shadow-field"
-          />
-        </label>
+              hours before a London one, and "late" is measured against theirs.
+              Half-hour steps only (node 432:8485): a send time is a standing
+              arrangement, not a stopwatch. */}
+          <FieldTimeSelect value={time} onChange={setTime} ariaLabel="Send time" />
+        </div>
         {(cadence.secondary || cadence.note) && (
           <p className="font-geist text-fig-caption-2 text-caption-1 sm:col-span-2">
             {cadence.secondary &&

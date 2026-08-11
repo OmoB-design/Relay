@@ -168,6 +168,59 @@ export function PanelToggleGlyph({
 
 /** The pencil in the middle of "All caught up" (Figma 365:3405). Same 1.75 as
  *  the waiting mark — both stand alone rather than in a column. */
+/** The selected option's check (node 432:8675). Figma's export of this one is
+ *  degenerate — a single-point path — so the glyph is drawn as the plain 10px
+ *  check the frame renders, at the export's stroke colour and weight. */
+export function CheckGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={10}
+      height={10}
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M1.87 5.31L3.96 7.4L8.13 2.92"
+        stroke="currentColor"
+        strokeWidth={0.888889}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** The send-time field's clock (node 429:7100) — exported paths, verbatim. */
+export function ClockGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={10}
+      height={10}
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M5.00015 9.02776C7.22464 9.02776 9.02793 7.22446 9.02793 4.99998C9.02793 2.7755 7.22464 0.972203 5.00015 0.972203C2.77567 0.972203 0.972377 2.7755 0.972377 4.99998C0.972377 7.22446 2.77567 9.02776 5.00015 9.02776Z"
+        stroke="currentColor"
+        strokeWidth={0.833333}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 2.6389V5.00001L6.80556 6.25001"
+        stroke="currentColor"
+        strokeWidth={0.833333}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The select field's dropdown arrow (node 429:7071) — 10px. Drawn by us
  *  because TokenSelect is appearance-none: the ONLY way to make a native
  *  select honour an exact 8px inner padding is to strip the OS chrome, and
