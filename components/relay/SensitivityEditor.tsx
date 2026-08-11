@@ -88,7 +88,7 @@ export function SensitivityEditor({
             type="button"
             onClick={() => openFor(s)}
             aria-label={`Edit sensitivity: ${s.text}`}
-            className="rounded-full"
+            className="max-w-full rounded-full"
           >
             <SensitivityChip sensitivity={s} />
           </button>

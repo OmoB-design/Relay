@@ -156,6 +156,9 @@
      between the list page's 5 and the chip's 3. Three sizes, all from frames. */
   --spacing-dot-md: 4px;
   --spacing-dot-xs: 2px; /* inside the send-time label (node 429:7096) */
+  /* The account-health dot. Was 8px; the frame's row reads quieter, and the
+     requested step down is exactly 1.5. */
+  --spacing-dot-health: 6.5px;
 
   /* Numbers/N — Figma's single scale for spacing AND radius. */
   /* The active tab's underline caps (node 422:5959). */

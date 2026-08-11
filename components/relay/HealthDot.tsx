@@ -24,7 +24,7 @@ export function HealthDot({
       role="img"
       aria-label={label ?? `Health: ${health}`}
       title={label ?? `Health: ${health}`}
-      className={cn("inline-block h-2 w-2 rounded-full", TONE[health], className)}
+      className={cn("inline-block size-dot-health rounded-full", TONE[health], className)}
     />
   );
 }

@@ -168,6 +168,31 @@ export function PanelToggleGlyph({
 
 /** The pencil in the middle of "All caught up" (Figma 365:3405). Same 1.75 as
  *  the waiting mark — both stand alone rather than in a column. */
+/** The select field's dropdown arrow (node 429:7071) — 10px. Drawn by us
+ *  because TokenSelect is appearance-none: the ONLY way to make a native
+ *  select honour an exact 8px inner padding is to strip the OS chrome, and
+ *  the OS arrow goes with it. */
+export function SelectChevronGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={10}
+      height={10}
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M1.45822 3.5417L4.99988 7.08336L8.54155 3.5417"
+        stroke="currentColor"
+        strokeWidth={1.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The profile rows' edit pencil (node 422:6601). CLOSE to Lucide's
  *  pencil-line and not it — the exported path differs, so it is carried
  *  verbatim rather than substituted. EditGlyph below is a different pencil

@@ -42,12 +42,17 @@ import { LogoControl } from "@/components/relay/LogoControl";
 
 const TAB_TRIGGER = cn(
   /* Reset the shadcn pill treatment entirely — the frame's tab is text, a gap,
-     and an underline, not a filled control. */
-  "relative h-auto flex-none rounded-none border-0 px-0 py-3",
+     and an underline, not a filled control.
+
+     -mb-px is the standard active-indicator trick (Radix/M3 both do it): the
+     bar's rule is the LIST's bottom border, so the trigger dips one pixel into
+     it and the indicator, drawn at the trigger's own bottom edge, lands ON the
+     rule instead of beneath it. */
+  "relative -mb-px h-auto flex-none rounded-none border-0 px-0 py-3",
   "font-geist text-fig-body fig-w450 text-heading-06",
   "data-[state=active]:bg-transparent data-[state=active]:text-heading-01 data-[state=active]:shadow-none",
   /* The 2px Blue/500 underline (node 422:5959), riding the bar's hairline. */
-  "after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-t-2 after:bg-blue-500 after:opacity-0",
+  "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-t-2 after:bg-blue-500 after:opacity-0",
   "data-[state=active]:after:opacity-100",
 )
 
