@@ -7,6 +7,7 @@ import { DEFAULT_ANCHOR_TIME, type Cadence, type Channel } from "@/lib/types";
 import { DAYS, DAY_LABEL } from "@/lib/clients/new-client";
 import { Button } from "@/components/ui/button";
 import { TokenSelect } from "@/components/relay/TokenSelect";
+import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
 import { updateCommsAction } from "@/app/(app)/clients/[clientId]/actions";
 
 /* Cadence & channel controls (design.md §4.2). Primary cadence + channel are
@@ -63,10 +64,12 @@ export function CommsControls({
   }
 
   return (
-    <div className="flex flex-col gap-3 px-4 py-3">
-      <div className="grid gap-2 sm:grid-cols-2">
+    <>
+      <ProfileWell className="grid gap-x-2.5 gap-y-2 px-2 py-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1">
-          <span className="font-ui text-12 text-ink-soft">Cadence</span>
+          <span className="font-geist text-fig-caption-2 text-heading-06">
+            Cadence
+          </span>
           <TokenSelect
             value={primary}
             onChange={(e) => setPrimary(e.target.value as Selectable)}
@@ -79,7 +82,9 @@ export function CommsControls({
           </TokenSelect>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="font-ui text-12 text-ink-soft">Channel</span>
+          <span className="font-geist text-fig-caption-2 text-heading-06">
+            Channel
+          </span>
           <TokenSelect
             value={chan}
             onChange={(e) => setChan(e.target.value as Channel)}
@@ -91,10 +96,10 @@ export function CommsControls({
             ))}
           </TokenSelect>
         </label>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-2">
         <label className="flex flex-col gap-1">
-          <span className="font-ui text-12 text-ink-soft">Send day</span>
+          <span className="font-geist text-fig-caption-2 text-heading-06">
+            Send day
+          </span>
           <TokenSelect
             value={day}
             onChange={(e) => setDay(e.target.value as AnchorDay)}
@@ -107,8 +112,15 @@ export function CommsControls({
           </TokenSelect>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="font-ui text-12 text-ink-soft">
-            Send time · {timezone}
+          {/* The 2px dot is the frame's (node 429:7096) — a size below even
+              the chip dot, because both halves of this label are captions. */}
+          <span className="flex items-center gap-1 font-geist text-fig-caption-2 text-heading-06">
+            Send time
+            <span
+              aria-hidden="true"
+              className="size-dot-xs shrink-0 rounded-full bg-grey-200"
+            />
+            {timezone}
           </span>
           {/* The client's clock, not the agency's. A Dubai 09:00 passes five
               hours before a London one, and "late" is measured against theirs. */}
@@ -119,21 +131,21 @@ export function CommsControls({
             className="rounded-8 border-fig border-border bg-surface-primary px-2 py-1.5 font-geist text-fig-caption-1 text-heading-01 shadow-field"
           />
         </label>
-      </div>
-      {(cadence.secondary || cadence.note) && (
-        <p className="font-ui text-12 text-ink-soft">
-          {cadence.secondary &&
-            `Also: ${config.copy.cadenceLabel[cadence.secondary]}. `}
-          {cadence.note}
-        </p>
-      )}
-      {dirty && (
-        <div>
-          <Button size="sm" onClick={save} disabled={pending}>
-            {config.copy.actions.save}
-          </Button>
-        </div>
-      )}
-    </div>
+        {(cadence.secondary || cadence.note) && (
+          <p className="font-geist text-fig-caption-2 text-caption-1 sm:col-span-2">
+            {cadence.secondary &&
+              `Also: ${config.copy.cadenceLabel[cadence.secondary]}. `}
+            {cadence.note}
+          </p>
+        )}
+      </ProfileWell>
+      {/* Always drawn, per the frame; enabled only once something changed —
+          a Save that saves nothing teaches people to stop reading buttons. */}
+      <ProfileFooter className="justify-end">
+        <Button size="fig" onClick={save} disabled={pending || !dirty}>
+          {config.copy.actions.save}
+        </Button>
+      </ProfileFooter>
+    </>
   );
 }

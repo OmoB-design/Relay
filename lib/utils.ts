@@ -53,7 +53,7 @@ const FONT_SIZES = [
 ];
 
 /** Figma's Numbers/N radius scale, plus the client mark's two. */
-const RADII = ["4", "5", "6", "7", "8", "10", "12", "14", "18", "20", "24"];
+const RADII = ["2", "4", "5", "6", "7", "8", "10", "12", "14", "16", "18", "20", "24"];
 
 /** Border WIDTHS expressed as named utilities — these look like colours to
  *  tailwind-merge unless declared. */
@@ -76,7 +76,7 @@ const FONT_WEIGHTS = ["fig-regular", "fig-w450", "fig-medium", "fig-sb"];
 
 /** Named heights, for the boxes Figma pins outright rather than deriving from
  *  their padding. `h-9` and friends must still be able to override them. */
-const HEIGHTS = ["digest-row", "client-row", "button-fig"];
+const HEIGHTS = ["digest-row", "client-row", "profile-row", "button-fig"];
 
 const twMerge = extendTailwindMerge({
   extend: {

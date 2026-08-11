@@ -152,6 +152,24 @@ const CASES: Case[] = [
     exact: "rounded-20",
     label: "radius 18 and 20 are rivals — the later wins",
   },
+  /* The profile page's additions: radius 16 rows, 59px row height, and the
+     Heading-03 text colour. Each registered late, so each gets the case that
+     catches it being forgotten. */
+  {
+    input: ["rounded-14", "rounded-16"],
+    exact: "rounded-16",
+    label: "radius 14 and 16 are rivals — the later wins",
+  },
+  {
+    input: ["h-profile-row", "border-fig"],
+    keep: ["h-profile-row", "border-fig"],
+    label: "the 59px profile row survives its hairline",
+  },
+  {
+    input: ["text-fig-body", "text-heading-03"],
+    keep: ["text-fig-body", "text-heading-03"],
+    label: "the Edit label keeps 13px AND Heading-03",
+  },
   /* Named heights. `h-digest-row` and `h-button-fig` look like nothing at all to
      tailwind-merge unless declared — and a dropped height is exactly the bug
      they exist to prevent, since both boxes are pinned to a Figma measurement. */

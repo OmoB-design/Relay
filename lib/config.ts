@@ -403,6 +403,18 @@ const ConfigSchema = z.object({
       goesToClient: z.string(),
       unavailableNote: z.string(),
     }),
+    /* A client's own page (Figma node 417:3401). */
+    clientProfile: z.object({
+      back: z.string(),
+      sourcePrefix: z.string(),
+    }),
+    sensitivityEmpty: z.string(),
+    /* The profile page's card labels (node 417:3401). */
+    accountsTitle: z.string(),
+    sensitivitiesTitle: z.string(),
+    cadenceTitle: z.string(),
+    kpisTitle: z.string(),
+    stakeholdersTitle: z.string(),
     /* The Clients section page (Figma node 447:2580 / 447:2573). */
     clientsPage: z.object({
       title: z.string(),
@@ -870,6 +882,22 @@ export const config: Config = ConfigSchema.parse({
         "Internal only — this client's profile forbids a daily note.",
       goesToClient: "Cleared for a daily note to this client",
       unavailableNote: "Not available",
+    },
+    sensitivityEmpty:
+      "No sensitivities yet. Add the constraints a draft must respect.",
+    accountsTitle: "Connected accounts",
+    sensitivitiesTitle: "Sensitivities",
+    cadenceTitle: "Cadence & Channel",
+    /* The frame's exact string, ASCII hyphen and curly apostrophe included
+       (node 422:6558). */
+    kpisTitle: "KPIS - In the client\u2019s language",
+    stakeholdersTitle: "Stakeholders",
+    clientProfile: {
+      back: "Back",
+      /* The meta line ends "Source of truth: Google Ads" — the prefix is copy,
+         the value is the client's own field, so they are joined in the
+         component rather than baked into one string. */
+      sourcePrefix: "Source of truth: ",
     },
     clientsPage: {
       title: "Clients",

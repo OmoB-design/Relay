@@ -168,6 +168,51 @@ export function PanelToggleGlyph({
 
 /** The pencil in the middle of "All caught up" (Figma 365:3405). Same 1.75 as
  *  the waiting mark — both stand alone rather than in a column. */
+/** The profile rows' edit pencil (node 422:6601). CLOSE to Lucide's
+ *  pencil-line and not it — the exported path differs, so it is carried
+ *  verbatim rather than substituted. EditGlyph below is a different pencil
+ *  (the due row's empty tile); they are separate Figma exports. */
+export function PencilGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...NAV_SVG} aria-hidden="true" className={className}>
+      <path
+        d="M2.13889 11.8611C2.13889 11.8611 4.93812 11.4193 5.67467 10.6828C6.41123 9.94622 11.3734 4.98399 11.3734 4.98399C12.0244 4.33299 12.0244 3.27755 11.3734 2.62733C10.7224 1.97633 9.667 1.97633 9.01678 2.62733C9.01678 2.62733 4.05456 7.58955 3.31801 8.32611C2.58145 9.06267 2.13967 11.8619 2.13967 11.8619L2.13889 11.8611Z"
+        stroke="currentColor"
+        {...STROKE}
+      />
+      <path d="M7.77778 11.8611H11.8611" stroke="currentColor" {...STROKE} />
+    </svg>
+  );
+}
+
+/** The back arrow on a client's own page (node 453:2990) — 12px, drawn at
+ *  Icon/Icon-Explainer and darkening with the label it sits beside. */
+export function BackGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={12}
+      height={12}
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M1.83315 6H10.1665"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.66648 8.83324L1.83315 5.99991L4.66648 3.16657"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The row chevron (node 418:5768). Same geometry in both states — the frame
  *  draws it #777777 at rest and #050505 on the hovered row, which is a text
  *  colour, not a second icon. currentColor lets the row own that. */

@@ -2,19 +2,29 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Pencil, Plus } from "lucide-react";
 import { config } from "@/lib/config";
 import type { Stakeholder } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TokenSelect } from "@/components/relay/TokenSelect";
 import {
+  ProfileFooter,
+  ProfileRow,
+  ProfileRowBody,
+  ProfileRowEdit,
+  ProfileRows,
+} from "@/components/relay/ProfileCard";
+import {
   deleteStakeholderAction,
   saveStakeholderAction,
 } from "@/app/(app)/clients/[clientId]/actions";
 
-/* Stakeholder list (design.md §4.2): name, role, gets (short/full/deck).
-   Inline row editing + add + remove. */
+/* Stakeholder list — restyled to node 425:6828's rows: 59px, the name over
+   "role · gets X version" with a 3px dot, pencil Edit, Add as the footer.
+   Inline row editing + add + remove survive the restyle.
+
+   The frame's own footer literally reads "Add KPI" — a copy-paste slip in the
+   Figma file (flagged); this says what the button does. */
 
 type Gets = Stakeholder["gets"];
 const GETS = Object.keys(config.copy.stakeholderGetsLabel) as Gets[];
@@ -62,11 +72,11 @@ function StakeholderForm({
     <div className="flex flex-col gap-2">
       <div className="grid gap-2 sm:grid-cols-3">
         <label className="flex flex-col gap-1">
-          <span className="font-ui text-12 text-ink-soft">Name</span>
+          <span className="font-geist text-fig-caption-2 text-heading-06">Name</span>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="font-ui text-12 text-ink-soft">Role</span>
+          <span className="font-geist text-fig-caption-2 text-heading-06">Role</span>
           <Input
             value={role}
             onChange={(e) => setRole(e.target.value)}
@@ -74,7 +84,7 @@ function StakeholderForm({
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="font-ui text-12 text-ink-soft">Gets</span>
+          <span className="font-geist text-fig-caption-2 text-heading-06">Gets</span>
           <TokenSelect
             value={gets}
             onChange={(e) => setGets(e.target.value as Gets)}
@@ -88,24 +98,24 @@ function StakeholderForm({
         </label>
       </div>
       {!valid && (
-        <p className="font-ui text-12 text-negative">
+        <p className="font-geist text-fig-caption-2 text-red-700">
           Name and role are both required.
         </p>
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-2">
-          <Button size="sm" onClick={save} disabled={pending || !valid}>
+          <Button size="fig" onClick={save} disabled={pending || !valid}>
             {config.copy.actions.save}
           </Button>
-          <Button size="sm" variant="ghost" onClick={onDone}>
+          <Button size="fig" variant="ghost" onClick={onDone}>
             {config.copy.actions.cancel}
           </Button>
         </div>
         {initial && (
           <Button
-            size="sm"
+            size="fig"
             variant="ghost"
-            className="text-negative"
+            className="text-red-700"
             onClick={remove}
             disabled={pending}
           >
@@ -128,45 +138,50 @@ export function StakeholderList({
   const [adding, setAdding] = useState(false);
 
   return (
-    <ul className="divide-y divide-line">
-      {stakeholders.map((s) => (
-        <li key={s.id} className="px-4 py-3">
-          {editingId === s.id ? (
-            <StakeholderForm
-              clientId={clientId}
-              initial={s}
-              onDone={() => setEditingId(null)}
-            />
-          ) : (
-            <div className="flex items-center justify-between gap-3">
-              <span className="min-w-0">
-                <span className="block font-ui text-14 text-ink">{s.name}</span>
-                <span className="block font-ui text-12 text-ink-soft">
-                  {s.role} · gets {config.copy.stakeholderGetsLabel[s.gets].toLowerCase()}
-                </span>
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setEditingId(s.id)}
-                aria-label={`Edit ${s.name}`}
-              >
-                <Pencil size={14} aria-hidden="true" />
-                {config.copy.actions.edit}
-              </Button>
-            </div>
-          )}
-        </li>
-      ))}
-      <li className="px-4 py-3">
-        {adding ? (
-          <StakeholderForm clientId={clientId} onDone={() => setAdding(false)} />
-        ) : (
-          <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
-            <Plus size={14} aria-hidden="true" /> Add stakeholder
-          </Button>
+    <>
+      <ProfileRows>
+        {stakeholders.map((s, i) => (
+          <ProfileRow key={s.id} first={i === 0} editing={editingId === s.id}>
+            {editingId === s.id ? (
+              <StakeholderForm
+                clientId={clientId}
+                initial={s}
+                onDone={() => setEditingId(null)}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-between gap-2 px-2">
+                <ProfileRowBody
+                  title={s.name}
+                  meta={[
+                    s.role,
+                    `gets ${config.copy.stakeholderGetsLabel[s.gets].toLowerCase()}`,
+                  ]}
+                />
+                <ProfileRowEdit
+                  onClick={() => setEditingId(s.id)}
+                  label={`Edit ${s.name}`}
+                />
+              </div>
+            )}
+          </ProfileRow>
+        ))}
+        {adding && (
+          <ProfileRow first={stakeholders.length === 0} editing>
+            <StakeholderForm clientId={clientId} onDone={() => setAdding(false)} />
+          </ProfileRow>
         )}
-      </li>
-    </ul>
+      </ProfileRows>
+      <ProfileFooter>
+        <Button
+          size="fig"
+          variant="muted"
+          className="flex-1"
+          onClick={() => setAdding(true)}
+          disabled={adding}
+        >
+          Add stakeholder
+        </Button>
+      </ProfileFooter>
+    </>
   );
 }

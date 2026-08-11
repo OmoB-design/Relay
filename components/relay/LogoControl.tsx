@@ -4,7 +4,6 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { config } from "@/lib/config";
-import { cn } from "@/lib/utils";
 import {
   clearLogoAction,
   refetchLogoAction,
@@ -14,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
+import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
 
 /* The per-client logo control.
    PROVISIONAL DESIGN — no Figma for the admin side.
@@ -28,8 +28,11 @@ import { ClientAvatar } from "@/components/relay/ClientAvatar";
 
 const t = config.copy.logo;
 
+/* The frame (node 429:7658) caps the field at 250 and drops the separate Save:
+   committing the domain is Enter or blur, and the footer's two buttons are the
+   ACTIONS — Upload and Look up again. */
 const FIELD =
-  "h-auto w-56 rounded-8 border-fig border-border bg-surface-primary px-2 py-1.5 font-geist text-fig-caption-1 text-heading-01 md:text-fig-caption-1 shadow-field";
+  "h-auto w-full max-w-60 rounded-8 border-fig border-border bg-surface-primary px-2 py-1.5 font-geist text-fig-caption-1 text-heading-01 md:text-fig-caption-1 shadow-field";
 
 export function LogoControl({
   clientId,
@@ -85,9 +88,15 @@ export function LogoControl({
     reader.readAsDataURL(picked);
   }
 
+  function commitDomain() {
+    if (site.trim() === (domain ?? "")) return;
+    run(() => setDomainAction({ clientId, domain: site }), t.domainSaved);
+  }
+
   return (
-    <div className="flex flex-col gap-3 px-4 py-3">
-      <div className="flex items-center gap-3">
+    <>
+      <ProfileWell className="flex flex-col gap-2 px-2 py-3">
+      <div className="flex items-center gap-2">
         <ClientAvatar name={clientName} logo={logoUrl} />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="font-geist text-fig-caption-1 text-heading-01">
@@ -116,37 +125,26 @@ export function LogoControl({
 
       {/* The website lives here because it is the only thing that uses it, and
           because without it a client added without a domain could never have a
-          logo looked up at all. */}
-      <label className="flex flex-col gap-1.5">
-        <span className="font-geist text-fig-caption-2 text-caption-1">
+          logo looked up at all. Committed on Enter or blur — the frame has no
+          Save beside it. */}
+      <label className="flex flex-col gap-1">
+        <span className="font-geist text-fig-caption-1 text-heading-06">
           {t.domainLabel}
         </span>
-        <span className="flex flex-wrap items-center gap-2">
-          <Input
-            value={site}
-            onChange={(e) => setSite(e.target.value)}
-            placeholder="northbrook.com"
-            className={FIELD}
-          />
-          {site.trim() !== (domain ?? "") && (
-            <Button
-              size="fig"
-              variant="secondary"
-              onClick={() =>
-                run(
-                  () => setDomainAction({ clientId, domain: site }),
-                  t.domainSaved,
-                )
-              }
-              disabled={pending}
-            >
-              {config.copy.actions.save}
-            </Button>
-          )}
-        </span>
+        <Input
+          value={site}
+          onChange={(e) => setSite(e.target.value)}
+          onBlur={commitDomain}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitDomain();
+          }}
+          placeholder="www.northbrook.com"
+          className={FIELD}
+        />
       </label>
+      </ProfileWell>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <ProfileFooter>
         <input
           ref={file}
           type="file"
@@ -157,6 +155,7 @@ export function LogoControl({
         <Button
           size="fig"
           variant="outline"
+          className="flex-1 bg-surface-primary"
           onClick={() => file.current?.click()}
           disabled={pending}
         >
@@ -164,7 +163,8 @@ export function LogoControl({
         </Button>
         <Button
           size="fig"
-          variant="ghost"
+          variant="muted"
+          className="flex-1"
           onClick={() => run(() => refetchLogoAction(clientId), t.refetched)}
           disabled={pending || !hasDomain}
           title={hasDomain ? undefined : t.noDomain}
@@ -181,11 +181,7 @@ export function LogoControl({
             {t.clear}
           </Button>
         )}
-      </div>
-
-      <p className={cn("font-geist text-fig-caption-2 text-caption-1")}>
-        {t.explainer}
-      </p>
-    </div>
+      </ProfileFooter>
+    </>
   );
 }

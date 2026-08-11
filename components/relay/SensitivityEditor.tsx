@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
 import { config } from "@/lib/config";
 import type { Sensitivity } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SensitivityChip } from "@/components/relay/SensitivityChip";
+import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
 import { TokenSelect } from "@/components/relay/TokenSelect";
 import {
   deleteSensitivityAction,
@@ -78,38 +78,54 @@ export function SensitivityEditor({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-4 py-3">
-      {sensitivities.map((s) => (
-        <button
-          key={s.id}
-          type="button"
-          onClick={() => openFor(s)}
-          aria-label={`Edit sensitivity: ${s.text}`}
-          className="rounded-full"
-        >
-          <SensitivityChip sensitivity={s} />
-        </button>
-      ))}
+    <>
+      {/* One chip per row (node 425:6785 stacks them), each still a button
+          that opens its editor. */}
+      <ProfileWell className="flex flex-col items-start gap-2 px-2 py-4">
+        {sensitivities.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => openFor(s)}
+            aria-label={`Edit sensitivity: ${s.text}`}
+            className="rounded-full"
+          >
+            <SensitivityChip sensitivity={s} />
+          </button>
+        ))}
+        {sensitivities.length === 0 && (
+          <p className="px-0.5 font-geist text-fig-caption-1 text-caption-1">
+            {config.copy.sensitivityEmpty}
+          </p>
+        )}
+      </ProfileWell>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button size="sm" variant="outline" onClick={() => openFor()}>
-            <Plus size={14} aria-hidden="true" /> Add sensitivity
-          </Button>
-        </DialogTrigger>
+        <ProfileFooter>
+          <DialogTrigger asChild>
+            <Button
+              size="fig"
+              variant="muted"
+              className="flex-1"
+              onClick={() => openFor()}
+            >
+              Add Sensitivity
+            </Button>
+          </DialogTrigger>
+        </ProfileFooter>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-display text-22 text-ink">
+            <DialogTitle className="font-geist text-fig-body-lg fig-medium text-heading-01">
               {editingId ? "Edit sensitivity" : "Add sensitivity"}
             </DialogTitle>
-            <DialogDescription className="font-ui text-14 text-ink-soft">
+            <DialogDescription className="font-geist text-fig-caption-1 text-heading-06">
               A structured constraint the narrative layer must obey — typed, not
               a note.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">
             <label className="flex flex-col gap-1">
-              <span className="font-ui text-12 text-ink-soft">Type</span>
+              <span className="font-geist text-fig-caption-2 text-heading-06">Type</span>
               <TokenSelect
                 value={type}
                 onChange={(e) => setType(e.target.value as SensitivityType)}
@@ -122,7 +138,7 @@ export function SensitivityEditor({
               </TokenSelect>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="font-ui text-12 text-ink-soft">Constraint</span>
+              <span className="font-geist text-fig-caption-2 text-heading-06">Constraint</span>
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -131,7 +147,7 @@ export function SensitivityEditor({
               />
             </label>
             {!textValid && (
-              <p className="font-ui text-12 text-negative">
+              <p className="font-geist text-fig-caption-2 text-red-700">
                 The constraint text is required.
               </p>
             )}
@@ -139,10 +155,11 @@ export function SensitivityEditor({
           <DialogFooter className="gap-2 sm:justify-between">
             {editingId ? (
               <Button
+                size="fig"
                 variant="ghost"
                 onClick={remove}
                 disabled={pending}
-                className="text-negative"
+                className="text-red-700"
               >
                 {config.copy.actions.remove}
               </Button>
@@ -160,6 +177,6 @@ export function SensitivityEditor({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

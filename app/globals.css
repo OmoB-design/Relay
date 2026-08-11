@@ -46,6 +46,10 @@
   /* Typography — greys, darkest to lightest */
   --color-heading-01: #000000; /* client names, headlines */
   --color-heading-02: #171717; /* strong UI text */
+  /* Typography/Heading-03 — same hex as Heading-02 today, kept separate because
+     they are separate Figma variables with separate lifecycles (the same reason
+     Heading-04 is not Icon-System). The profile page's select values use it. */
+  --color-heading-03: #171717;
   /* Typography/Heading-04 (node 365:3414) — a client's name in a due row. Same
      hex as Icon/Icon-System, kept separate because they are separate Figma
      variables with separate lifecycles. Renamed from the unused --color-sub-text. */
@@ -135,6 +139,10 @@
      outside, so a divider between rows made every row after the first 1px
      taller than the one above it. */
   --spacing-client-row: 55px;
+  /* A profile-card row — KPI or stakeholder — is 59px (node 422:6559: four
+     rows at y = 0, 59, 118, 177). Same reason as the client row: the frame
+     pins it and padding arithmetic cannot reach it once hairlines differ. */
+  --spacing-profile-row: 59px;
   /* Likewise the Button component set (node 300:8781): every variant is 26px
      tall. Left to padding alone ours came out 28.4px, and an 8px radius on a
      28.4px box reads squarer than the same radius on a 26px one — which is what
@@ -144,14 +152,22 @@
   --radius-7: 7px;
   --spacing-dot: 5px; /* band header + flag category separator */
   --spacing-dot-sm: 3px; /* inside the source chip and the summary line */
+  /* The profile header's meta line (node 422:5916) draws its separators at 4px —
+     between the list page's 5 and the chip's 3. Three sizes, all from frames. */
+  --spacing-dot-md: 4px;
+  --spacing-dot-xs: 2px; /* inside the send-time label (node 429:7096) */
 
   /* Numbers/N — Figma's single scale for spacing AND radius. */
+  /* The active tab's underline caps (node 422:5959). */
+  --radius-2: 2px;
   --radius-4: 4px;
   --radius-6: 6px;
   --radius-8: 8px;
   --radius-10: 10px;
   --radius-12: 12px;
   --radius-14: 14px;
+  /* Numbers/16 — the profile page's row cards (node 422:6559). */
+  --radius-16: 16px;
   --radius-18: 18px;
   --radius-20: 20px; /* the due row's own card */
   --radius-24: 24px; /* the content sheet's left corners */
@@ -307,6 +323,10 @@
      still shrinks them. */
   --container-client-text: 450px;
   --container-client-meta: 421px;
+  /* The client profile page (node 417:3401) is the first screen wider than the
+     sheet: an 800 column holding two 392 columns with a 16px gutter. */
+  --container-profile: 800px;
+  --container-profile-col: 392px;
   --container-thread: 680px; /* Answer Desk thread (used from Phase 5) */
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */

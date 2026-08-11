@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
-import { config, formatCadenceLine } from "@/lib/config";
+import { config } from "@/lib/config";
 import {
   getClientProfile,
   getDailyRowsForClient,
@@ -9,11 +9,19 @@ import {
   getSnapshotsByIds,
   getTimeline,
 } from "@/lib/data";
-import { HealthDot } from "@/components/relay/HealthDot";
+import { ClientPageHeader } from "@/components/relay/ClientPageHeader";
 import { WorkspaceTabs } from "@/components/relay/WorkspaceTabs";
 
-/* Client workspace (design.md §4.2): header with name, per-account health
-   dots, cadence + channel line; tabs below. ?tab=narratives deep-links. */
+/* Client workspace — Figma node 417:3401 (`Client/profile/buyer`).
+ *
+ *  The first page in the redesign wider than the sheet: an 800 column against
+ *  Today's and Clients' 550, because the Profile tab runs two 392 columns.
+ *  Same sheet geometry otherwise — 32px of headroom, the column opening 64px
+ *  below, 18px from the header block to the tab bar.
+ *
+ *  ?tab=narratives deep-links, as before. */
+
+export const dynamic = "force-dynamic";
 
 const TABS = ["profile", "numbers", "timeline", "narratives"];
 
@@ -44,39 +52,26 @@ export default async function ClientWorkspacePage({
   const snapshots = await getSnapshotsByIds(snapshotIds);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
-      <header className="mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="font-display text-28 text-ink">{profile.name}</h1>
-          <span className="flex items-center gap-1.5">
-            {profile.accounts.map((a) => (
-              <HealthDot
-                key={a.id}
-                health={a.health}
-                label={`${a.platform} ${a.externalId}: ${a.health}`}
-              />
-            ))}
-          </span>
-        </div>
-        <p className="mt-1 font-ui text-13 text-ink-soft">
-          {formatCadenceLine(profile.cadence, profile.channel)}
-          {profile.descriptor ? ` · ${profile.descriptor}` : ""}
-          {` · Source of truth: ${profile.sourceOfTruth}`}
-        </p>
-      </header>
+    <div className="flex flex-col items-center px-6 pt-8">
+      <div className="flex w-full max-w-profile flex-col pb-8 pt-16">
+        <ClientPageHeader client={profile} />
 
-      <WorkspaceTabs
-        profile={profile}
-        timeline={timeline}
-        snapshots={snapshots}
-        narratives={narratives}
-        dailyRows={dailyRows}
-        loomNarrativeIds={loomNarrativeIds}
-        isAdmin={me.role === "admin"}
-        defaultTab={
-          TABS.includes(searchParams.tab ?? "") ? searchParams.tab : "profile"
-        }
-      />
+        {/* The frame's 18px between the header block and the tab bar. */}
+        <div className="mt-4.5 w-full">
+          <WorkspaceTabs
+            profile={profile}
+            timeline={timeline}
+            snapshots={snapshots}
+            narratives={narratives}
+            dailyRows={dailyRows}
+            loomNarrativeIds={loomNarrativeIds}
+            isAdmin={me.role === "admin"}
+            defaultTab={
+              TABS.includes(searchParams.tab ?? "") ? searchParams.tab : "profile"
+            }
+          />
+        </div>
+      </div>
     </div>
   );
 }

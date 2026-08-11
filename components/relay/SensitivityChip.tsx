@@ -1,11 +1,12 @@
-import { ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Sensitivity } from "@/lib/types";
 
-/* SensitivityChip (design.md §3): pill, flag-wash bg, flag-colored 12px Archivo
-   text, leading ShieldAlert (14px). Always visible in the narrative review header
-   — the buyer must SEE the constraints the draft was written under. */
-
+/* A sensitivity as the profile frame draws it (node 425:6789): a Yellow/50
+   pill with the constraint in Yellow/600 at 12px. No icon — the earlier
+   ShieldAlert came from the pre-redesign chip, and the frame carries the
+   meaning in the wash alone. The full "type: text" stays in the title
+   attribute, because the TYPE matters to the narrative layer even though the
+   frame does not print it. */
 export function SensitivityChip({
   sensitivity,
   className,
@@ -16,13 +17,12 @@ export function SensitivityChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full bg-flag-wash px-3 py-1 font-ui text-12 text-flag",
+        "inline-flex items-center rounded-full bg-yellow-50 px-1.5 py-1 text-left font-geist text-fig-caption-1 text-yellow-600",
         className,
       )}
       title={`${sensitivity.type}: ${sensitivity.text}`}
     >
-      <ShieldAlert size={14} aria-hidden="true" className="shrink-0" />
-      <span>{sensitivity.text}</span>
+      {sensitivity.text}
     </span>
   );
 }
