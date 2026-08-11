@@ -67,9 +67,25 @@ export function EmptyPanel({
               {title}
             </p>
             {children && (
+              /* text-balance, not a max-width. Both frames (357:1074 and
+                 447:2573) draw this as two roughly equal centred lines, and
+                 they get there by an explicit line break in Figma. Hard-coding
+                 the pixel width that reproduces one of those breaks would be
+                 fitting the container to today's sentence — it would be wrong
+                 the moment the copy changed, and it is already two different
+                 sentences on the two frames.
+
+                 It replaces max-w-column, which is 720px and belongs to the
+                 pre-redesign scale: wider than the well, so it constrained
+                 nothing and the line ran the full width.
+
+                 whitespace-pre-line lets a copy string carry the frame's OWN
+                 break with a \n where the break point is part of the design.
+                 Still soft: below the 550 column it re-wraps normally rather
+                 than overflowing, which a hard <br> would not. */
               <p
                 className={cn(
-                  "max-w-column text-center font-geist text-fig-caption-1",
+                  "whitespace-pre-line text-balance text-center font-geist text-fig-caption-1",
                   bodyTone,
                 )}
               >

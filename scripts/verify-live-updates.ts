@@ -151,6 +151,14 @@ async function main() {
     "the table is probably not in the supabase_realtime publication",
   );
 
+  /* SUBSCRIBED means the CLIENT is ready, not that the server has finished
+     registering the postgres_changes filter — a write issued in that gap is
+     dropped. It cost one failing run in three before this wait existed, and a
+     check that fails a third of the time is worse than no check: it teaches
+     everyone to re-run it rather than read it. This is the test settling, not
+     the app being slow; nothing in the product waits on a write it just made. */
+  await new Promise((r) => setTimeout(r, 1_500));
+
   const waitFor = async (kind: string, ms = 8_000) => {
     const until = Date.now() + ms;
     while (Date.now() < until) {

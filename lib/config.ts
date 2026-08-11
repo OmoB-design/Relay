@@ -403,6 +403,13 @@ const ConfigSchema = z.object({
       goesToClient: z.string(),
       unavailableNote: z.string(),
     }),
+    /* The Clients section page (Figma node 447:2580 / 447:2573). */
+    clientsPage: z.object({
+      title: z.string(),
+      subline: z.string(),
+      empty: z.string(),
+      emptyBody: z.string(),
+    }),
     library: z.object({
       title: z.string(),
       searchPlaceholder: z.string(),
@@ -863,6 +870,18 @@ export const config: Config = ConfigSchema.parse({
         "Internal only — this client's profile forbids a daily note.",
       goesToClient: "Cleared for a daily note to this client",
       unavailableNote: "Not available",
+    },
+    clientsPage: {
+      title: "Clients",
+      subline: "List of clients you control",
+      /* Same headline as Today's first run, because it is the same fact. The
+         BODY differs: Today promises yesterday's numbers, this promises the
+         list. Sharing one string would make one of the two pages lie. */
+      empty: "No clients assigned to you yet",
+      /* The \n is the frame's own break (447:2953 draws two <p> lines).
+         Soft — see whitespace-pre-line in EmptyPanel. */
+      emptyBody:
+        "Your agency admin assigns the clients you cover. As soon as one is, \nlist of clients you control will appear here.",
     },
     library: {
       title: "Library",

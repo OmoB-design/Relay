@@ -145,7 +145,46 @@ check(
   "otherwise a fast typist submits inside the window the check needs",
 );
 
-/* ---- 5. …and cn keeps all of it ------------------------------------------ */
+/* ---- 5. The Clients section header (node 447:2580) ------------------------ */
+
+const sectionHeader = readFileSync("components/relay/SectionHeader.tsx", "utf8");
+check(
+  "the section title is H5 (23px), not Today's H6 (19px)",
+  /text-fig-h5/.test(sectionHeader) && /font-greeting/.test(sectionHeader),
+  "the two mastheads are different frames — a place, not a greeting",
+);
+check(
+  "4px title to subline, 48px to the content below",
+  /gap-1"/.test(sectionHeader) && /flex-col items-start gap-12/.test(sectionHeader),
+  "the frame pins both; they are not the same spacing",
+);
+check(
+  "fig-h5 is registered with tailwind-merge",
+  /"fig-h5"/.test(utils),
+  "an unregistered font size is silently deleted by cn — see verify-cn.ts",
+);
+
+/* The empty panel's body carries the frame's own line break. Figma draws it as
+   two <p> lines; without whitespace-pre-line the \n is collapsed to a space and
+   the sentence runs the full width of the well. */
+/* Comments stripped: this file EXPLAINS max-w-column in prose, and a check that
+   cannot tell an explanation from an application is worse than no check. */
+const emptyPanel = readFileSync("components/relay/EmptyPanel.tsx", "utf8").replace(
+  /\/\*[\s\S]*?\*\//g,
+  "",
+);
+check(
+  "the empty body honours a break the frame specifies",
+  /whitespace-pre-line/.test(emptyPanel),
+  "the \n in the copy would collapse to a space and the block would run wide",
+);
+check(
+  "…and no longer uses the pre-redesign 720px column",
+  !/max-w-column/.test(emptyPanel),
+  "max-w-column is wider than the well, so it constrained nothing",
+);
+
+/* ---- 6. …and cn keeps all of it ------------------------------------------ */
 
 check(
   "tailwind-merge is taught the named heights",
@@ -157,6 +196,6 @@ check(
 console.log(
   fails.length
     ? `\n✗ ${fails.length} failure(s):\n${fails.map((f) => `   ${f}`).join("\n")}\n`
-    : "\n✓ dashed outline, digest row and button all hold their Figma geometry\n",
+    : "\n✓ outline, digest row, button and section header hold their geometry\n",
 );
 process.exit(fails.length ? 1 : 0);

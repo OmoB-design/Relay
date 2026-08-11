@@ -33,6 +33,7 @@ import { extendTailwindMerge } from "tailwind-merge";
  *  on the screens awaiting redesign. */
 const FONT_SIZES = [
   "fig-button",
+  "fig-h5",
   "fig-h6",
   "fig-body-lg",
   "fig-body",

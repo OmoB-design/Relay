@@ -187,6 +187,12 @@
   /* Body large - MD: 15/1.2. The line under the greeting. */
   --text-fig-body-lg: 0.9375rem;
   --text-fig-body-lg--line-height: 1.2;
+  /* H5 - MD (node 447:2580): 23/1.2. The title on a SECTION page — Clients and
+     the pages beside it — which is a bigger step than Today's greeting because
+     it names a place rather than addressing a person. Helvetica Neue like H6,
+     so it takes --font-greeting too. */
+  --text-fig-h5: 1.4375rem;
+  --text-fig-h5--line-height: 1.2;
 
   /* --- Color: Relay semantic palette (design.md §2) --- */
   --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */

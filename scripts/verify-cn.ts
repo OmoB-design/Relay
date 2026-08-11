@@ -170,6 +170,18 @@ const CASES: Case[] = [
     exact: "h-9",
     label: "a legacy height still overrides the named one",
   },
+  /* H5 - MD, the section-page title (node 447:2580). Registered late, like
+     rounded-20 was, so this is the case that catches it being forgotten. */
+  {
+    input: ["text-fig-h5", "text-heading-01"],
+    keep: ["text-fig-h5", "text-heading-01"],
+    label: "the section title keeps 23px AND its colour",
+  },
+  {
+    input: ["text-fig-h5", "text-fig-h6"],
+    exact: "text-fig-h6",
+    label: "H5 and H6 are rivals — the later wins",
+  },
   // The shimmer utility sets a background; a bg-* colour beside it must not eat it.
   {
     input: ["shimmer", "rounded-4"],
