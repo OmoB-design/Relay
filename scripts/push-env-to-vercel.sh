@@ -29,8 +29,28 @@
 #   The empty ones (Google Ads, Triple Whale, Anthropic) are skipped: Relay
 #     treats a missing credential as "that integration is off", and an empty
 #     string set explicitly is not the same thing as absent.
+# USAGE:  bash scripts/push-env-to-vercel.sh [production|preview]
+#
+# PREVIEW IS A CONVENIENCE, NOT AN ISOLATION BOUNDARY. There is one Supabase
+# project, so a preview deployment reads and writes the SAME database as
+# production: confirming a row, adding a client, reassigning a buyer or
+# uploading a logo from a branch are all real changes to real data.
+#
+# Bounded, though. The app never runs migrations, so no branch can change the
+# schema. Vercel attaches crons to production deployments only, so no preview
+# ever writes on a schedule. And SSO protection means only the Vercel team can
+# open one.
+#
+# The day the agency puts real client numbers in, this stops being an
+# acceptable trade and production needs its own Supabase project.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+TARGET="${1:-production}"
+case "$TARGET" in
+  production|preview) ;;
+  *) echo "Target must be 'production' or 'preview'." >&2; exit 1 ;;
+esac
 
 if [ ! -f .env.local ]; then echo "No .env.local here." >&2; exit 1; fi
 if [ ! -f .vercel/project.json ]; then echo "Not linked — run: vercel link" >&2; exit 1; fi
@@ -44,14 +64,14 @@ add() {
     return
   fi
   # --force overwrites, so the script is safe to re-run after rotating a key.
-  if printf '%s' "$value" | vercel env add "$name" production --force >/dev/null 2>&1; then
+  if printf '%s' "$value" | vercel env add "$name" "$TARGET" --force >/dev/null 2>&1; then
     printf '  added   %s  (%s chars)\n' "$name" "${#value}"
   else
     printf '  FAILED  %s\n' "$name"
   fi
 }
 
-echo "Copying to Vercel (production):"
+echo "Copying to Vercel ($TARGET):"
 for name in \
   NEXT_PUBLIC_SUPABASE_URL \
   NEXT_PUBLIC_SUPABASE_ANON_KEY \
@@ -72,12 +92,24 @@ else
   echo "          The tracker will fall back to supabase/fixtures/tracker.json."
 fi
 
-echo
-echo "Done. NEXT_PUBLIC_SITE_URL is NOT set yet — it needs the domain the first"
-echo "deploy assigns. Deploy, then:"
-echo
-echo "  printf '%s' 'https://YOUR-DOMAIN' | vercel env add NEXT_PUBLIC_SITE_URL production --force"
-echo "  vercel deploy --prod"
-echo
-echo "The second deploy is not optional: NEXT_PUBLIC_ values are inlined at"
-echo "build time, so the build that sets it must come after it exists."
+if [ "$TARGET" = "preview" ]; then
+  # NOT the branch URL. Invite emails build their links from this, and a preview
+  # URL is SSO-protected — an invited buyer would hit a Vercel login wall and be
+  # unable to reach the app at all. Pointing at production means an invite sent
+  # by accident from a branch still lands somewhere that works.
+  add NEXT_PUBLIC_SITE_URL "https://relay-sable-nine.vercel.app"
+  echo "          ^ deliberately the PRODUCTION url — see the comment above"
+  echo
+  echo "Done. Push any branch and it will build."
+  echo "Remember: previews share the production database."
+else
+  echo
+  echo "Done. NEXT_PUBLIC_SITE_URL is NOT set yet — it needs the domain the first"
+  echo "deploy assigns. Deploy, then:"
+  echo
+  echo "  printf '%s' 'https://YOUR-DOMAIN' | vercel env add NEXT_PUBLIC_SITE_URL production --force"
+  echo "  vercel deploy --prod"
+  echo
+  echo "The second deploy is not optional: NEXT_PUBLIC_ values are inlined at"
+  echo "build time, so the build that sets it must come after it exists."
+fi
