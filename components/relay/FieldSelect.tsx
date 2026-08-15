@@ -88,6 +88,7 @@ export function FieldSelect<T extends string>({
   ariaLabel,
   size = "field",
   compactOptions = false,
+  wideOptions = false,
 }: {
   value: T;
   onChange: (next: T) => void;
@@ -100,6 +101,11 @@ export function FieldSelect<T extends string>({
   /** 8px option rows on a 30px trigger — the polarity dropdown (499:3922)
    *  pairs the standard field with the modal's tighter panel. */
   compactOptions?: boolean;
+  /** The panel hugs its longest option instead of the field — for a narrow
+   *  field whose option text must stay whole (the polarity dropdown, whose
+   *  trigger truncates "Lower is bet." but whose menu never should). Never
+   *  narrower than the field. */
+  wideOptions?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -151,7 +157,7 @@ export function FieldSelect<T extends string>({
           id={listboxId}
           role="listbox"
           aria-label={ariaLabel}
-          className={PANEL}
+          className={cn(PANEL, wideOptions && "inset-x-auto left-0 w-max min-w-full")}
           onKeyDown={(e) => listNav(e, panel.current)}
         >
           <div className="flex flex-col gap-0.5">
@@ -173,7 +179,9 @@ export function FieldSelect<T extends string>({
                     selected && "bg-surface-foreground-01",
                   )}
                 >
-                  <span className="truncate">{option.label}</span>
+                  <span className={wideOptions ? "whitespace-nowrap" : "truncate"}>
+                    {option.label}
+                  </span>
                   {selected && (
                     <CheckGlyph className="shrink-0 text-heading-05" />
                   )}

@@ -144,7 +144,7 @@ function KpiForm({
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="cost per order"
-            aria-invalid={!labelValid}
+            invalid={!labelValid}
           />
         </EditField>
         <EditField label="Target">
@@ -152,7 +152,7 @@ function KpiForm({
             inputMode="decimal"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
-            aria-invalid={!targetValid}
+            invalid={!targetValid}
           />
         </EditField>
         <EditField label="Polarity">
@@ -161,6 +161,7 @@ function KpiForm({
             onChange={setPolarity}
             ariaLabel="Polarity"
             compactOptions
+            wideOptions
             options={(
               Object.entries(POLARITY_LABEL) as [Kpi["polarity"], string][]
             ).map(([value, text]) => ({ value, label: text }))}
@@ -206,7 +207,9 @@ export function KpiList({ kpis, clientId }: { kpis: Kpi[]; clientId: string }) {
 
   return (
     <>
-      <ul className="flex w-full flex-col gap-1 px-1">
+      {/* FLUSH, per the triage on 422:6551: items at consecutive y with zero
+          gap and zero horizontal inset — the seams are abutting hairlines. */}
+      <ul className="flex w-full flex-col">
         {kpis.map((kpi) => (
           <li key={kpi.id} className="w-full">
             {editingId === kpi.id ? (

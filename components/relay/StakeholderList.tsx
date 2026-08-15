@@ -138,7 +138,9 @@ export function StakeholderList({
 
   return (
     <>
-      <ul className="flex w-full flex-col gap-1 px-1">
+      {/* FLUSH, per the triage on 422:6551: items at consecutive y with zero
+          gap and zero horizontal inset — the seams are abutting hairlines. */}
+      <ul className="flex w-full flex-col">
         {stakeholders.map((s) => (
           <li key={s.id} className="w-full">
             {editingId === s.id ? (

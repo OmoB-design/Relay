@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
-import { Input } from "@/components/ui/input";
 import { PencilGlyph, TrashGlyph } from "@/components/relay/NavIcons";
 
 /* The profile page's card family — every card on node 417:3401 is one shape:
@@ -93,11 +92,15 @@ export function ProfileWell({
    with the edit state expanding in place — see ItemCard and ItemEditShell. */
 
 /** One metric or stakeholder at rest — its own white card (sets 499:3562 /
- *  499:3921): rounded 16, one hairline, 10px vertical, the row inset 8px. */
+ *  499:3921): rounded 16, one hairline, the row inset 8px, and PINNED at 59
+ *  (triage on 422:6551: items at y 0, 59, 118, 177 — 10+39+10 with inside
+ *  strokes, which CSS borders cannot reach unpinned). Items stack FLUSH,
+ *  full-bleed to the card edge: the seam between two items is their abutting
+ *  hairlines, not a gap. */
 export function ItemCard({ children }: { children: ReactNode }) {
   return (
-    <div className="w-full rounded-16 border-fig border-border bg-surface-primary py-2.5">
-      <div className="flex items-center justify-between gap-2 px-2">
+    <div className="h-profile-row w-full rounded-16 border-fig border-border bg-surface-primary">
+      <div className="flex h-full items-center justify-between gap-2 px-2">
         {children}
       </div>
     </div>
@@ -162,16 +165,31 @@ export function EditField({
   );
 }
 
-/** The Metric Input's text field: the standard 30px field with the
- *  input-active focus state, shared by every edit card. */
+/** The Metric Input's text field: the standard 30px field, a RAW input
+ *  rather than the shadcn primitive — the primitive's aria-invalid and ring
+ *  machinery kept painting its own red border and 3px ring over the field
+ *  states the frames define, which is why a required field stayed red while
+ *  being typed into. Owned states, the modal set's language exactly:
+ *
+ *    invalid (empty)      1px Red/600; the Red/200 halo while focused
+ *    valid, focused       1px Blue/500 with the Blue/150 halo
+ *    valid, resting       the 0.7 hairline with the field drop
+ *
+ *  focus:filter-none swaps the resting drop OUT for the halo rather than
+ *  stacking the two, which is how the frames draw the active field. */
 export function EditInput({
   className,
+  invalid = false,
   ...props
-}: React.ComponentProps<typeof Input>) {
+}: React.ComponentProps<"input"> & { invalid?: boolean }) {
   return (
-    <Input
+    <input
+      aria-invalid={invalid || undefined}
       className={cn(
-        "h-field w-full rounded-8 border-fig border-border bg-surface-primary px-2 font-geist text-fig-caption-1 text-heading-02 shadow-field outline-none placeholder:text-caption-1 focus-visible:border focus-visible:border-blue-500 focus-visible:shadow-input-active focus-visible:ring-0 md:text-fig-caption-1",
+        "h-field w-full min-w-0 rounded-8 bg-surface-primary px-2 font-geist text-fig-caption-1 text-heading-02 outline-none placeholder:text-caption-1 disabled:pointer-events-none disabled:opacity-50",
+        invalid
+          ? "border border-red-600 focus:shadow-invalid-active"
+          : "border-fig border-border shadow-field focus:border focus:border-blue-500 focus:filter-none focus:shadow-input-active",
         className,
       )}
       {...props}
