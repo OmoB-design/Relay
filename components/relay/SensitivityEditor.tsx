@@ -18,7 +18,8 @@ import {
 import { SensitivityChip } from "@/components/relay/SensitivityChip";
 import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
 import { FieldSelect } from "@/components/relay/FieldSelect";
-import { CloseGlyph, TrashGlyph } from "@/components/relay/NavIcons";
+import { RemoveButton } from "@/components/relay/ProfileCard";
+import { CloseGlyph } from "@/components/relay/NavIcons";
 import {
   deleteSensitivityAction,
   saveSensitivityAction,
@@ -230,16 +231,11 @@ export function SensitivityEditor({
             )}
           >
             {editingId && (
-              <Button
-                size="fig"
-                variant="ghost"
+              <RemoveButton
                 onClick={remove}
                 disabled={pending}
-                className="gap-1 text-red-600 hover:text-red-600"
-              >
-                <TrashGlyph className="shrink-0" />
-                {config.copy.actions.remove}
-              </Button>
+                label="Remove sensitivity"
+              />
             )}
             <div className="flex items-center gap-1.5">
               <Button size="fig" variant="ghost" onClick={() => setOpen(false)}>

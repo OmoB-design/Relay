@@ -5,14 +5,16 @@ import { toast } from "sonner";
 import { config } from "@/lib/config";
 import { MetricKeySchema, type Kpi } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { TokenSelect } from "@/components/relay/TokenSelect";
+import { FieldSelect } from "@/components/relay/FieldSelect";
 import {
+  EditField,
+  EditInput,
+  ItemCard,
+  ItemEditShell,
   ProfileFooter,
-  ProfileRow,
   ProfileRowBody,
   ProfileRowEdit,
-  ProfileRows,
+  RemoveButton,
 } from "@/components/relay/ProfileCard";
 import {
   addKpiAction,
@@ -20,19 +22,22 @@ import {
   updateKpiAction,
 } from "@/app/(app)/clients/[clientId]/actions";
 
-/* KPI rows in the client's language — restyled to node 422:6552's rows: 59px,
-   13px label over "Maps to X · target N · polarity" with 3px dots, a pencil
-   Edit on the right, Add KPI as the card's footer.
+/* KPIs in the client's language — the individual-metric component set
+   499:3562. Each metric is its OWN white card; editing swaps that card for
+   the wash container in place: the metric's name written on the wash, one
+   white card of Label / Target / Polarity, then Remove | Cancel · Save.
 
-   Inline row editing survives the restyle. The frame does not draw the edit
-   state, so the form keeps the field layer's styling and the row grows. On
-   existing rows, maps-to stays read-only (remapping a live KPI is a data-model
-   operation); new KPIs pick their internal metric on create. */
+   On existing metrics, maps-to stays read-only (remapping a live KPI is a
+   data-model operation); new KPIs pick their internal metric and format on
+   create — the set does not draw the add state, so those two extra fields
+   wrap onto a second row of the same field card. */
 
 const POLARITY_LABEL: Record<Kpi["polarity"], string> = {
   higher_is_better: "Higher is better",
   lower_is_better: "Lower is better",
-  on_target: "On target (±band)",
+  // "On target", as the polarity dropdown writes it (node 499:3945) — the
+  // tolerance already prints beside the target, so the ±band said it twice.
+  on_target: "On target",
 };
 
 const FORMAT_LABEL: Record<Kpi["format"], string> = {
@@ -105,101 +110,93 @@ function KpiForm({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="grid gap-2 sm:grid-cols-3">
-        <label className="flex flex-col gap-1">
-          <span className="font-geist text-fig-caption-2 text-heading-06">Label</span>
-          <Input
+    <ItemEditShell
+      label={initial?.label}
+      footer={
+        <>
+          {initial ? (
+            <RemoveButton
+              onClick={remove}
+              disabled={pending}
+              label={`Remove ${initial.label}`}
+            />
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center gap-1.5">
+            <Button size="fig" variant="ghost" onClick={onDone}>
+              {config.copy.actions.cancel}
+            </Button>
+            <Button
+              size="fig"
+              onClick={save}
+              disabled={pending || !targetValid || !labelValid}
+            >
+              {config.copy.actions.save}
+            </Button>
+          </div>
+        </>
+      }
+    >
+      <div className="flex flex-wrap items-start gap-y-2 px-2">
+        <EditField label="Label">
+          <EditInput
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="cost per order"
             aria-invalid={!labelValid}
           />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-geist text-fig-caption-2 text-heading-06">Target</span>
-          <Input
+        </EditField>
+        <EditField label="Target">
+          <EditInput
             inputMode="decimal"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
             aria-invalid={!targetValid}
           />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-geist text-fig-caption-2 text-heading-06">Polarity</span>
-          <TokenSelect
+        </EditField>
+        <EditField label="Polarity">
+          <FieldSelect
             value={polarity}
-            onChange={(e) => setPolarity(e.target.value as Kpi["polarity"])}
-          >
-            {Object.entries(POLARITY_LABEL).map(([value, text]) => (
-              <option key={value} value={value}>
-                {text}
-              </option>
-            ))}
-          </TokenSelect>
-        </label>
+            onChange={setPolarity}
+            ariaLabel="Polarity"
+            compactOptions
+            options={(
+              Object.entries(POLARITY_LABEL) as [Kpi["polarity"], string][]
+            ).map(([value, text]) => ({ value, label: text }))}
+          />
+        </EditField>
         {!initial && (
           <>
-            <label className="flex flex-col gap-1">
-              <span className="font-geist text-fig-caption-2 text-heading-06">
-                Maps to (internal metric)
-              </span>
-              <TokenSelect
+            <EditField label="Maps to (internal metric)">
+              <FieldSelect
                 value={mapsTo}
-                onChange={(e) => setMapsTo(e.target.value as Kpi["mapsTo"])}
-              >
-                {METRIC_KEYS.map((k) => (
-                  <option key={k} value={k}>
-                    {k}
-                  </option>
-                ))}
-              </TokenSelect>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="font-geist text-fig-caption-2 text-heading-06">Format</span>
-              <TokenSelect
+                onChange={setMapsTo}
+                ariaLabel="Maps to internal metric"
+                compactOptions
+                options={METRIC_KEYS.map((k) => ({ value: k, label: k }))}
+              />
+            </EditField>
+            <EditField label="Format">
+              <FieldSelect
                 value={format}
-                onChange={(e) => setFormat(e.target.value as Kpi["format"])}
-              >
-                {Object.entries(FORMAT_LABEL).map(([value, text]) => (
-                  <option key={value} value={value}>
-                    {text}
-                  </option>
-                ))}
-              </TokenSelect>
-            </label>
+                onChange={setFormat}
+                ariaLabel="Format"
+                compactOptions
+                options={(
+                  Object.entries(FORMAT_LABEL) as [Kpi["format"], string][]
+                ).map(([value, text]) => ({ value, label: text }))}
+              />
+            </EditField>
           </>
         )}
       </div>
       {!targetValid && (
-        <p className="font-geist text-fig-caption-2 text-red-700">Target must be a number.</p>
+        <p className="px-4 pt-2 font-geist text-fig-caption-2 text-red-700">
+          Target must be a number.
+        </p>
       )}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-2">
-          <Button
-            size="fig"
-            onClick={save}
-            disabled={pending || !targetValid || !labelValid}
-          >
-            {config.copy.actions.save}
-          </Button>
-          <Button size="fig" variant="ghost" onClick={onDone}>
-            {config.copy.actions.cancel}
-          </Button>
-        </div>
-        {initial && (
-          <Button
-            size="fig"
-            variant="ghost"
-            className="text-red-700"
-            onClick={remove}
-            disabled={pending}
-          >
-            {config.copy.actions.remove}
-          </Button>
-        )}
-      </div>
-    </div>
+    </ItemEditShell>
   );
 }
 
@@ -209,9 +206,9 @@ export function KpiList({ kpis, clientId }: { kpis: Kpi[]; clientId: string }) {
 
   return (
     <>
-      <ProfileRows>
-        {kpis.map((kpi, i) => (
-          <ProfileRow key={kpi.id} first={i === 0} editing={editingId === kpi.id}>
+      <ul className="flex w-full flex-col gap-1 px-1">
+        {kpis.map((kpi) => (
+          <li key={kpi.id} className="w-full">
             {editingId === kpi.id ? (
               <KpiForm
                 clientId={clientId}
@@ -219,7 +216,7 @@ export function KpiList({ kpis, clientId }: { kpis: Kpi[]; clientId: string }) {
                 onDone={() => setEditingId(null)}
               />
             ) : (
-              <div className="flex h-full items-center justify-between gap-2 px-2">
+              <ItemCard>
                 <ProfileRowBody
                   title={kpi.label}
                   meta={[
@@ -232,16 +229,16 @@ export function KpiList({ kpis, clientId }: { kpis: Kpi[]; clientId: string }) {
                   onClick={() => setEditingId(kpi.id)}
                   label={`Edit ${kpi.label}`}
                 />
-              </div>
+              </ItemCard>
             )}
-          </ProfileRow>
+          </li>
         ))}
         {adding && (
-          <ProfileRow first={kpis.length === 0} editing>
+          <li className="w-full">
             <KpiForm clientId={clientId} onDone={() => setAdding(false)} />
-          </ProfileRow>
+          </li>
         )}
-      </ProfileRows>
+      </ul>
       <ProfileFooter>
         <Button
           size="fig"

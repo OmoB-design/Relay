@@ -87,6 +87,7 @@ export function FieldSelect<T extends string>({
   options,
   ariaLabel,
   size = "field",
+  compactOptions = false,
 }: {
   value: T;
   onChange: (next: T) => void;
@@ -96,6 +97,9 @@ export function FieldSelect<T extends string>({
    *  one (node 433:9405 draws the same control at px-8 py-10). The panel's
    *  options step down with it: 10px rows on the card, 8px in the modal. */
   size?: "field" | "field-lg";
+  /** 8px option rows on a 30px trigger — the polarity dropdown (499:3922)
+   *  pairs the standard field with the modal's tighter panel. */
+  compactOptions?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -165,7 +169,7 @@ export function FieldSelect<T extends string>({
                   }}
                   className={cn(
                     OPTION,
-                    size === "field-lg" && "py-2",
+                    (size === "field-lg" || compactOptions) && "py-2",
                     selected && "bg-surface-foreground-01",
                   )}
                 >

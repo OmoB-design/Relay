@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
-import { PencilGlyph } from "@/components/relay/NavIcons";
+import { Input } from "@/components/ui/input";
+import { PencilGlyph, TrashGlyph } from "@/components/relay/NavIcons";
 
 /* The profile page's card family — every card on node 417:3401 is one shape:
    a rounded-18 card filled Surface/DASHBOARD, a 12px label sitting on the
@@ -87,39 +88,94 @@ export function ProfileWell({
   );
 }
 
-/** The KPI/Stakeholder row group: edge-to-edge white, 16px end corners, one
- *  hairline around and one between rows — the resolved form of the frame's
- *  per-row 0.4px borders, whose seams are stacked pairs. */
-export function ProfileRows({ children }: { children: ReactNode }) {
+/* The row-in-a-shared-well family (ProfileRows/ProfileRow) retired here: the
+   metric component sets 499:3562 and 499:3921 draw each item as its OWN card,
+   with the edit state expanding in place — see ItemCard and ItemEditShell. */
+
+/** One metric or stakeholder at rest — its own white card (sets 499:3562 /
+ *  499:3921): rounded 16, one hairline, 10px vertical, the row inset 8px. */
+export function ItemCard({ children }: { children: ReactNode }) {
   return (
-    <ul className="flex w-full flex-col overflow-hidden rounded-16 border-fig border-border bg-surface-primary">
-      {children}
-    </ul>
+    <div className="w-full rounded-16 border-fig border-border bg-surface-primary py-2.5">
+      <div className="flex items-center justify-between gap-2 px-2">
+        {children}
+      </div>
+    </div>
   );
 }
 
-/** One 59px row: a two-line stack on the left, Edit on the right. When
- *  `editing`, the row unpins its height and renders the form instead — the
- *  frame does not draw the edit state, so the form keeps the field layer's
- *  own styling and the row simply grows. */
-export function ProfileRow({
-  first = false,
-  editing = false,
+/** The same item, editing — the card swaps to a wash container holding a
+ *  white field card and a Remove | Cancel · Save footer. The KPI variant
+ *  writes the metric's name on the wash first; the stakeholder variant goes
+ *  straight to the fields, so `label` is optional and the 4px headroom
+ *  belongs to it. */
+export function ItemEditShell({
+  label,
+  footer,
   children,
 }: {
-  first?: boolean;
-  editing?: boolean;
+  label?: string;
+  /** Remove on the left, Cancel · Save on the right. */
+  footer: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <li
+    <div
       className={cn(
-        !first && "divider-t border-border",
-        editing ? "px-2 py-3" : "h-profile-row",
+        "w-full rounded-18 border-fig border-border bg-surface-foreground-01 shadow-card",
+        label && "pt-1",
       )}
     >
+      {label && (
+        <div className="flex items-center px-3.5 py-1.5">
+          <span className="truncate font-geist text-fig-caption-1 text-heading-06">
+            {label}
+          </span>
+        </div>
+      )}
+      <div className="w-full rounded-16 border-fig border-border bg-surface-primary py-2.5">
+        {children}
+      </div>
+      <div className="flex w-full items-center justify-between gap-1.5 px-3.5 py-1.5">
+        {footer}
+      </div>
+    </div>
+  );
+}
+
+/** One labelled field in an edit card: 10px label over a 30px control, each
+ *  field an equal column (three to a row, so an add-form's extras wrap). */
+export function EditField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="flex min-w-0 flex-1 basis-1/3 flex-col justify-center gap-1 px-2 pb-1">
+      <span className="font-geist text-fig-caption-2 text-heading-06">
+        {label}
+      </span>
       {children}
-    </li>
+    </label>
+  );
+}
+
+/** The Metric Input's text field: the standard 30px field with the
+ *  input-active focus state, shared by every edit card. */
+export function EditInput({
+  className,
+  ...props
+}: React.ComponentProps<typeof Input>) {
+  return (
+    <Input
+      className={cn(
+        "h-field w-full rounded-8 border-fig border-border bg-surface-primary px-2 font-geist text-fig-caption-1 text-heading-02 shadow-field outline-none placeholder:text-caption-1 focus-visible:border focus-visible:border-blue-500 focus-visible:shadow-input-active focus-visible:ring-0 md:text-fig-caption-1",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
@@ -167,7 +223,9 @@ export function ProfileRowBody({
   );
 }
 
-/** The 14px pencil + "Edit", Heading-03 (node 422:6600). */
+/** The Edit component (set 499:3506): a 12px pencil and 13/450 Heading-03,
+ *  wearing the Foreground-01 wash on hover — and on keyboard focus, which the
+ *  set cannot draw. */
 export function ProfileRowEdit({
   onClick,
   label,
@@ -181,10 +239,42 @@ export function ProfileRowEdit({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex shrink-0 items-center gap-1.5 font-geist text-fig-body fig-w450 text-heading-03 hover:text-heading-01"
+      className="flex shrink-0 items-center gap-1.5 rounded-8 px-1 py-0.5 font-geist text-fig-body fig-w450 text-heading-03 outline-none hover:bg-surface-foreground-01 focus-visible:bg-surface-foreground-01"
     >
-      <PencilGlyph className="size-nav-icon text-icon-explainer" />
+      <PencilGlyph className="size-3 text-icon-explainer" />
       {config.copy.actions.edit}
+    </button>
+  );
+}
+
+/** The Remove component (set 499:3536): trash and 12px Medium Red/600, the
+ *  Red/50 wash on hover — THE bin-remove everywhere one exists, so the hover
+ *  cannot drift between sites. */
+export function RemoveButton({
+  onClick,
+  disabled = false,
+  label,
+  className,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  /** Accessible name — "Remove spend pace", not just "Remove". */
+  label: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={cn(
+        "flex shrink-0 items-center gap-1 rounded-8 px-2.5 py-1.5 font-geist text-fig-button fig-medium text-red-600 outline-none hover:bg-red-50 focus-visible:bg-red-50 disabled:pointer-events-none disabled:opacity-50",
+        className,
+      )}
+    >
+      <TrashGlyph className="shrink-0" />
+      {config.copy.actions.remove}
     </button>
   );
 }

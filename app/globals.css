@@ -91,11 +91,9 @@
   --color-red-600: #cc1e1d; /* invalid border */
   --color-red-500: #ff2524; /* Red/Red 500 — the due row's client ring arc */
   --color-red-200: #ffa8a7; /* invalid focus ring */
-  /* PROVISIONAL. The admin overview's "late" chip needs the wash that Yellow/50
-     and Green/50 give their chips, and the Red ramp in Figma has no 50 step yet.
-     Derived to sit at the same lightness as those two, and to be replaced the
-     moment a frame names one — Figma is the authority on colour. */
-  --color-red-50: #fdeceb;
+  /* Red/50, named by the Remove component's hover (node 499:3534) — replacing
+     the provisional derived value this held while no frame named one. */
+  --color-red-50: #ffe9e9;
 
   /* Grey */
   --color-grey-300: #bfbfbf;

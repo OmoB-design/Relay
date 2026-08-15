@@ -13,8 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
-import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
-import { SpinnerGlyph, TrashGlyph } from "@/components/relay/NavIcons";
+import {
+  ProfileFooter,
+  ProfileWell,
+  RemoveButton,
+} from "@/components/relay/ProfileCard";
+import { SpinnerGlyph } from "@/components/relay/NavIcons";
 
 /* The per-client logo control — Figma component set 447:2572, all seven
    states. They map onto app state rather than being modes of their own:
@@ -197,18 +201,12 @@ export function LogoControl({
           </Button>
         )}
         {logoUrl && !showSave && (
-          /* The set puts Remove HERE, beside the field, once a logo exists —
-             a red ghost with the trash, not a footer action. */
-          <Button
-            size="fig"
-            variant="ghost"
-            className="gap-1 text-red-600 hover:text-red-600"
+          /* The set puts Remove HERE, beside the field, once a logo exists. */
+          <RemoveButton
             onClick={() => run(() => clearLogoAction(clientId), t.cleared, "lookup")}
             disabled={pending}
-          >
-            <TrashGlyph className="shrink-0" />
-            {t.clear}
-          </Button>
+            label={`${t.clear} logo`}
+          />
         )}
         </div>
       </div>

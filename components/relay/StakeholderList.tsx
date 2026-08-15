@@ -5,26 +5,27 @@ import { toast } from "sonner";
 import { config } from "@/lib/config";
 import type { Stakeholder } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { TokenSelect } from "@/components/relay/TokenSelect";
+import { FieldSelect } from "@/components/relay/FieldSelect";
 import {
+  EditField,
+  EditInput,
+  ItemCard,
+  ItemEditShell,
   ProfileFooter,
-  ProfileRow,
   ProfileRowBody,
   ProfileRowEdit,
-  ProfileRows,
+  RemoveButton,
 } from "@/components/relay/ProfileCard";
 import {
   deleteStakeholderAction,
   saveStakeholderAction,
 } from "@/app/(app)/clients/[clientId]/actions";
 
-/* Stakeholder list — restyled to node 425:6828's rows: 59px, the name over
-   "role · gets X version" with a 3px dot, pencil Edit, Add as the footer.
-   Inline row editing + add + remove survive the restyle.
-
-   The frame's own footer literally reads "Add KPI" — a copy-paste slip in the
-   Figma file (flagged); this says what the button does. */
+/* Stakeholders — the individual component set 499:3921: each one its own
+   white card, the name over "role · gets X version"; editing swaps the card
+   in place for the wash container with Name / Role / Gets on one row and
+   Remove | Cancel · Save under it. Unlike the KPI set, no label is written on
+   the wash — the fields open flush at the top. */
 
 type Gets = Stakeholder["gets"];
 const GETS = Object.keys(config.copy.stakeholderGetsLabel) as Gets[];
@@ -69,61 +70,59 @@ function StakeholderForm({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="grid gap-2 sm:grid-cols-3">
-        <label className="flex flex-col gap-1">
-          <span className="font-geist text-fig-caption-2 text-heading-06">Name</span>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-geist text-fig-caption-2 text-heading-06">Role</span>
-          <Input
+    <ItemEditShell
+      footer={
+        <>
+          {initial ? (
+            <RemoveButton
+              onClick={remove}
+              disabled={pending}
+              label={`Remove ${initial.name}`}
+            />
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center gap-1.5">
+            <Button size="fig" variant="ghost" onClick={onDone}>
+              {config.copy.actions.cancel}
+            </Button>
+            <Button size="fig" onClick={save} disabled={pending || !valid}>
+              {config.copy.actions.save}
+            </Button>
+          </div>
+        </>
+      }
+    >
+      <div className="flex flex-wrap items-start gap-y-2 px-2">
+        <EditField label="Name">
+          <EditInput value={name} onChange={(e) => setName(e.target.value)} />
+        </EditField>
+        <EditField label="Role">
+          <EditInput
             value={role}
             onChange={(e) => setRole(e.target.value)}
             placeholder="founder, finance…"
           />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-geist text-fig-caption-2 text-heading-06">Gets</span>
-          <TokenSelect
+        </EditField>
+        <EditField label="Gets">
+          <FieldSelect
             value={gets}
-            onChange={(e) => setGets(e.target.value as Gets)}
-          >
-            {GETS.map((v) => (
-              <option key={v} value={v}>
-                {config.copy.stakeholderGetsLabel[v]}
-              </option>
-            ))}
-          </TokenSelect>
-        </label>
+            onChange={setGets}
+            ariaLabel="Gets"
+            compactOptions
+            options={GETS.map((v) => ({
+              value: v,
+              label: config.copy.stakeholderGetsLabel[v],
+            }))}
+          />
+        </EditField>
       </div>
       {!valid && (
-        <p className="font-geist text-fig-caption-2 text-red-700">
+        <p className="px-4 pt-2 font-geist text-fig-caption-2 text-red-700">
           Name and role are both required.
         </p>
       )}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-2">
-          <Button size="fig" onClick={save} disabled={pending || !valid}>
-            {config.copy.actions.save}
-          </Button>
-          <Button size="fig" variant="ghost" onClick={onDone}>
-            {config.copy.actions.cancel}
-          </Button>
-        </div>
-        {initial && (
-          <Button
-            size="fig"
-            variant="ghost"
-            className="text-red-700"
-            onClick={remove}
-            disabled={pending}
-          >
-            {config.copy.actions.remove}
-          </Button>
-        )}
-      </div>
-    </div>
+    </ItemEditShell>
   );
 }
 
@@ -139,9 +138,9 @@ export function StakeholderList({
 
   return (
     <>
-      <ProfileRows>
-        {stakeholders.map((s, i) => (
-          <ProfileRow key={s.id} first={i === 0} editing={editingId === s.id}>
+      <ul className="flex w-full flex-col gap-1 px-1">
+        {stakeholders.map((s) => (
+          <li key={s.id} className="w-full">
             {editingId === s.id ? (
               <StakeholderForm
                 clientId={clientId}
@@ -149,7 +148,7 @@ export function StakeholderList({
                 onDone={() => setEditingId(null)}
               />
             ) : (
-              <div className="flex h-full items-center justify-between gap-2 px-2">
+              <ItemCard>
                 <ProfileRowBody
                   title={s.name}
                   meta={[
@@ -161,16 +160,16 @@ export function StakeholderList({
                   onClick={() => setEditingId(s.id)}
                   label={`Edit ${s.name}`}
                 />
-              </div>
+              </ItemCard>
             )}
-          </ProfileRow>
+          </li>
         ))}
         {adding && (
-          <ProfileRow first={stakeholders.length === 0} editing>
+          <li className="w-full">
             <StakeholderForm clientId={clientId} onDone={() => setAdding(false)} />
-          </ProfileRow>
+          </li>
         )}
-      </ProfileRows>
+      </ul>
       <ProfileFooter>
         <Button
           size="fig"
