@@ -96,7 +96,7 @@ const HEIGHTS = [
   "field",
   "field-lg",
   "side-card",
-  "bar-row",
+  "nav-bar",
 ];
 
 const twMerge = extendTailwindMerge({
@@ -114,6 +114,7 @@ const twMerge = extendTailwindMerge({
       h: [{ h: HEIGHTS }],
       "min-h": [{ "min-h": ["due-empty", "textarea"] }],
       tracking: [{ tracking: ["count", "range"] }],
+      gap: [{ gap: ["bar-gap"] }],
     },
   },
 });

@@ -385,7 +385,11 @@
   --spacing-evidence-rail: 320px;
   /* The floating action bar (557:6049) and its preview popover (545:4538). */
   --spacing-narrative-bar: 480px;
-  --spacing-bar-row: 34px; /* the bar's inner control row */
+  /* The bar is PINNED to the frame's 42 (p-4 + a 34 row): CSS borders sit
+     outside the box Figma measures, so deriving 42 from the paddings lands at
+     43.4 — same arithmetic as the digest row. The row inside takes h-full. */
+  --spacing-nav-bar: 42px;
+  --spacing-bar-gap: 70px; /* the fixed gap between its two clusters (545:4590) */
   --spacing-preview-pop: 310px;
   --spacing-preview-pop-cap: 215px;
   /* A side-nav narrative card is pinned to 100 (node 552:5022). */

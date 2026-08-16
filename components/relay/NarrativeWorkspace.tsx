@@ -159,6 +159,20 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
     narrative.channel === "slack" ? "slack" : "email",
   );
   const [previewOpen, setPreviewOpen] = useState(false);
+  const barRef = useRef<HTMLDivElement | null>(null);
+
+  // The preview dismisses like any popover: a click anywhere off the bar
+  // closes it (Esc already does).
+  useEffect(() => {
+    if (!previewOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) {
+        setPreviewOpen(false);
+      }
+    };
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => window.removeEventListener("pointerdown", onPointerDown);
+  }, [previewOpen]);
 
   const claims = useMemo(
     () => [...narrative.claims].sort((a, b) => a.order - b.order),
@@ -627,9 +641,13 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
         </div>
       </div>
 
-      {/* ── Narrative Nav (557:6049) — floats over the sheet, centred ── */}
+      {/* ── Narrative Nav (557:6049) — floats over the sheet, centred.
+             Height pinned to the frame's 42; the row inside fills it. ── */}
       <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex justify-center px-6">
-        <div className="pointer-events-auto relative w-narrative-bar rounded-12 border-fig border-border bg-surface-primary p-1 shadow-float-bar">
+        <div
+          ref={barRef}
+          className="pointer-events-auto relative h-nav-bar w-narrative-bar rounded-12 border-fig border-border bg-surface-primary p-1 shadow-float-bar"
+        >
           {previewOpen && (
             <div className="absolute bottom-full left-0 mb-1.5 w-preview-pop overflow-hidden rounded-14 border-fig border-border bg-surface-primary shadow-preview-pop">
               {/* The cap is on the SCROLLING layer, so the clipped tail can be
@@ -660,7 +678,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
             </div>
           )}
 
-          <div className="flex h-bar-row w-full items-center gap-4">
+          <div className="flex h-full w-full items-center gap-bar-gap">
             <div className="flex h-full shrink-0 items-center gap-1.5">
               {/* The channel pill (545:4593 / 545:4545): one capsule — the
                   first channel is bare text in the container, the second is a
