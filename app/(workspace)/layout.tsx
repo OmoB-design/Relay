@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/auth";
 import { countNewTeamJoins } from "@/lib/team";
 import { AppNav } from "@/components/relay/AppNav";
 import { LiveRefresh } from "@/components/relay/LiveRefresh";
+import { WorkspaceDials } from "@/components/relay/WorkspaceDials";
 
 /* The workspace shell — the same one-viewport frame as (app), WITHOUT the
    white content sheet. The narrative workspace (Figma 506:5375) slides its
@@ -29,6 +30,7 @@ export default async function WorkspaceLayout({
       <main className="flex min-w-0 flex-1 overflow-hidden pb-24 md:pb-0">
         {children}
       </main>
+      <WorkspaceDials />
     </div>
   );
 }

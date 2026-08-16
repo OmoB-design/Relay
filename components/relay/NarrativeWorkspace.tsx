@@ -10,6 +10,8 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { animate, motion } from "motion/react";
+import { useDialKit } from "dialkit";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { config, formatAsOf } from "@/lib/config";
@@ -45,6 +47,18 @@ const STATUS_LABEL: Record<NarrativeStatus, string> = {
   reviewed: "Reviewed",
   sent: "Sent",
 };
+
+/* A dialkit spring dial hands back either a spring or an easing curve; Motion
+   spells the latter "tween". */
+type DialTransition =
+  | { type: "spring"; [k: string]: unknown }
+  | { type: "easing"; duration: number; ease: [number, number, number, number] };
+
+function toMotion(t: DialTransition) {
+  return t.type === "easing"
+    ? { type: "tween" as const, duration: t.duration, ease: t.ease }
+    : t;
+}
 
 /* The highlighter (component 552:4668): a 4px Foreground-01 track that is
    ALWAYS beside the card, spanning the known facts in totality — first fact's
@@ -97,12 +111,39 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const draftRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const claimRefs = useRef<Record<string, HTMLElement | null>>({});
+  const cardRefs = useRef<Record<string, HTMLElement | null>>({});
   const [rail, setRail] = useState<{ top: number; height: number } | null>(
     null,
   );
   const [thumb, setThumb] = useState<{ top: number; height: number } | null>(
     null,
+  );
+
+  /* Every interaction's tuning, on dials (dialkit). The defaults ARE the
+     shipped motion; the panel exists so they can be played until they feel
+     right, then written back here. */
+  const dial = useDialKit(
+    "Narrative interactions",
+    {
+      highlighter: {
+        // The jelly: the thumb enters from the track's top and springs to the
+        // selected fact; the same spring carries fact-to-fact travel.
+        travel: { type: "spring", visualDuration: 0.55, bounce: 0.35 },
+        thumbPad: [4, 0, 16, 1],
+      },
+      evidenceScroll: {
+        // The ride down to an off-screen evidence card.
+        spring: { type: "spring", visualDuration: 0.8, bounce: 0.12 },
+        margin: [32, 0, 160, 4],
+      },
+      dim: {
+        opacity: [0.75, 0.2, 1, 0.05],
+        fadeMs: [200, 0, 800, 10],
+      },
+    },
+    { id: "narrative-interactions", persist: true },
   );
 
   // --- Edit state ---
@@ -147,9 +188,12 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [clearSelection]);
 
-  // The highlighter: the track spans the facts region; selecting a fact
-  // raises the thumb at that sentence's position and height, and it travels
-  // inside the still track. Clearing drops the thumb; editing hides both.
+  // The highlighter: the track spans the facts region; a selected fact — OR a
+  // selected evidence card, through the claims it supports — raises the thumb
+  // at that sentence's position and height, travelling inside the still
+  // track. Clearing drops the thumb; editing hides both.
+  const thumbClaimId = selectedClaimId ?? highlightedClaimIds[0] ?? null;
+  const thumbPad = dial.highlighter.thumbPad;
   useEffect(() => {
     function measure() {
       const host = draftRef.current;
@@ -174,14 +218,14 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
       const trackH = bottom - top;
       setRail({ top, height: trackH });
 
-      const el = selectedClaimId ? claimRefs.current[selectedClaimId] : null;
+      const el = thumbClaimId ? claimRefs.current[thumbClaimId] : null;
       if (!el) {
         setThumb(null);
         return;
       }
       const box = el.getBoundingClientRect();
       const h = Math.min(
-        Math.max(RAIL_THUMB_MIN_PX, Math.round(box.height) + 4),
+        Math.max(RAIL_THUMB_MIN_PX, Math.round(box.height) + thumbPad),
         trackH,
       );
       const center = box.top - hostBox.top + box.height / 2 - top;
@@ -193,7 +237,39 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [selectedClaimId, editing, claims]);
+  }, [thumbClaimId, editing, claims, thumbPad]);
+
+  // Selecting a fact whose evidence sits below the fold rides the sheet down
+  // to it — and no further than it needs to. The spring is on a dial.
+  useEffect(() => {
+    if (!selectedClaimId) return;
+    const scroller = scrollRef.current;
+    const firstItemId = selectedClaim?.evidenceRefs[0]?.itemId;
+    const card = firstItemId ? cardRefs.current[firstItemId] : null;
+    if (!scroller || !card) return;
+    const margin = dial.evidenceScroll.margin;
+    const box = card.getBoundingClientRect();
+    const view = scroller.getBoundingClientRect();
+    let delta = 0;
+    if (box.bottom > view.bottom - margin) {
+      delta = box.bottom - (view.bottom - margin);
+    } else if (box.top < view.top + margin) {
+      delta = box.top - (view.top + margin);
+    }
+    if (delta === 0) return;
+    const controls = animate(
+      scroller.scrollTop,
+      scroller.scrollTop + delta,
+      {
+        ...toMotion(dial.evidenceScroll.spring),
+        onUpdate: (v: number) => {
+          scroller.scrollTop = v;
+        },
+      },
+    );
+    return () => controls.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClaimId]);
 
   function selectClaim(id: string) {
     setSelectedItemId(null);
@@ -282,7 +358,10 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
 
   return (
     <>
-      <div className="h-full overflow-y-auto overscroll-contain scrollbar-stable">
+      <div
+        ref={scrollRef}
+        className="h-full overflow-y-auto overscroll-contain scrollbar-stable"
+      >
         <div className="flex flex-col items-center px-6 pt-8">
           <div className="flex w-full max-w-workspace flex-col pb-32 pt-16">
             {/* ── Masthead (506:5384) ── */}
@@ -343,9 +422,14 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                     style={{ top: rail.top, height: rail.height }}
                   >
                     {thumb && (
-                      <span
-                        className="absolute left-0 w-1 rounded-4 bg-blue-500 transition-[top,height] duration-200 ease-out"
-                        style={{ top: thumb.top, height: thumb.height }}
+                      /* Enters at the track's TOP and springs down to the
+                         fact — the jelly — then the same spring carries
+                         travel between facts. */
+                      <motion.span
+                        className="absolute left-0 w-1 rounded-4 bg-blue-500"
+                        initial={{ top: 0, height: thumb.height }}
+                        animate={{ top: thumb.top, height: thumb.height }}
+                        transition={toMotion(dial.highlighter.travel)}
                       />
                     )}
                   </div>
@@ -510,9 +594,14 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                       {snapshot.items.map((item) => (
                         <EvidenceRailCard
                           key={item.id}
+                          cardRef={(el) => {
+                            cardRefs.current[item.id] = el;
+                          }}
                           item={item}
                           selected={itemSelected(item)}
                           dimmed={hasSelection && !itemSelected(item)}
+                          dimOpacity={dial.dim.opacity}
+                          dimMs={dial.dim.fadeMs}
                           onSelect={() => selectItem(item.id)}
                         />
                       ))}
@@ -640,14 +729,21 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
    interpretation under a hairline. Selected lifts onto a 1px Blue/500 stroke
    with the blue halo pair — the same emphasis language as the selectors. */
 function EvidenceRailCard({
+  cardRef,
   item,
   selected,
   dimmed,
+  dimOpacity,
+  dimMs,
   onSelect,
 }: {
+  cardRef?: (el: HTMLElement | null) => void;
   item: EvidenceItem;
   selected: boolean;
   dimmed: boolean;
+  /** The unlinked cards' fade while a selection is active — on dials. */
+  dimOpacity: number;
+  dimMs: number;
   onSelect: () => void;
 }) {
   const tone = deltaTone(item);
@@ -667,6 +763,7 @@ function EvidenceRailCard({
 
   return (
     <article
+      ref={cardRef}
       role="button"
       tabIndex={0}
       aria-pressed={selected}
@@ -678,15 +775,20 @@ function EvidenceRailCard({
           onSelect();
         }
       }}
+      style={{
+        opacity: dimmed ? dimOpacity : 1,
+        transitionDuration: `${dimMs}ms`,
+      }}
       className={cn(
         /* The set's two variants (545:4485 / 545:4486): at REST every card is
            white with the figure in black; a selection turns the others onto
-           the dashboard fill at 75% with the figure receding to heading-06. */
-        "w-full cursor-pointer rounded-14 text-left outline-none transition-opacity duration-200",
+           the dashboard fill (the dials own the fade) with the figure
+           receding to heading-06. */
+        "w-full cursor-pointer rounded-14 text-left outline-none transition-opacity",
         selected
           ? "border border-blue-500 bg-surface-primary shadow-evidence-selected"
           : dimmed
-            ? "border-fig border-border bg-surface-dashboard opacity-75 shadow-card-quiet"
+            ? "border-fig border-border bg-surface-dashboard shadow-card-quiet"
             : "border-fig border-border bg-surface-primary shadow-card-quiet",
       )}
     >
