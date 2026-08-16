@@ -612,11 +612,15 @@ function EvidenceRailCard({
         }
       }}
       className={cn(
+        /* The set's two variants (545:4485 / 545:4486): at REST every card is
+           white with the figure in black; a selection turns the others onto
+           the dashboard fill at 75% with the figure receding to heading-06. */
         "w-full cursor-pointer rounded-14 text-left outline-none transition-opacity duration-200",
         selected
           ? "border border-blue-500 bg-surface-primary shadow-evidence-selected"
-          : "border-fig border-border bg-surface-dashboard shadow-card-quiet",
-        dimmed && "opacity-75",
+          : dimmed
+            ? "border-fig border-border bg-surface-dashboard opacity-75 shadow-card-quiet"
+            : "border-fig border-border bg-surface-primary shadow-card-quiet",
       )}
     >
       <div className="divider-b flex flex-col px-3 py-2.5">
@@ -644,7 +648,7 @@ function EvidenceRailCard({
           <span
             className={cn(
               "font-greeting text-fig-h6 fig-regular",
-              selected ? "text-heading-01" : "text-heading-06",
+              dimmed ? "text-heading-06" : "text-heading-01",
             )}
           >
             {item.valueDisplay}
