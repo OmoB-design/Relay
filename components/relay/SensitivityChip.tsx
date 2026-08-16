@@ -10,15 +10,21 @@ import type { Sensitivity } from "@/lib/types";
    the narrative layer even though the frame does not print it. */
 export function SensitivityChip({
   sensitivity,
+  outlined = false,
   className,
 }: {
   sensitivity: Sensitivity;
+  /** The narrative workspace's variant (node 519:6127): a Yellow/300 hairline
+   *  and an inset glow around the same wash — the chip lifted off the page
+   *  header rather than resting in the profile's well. */
+  outlined?: boolean;
   className?: string;
 }) {
   return (
     <span
       className={cn(
         "inline-flex max-w-full items-center rounded-full bg-yellow-50 px-1.5 py-1 text-left font-geist text-fig-caption-1 text-yellow-600",
+        outlined && "border-fig border-yellow-300 px-2 shadow-sensitivity",
         className,
       )}
       title={`${sensitivity.type}: ${sensitivity.text}`}

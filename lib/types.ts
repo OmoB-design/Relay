@@ -305,6 +305,7 @@ export const NarrativeSchema = z.object({
    *  (falls back to deterministic condensation); Phase 8 regenerates it. */
   whatsappVariant: z.string().optional(),
   claims: z.array(ClaimSchema),
+  draftedAt: z.string().optional(),
   reviewedAt: z.string().optional(),
   sentAt: z.string().optional(),
 });

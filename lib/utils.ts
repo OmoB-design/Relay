@@ -33,8 +33,10 @@ import { extendTailwindMerge } from "tailwind-merge";
  *  on the screens awaiting redesign. */
 const FONT_SIZES = [
   "fig-button",
+  "fig-h4",
   "fig-h5",
   "fig-h6",
+  "fig-prose",
   "fig-body-lg",
   "fig-body",
   "fig-caption-1",
@@ -62,6 +64,7 @@ const BORDER_WIDTHS = ["fig", "hair"];
 /** box-shadow and drop-shadow utilities. */
 const SHADOWS = [
   "card",
+  "card-quiet",
   "popover",
   "field-active",
   "input-active",
@@ -73,6 +76,11 @@ const SHADOWS = [
   "avatar-well",
   "nav-profile",
   "sheet",
+  "evidence-selected",
+  "side-card",
+  "float-bar",
+  "preview-pop",
+  "sensitivity",
 ];
 
 /** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB 500. */
@@ -80,7 +88,18 @@ const FONT_WEIGHTS = ["fig-regular", "fig-w450", "fig-medium", "fig-sb"];
 
 /** Named heights, for the boxes Figma pins outright rather than deriving from
  *  their padding. `h-9` and friends must still be able to override them. */
-const HEIGHTS = ["digest-row", "client-row", "profile-row", "button-fig", "field", "field-lg"];
+const HEIGHTS = [
+  "digest-row",
+  "client-row",
+  "profile-row",
+  "button-fig",
+  "field",
+  "field-lg",
+  "side-card",
+  "rail-track",
+  "rail-thumb",
+  "bar-row",
+];
 
 const twMerge = extendTailwindMerge({
   extend: {
@@ -96,6 +115,7 @@ const twMerge = extendTailwindMerge({
       "font-weight": FONT_WEIGHTS,
       h: [{ h: HEIGHTS }],
       "min-h": [{ "min-h": ["due-empty", "textarea"] }],
+      tracking: [{ tracking: ["count", "range"] }],
     },
   },
 });

@@ -383,6 +383,142 @@ export function EditGlyph({ className }: GlyphProps) {
   );
 }
 
+/** The narratives panel's search glass (node 552:4987) — 14px, drawn at
+ *  Icon/Icon-Explainer; currentColor so the field owns the tone. */
+export function SearchGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M12.25 12.25L9.05225 9.05225"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.02778 10.3056C8.39028 10.3056 10.3056 8.39028 10.3056 6.02778C10.3056 3.66528 8.39028 1.75 6.02778 1.75C3.66528 1.75 1.75 3.66528 1.75 6.02778C1.75 8.39028 3.66528 10.3056 6.02778 10.3056Z"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** The evidence delta badges (nodes 545:3582 / 545:4037): a 12px tinted disc
+ *  carrying a hairline arrow. The frame pairs green-up and red-down, but the
+ *  DISC follows the delta's MEANING, not its direction — an up-arrow on a
+ *  cost metric sits on the red disc — so the tint is the caller's. */
+type DeltaGlyphProps = GlyphProps & { discClassName?: string };
+
+export function DeltaUpGlyph({
+  className,
+  discClassName = "fill-green-100",
+}: DeltaGlyphProps) {
+  return (
+    <svg
+      width={12}
+      height={12}
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx={6} cy={6} r={6} className={discClassName} />
+      <path
+        d="M6 9.37496V3.37496"
+        stroke="currentColor"
+        strokeWidth={0.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.4375 5.43746L6 2.99996L3.5625 5.43746"
+        stroke="currentColor"
+        strokeWidth={0.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function DeltaDownGlyph({
+  className,
+  discClassName = "fill-red-50",
+}: DeltaGlyphProps) {
+  return (
+    <svg
+      width={12}
+      height={12}
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx={6} cy={6} r={6} className={discClassName} />
+      <path
+        d="M6 2.62499V8.62499"
+        stroke="currentColor"
+        strokeWidth={0.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.5625 6.56249L6 8.99999L8.4375 6.56249"
+        stroke="currentColor"
+        strokeWidth={0.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** The Gmail mark on the email preview (node 552:4646) — brand colours are
+ *  literal on purpose; a logo does not take the theme. */
+export function GmailGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={20}
+      height={15}
+      viewBox="0 0 20 15.0781"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M4.54547 15.0039V7.27656L2.14898 5.08413L0 3.86749V13.6402C0 14.3948 0.611328 15.0039 1.36367 15.0039H4.54547Z"
+        fill="#4285F4"
+      />
+      <path
+        d="M15.4546 15.0039H18.6364C19.391 15.0039 20 14.3925 20 13.6402V3.86757L17.566 5.26108L15.4546 7.27655V15.0039Z"
+        fill="#34A853"
+      />
+      <path
+        d="M4.54545 7.27656L4.21936 4.25726L4.54545 1.36749L9.99999 5.45843L15.4545 1.36749L15.8193 4.10124L15.4545 7.27656L9.99999 11.3675L4.54545 7.27656Z"
+        fill="#EA4335"
+      />
+      <path
+        d="M15.4546 1.36751V7.27658L20 3.86751V2.04931C20 0.362983 18.075 -0.598345 16.7274 0.412983L15.4546 1.36751Z"
+        fill="#FBBC04"
+      />
+      <path
+        d="M0 3.86751L2.09055 5.43548L4.54547 7.27657V1.36751L3.27266 0.41298C1.92266 -0.598426 0 0.36298 0 2.04923V3.86751Z"
+        fill="#C5221F"
+      />
+    </svg>
+  );
+}
+
 /** The speech mark beside "Waiting on you" (Figma 357:2338). Drawn at 1.75, a
  *  heavier stroke than the nav glyphs — it sits alone rather than in a column. */
 export function WaitingGlyph({ className }: GlyphProps) {

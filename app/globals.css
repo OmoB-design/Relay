@@ -75,18 +75,28 @@
   --color-button-primary-text: #ffffff;
 
   /* Blue — Secondary action, and the pipeline-advancing status */
+  --color-blue-900: #0a2a66; /* the selected sentence's dotted underline (545:4400) */
   --color-blue-500: #1969fe;
   --color-blue-400: #4787fe; /* hover, and the Working fill */
   --color-blue-150: #bad2ff; /* focus ring */
   --color-blue-50: #e8f0ff; /* hover wash */
+  --color-blue-10: #f7f9ff; /* the selected evidence source chip's wash (545:3568) */
+
+  /* Base/Black — the narrative action bar's filled buttons (545:4570). A step
+     off-black from Button-Primary's #171717, and the frame keeps them apart. */
+  --color-base-black: #080706;
 
   /* Green — done / healthy */
+  --color-green-600: #1e8a28; /* the evidence delta text (node 545:3587) */
   --color-green-500: #25ad32;
+  --color-green-150: #bce6bf; /* the Sent pill's stroke (node 552:5135) */
+  --color-green-100: #d1eed4; /* the delta-up badge's disc */
   --color-green-50: #e7f6e8;
 
   /* Yellow — attention, constraint */
   --color-yellow-700: #8f5e1c;
   --color-yellow-600: #be7d25; /* flag category label */
+  --color-yellow-300: #f5c482; /* the sensitivity chip's stroke (node 519:6127) */
   --color-yellow-100: #fcebd5;
   --color-yellow-50: #fdf5ea; /* the absent/stale chip's wash (node 309:17112) */
 
@@ -234,6 +244,21 @@
   --text-fig-h5: 1.4375rem;
   --text-fig-h5--line-height: 1.2;
 
+  /* H4 — 29px Helvetica Neue Medium: the narrative workspace masthead
+     (node 506:5393), a size up from the client page's H5. */
+  --text-fig-h4: 1.8125rem;
+  --text-fig-h4--line-height: 1.2;
+
+  /* The draft prose (545:4398): 14 at 1.6 — the one reading size in the app,
+     against the chrome's 1.2/1.4 captions. */
+  --text-fig-prose: 0.875rem;
+  --text-fig-prose--line-height: 1.6;
+
+  /* The side panel's count figures (552:5016/5019): Figma tracks the 19px
+     Helvetica figures at −2.66px and the month range at −0.76px. */
+  --tracking-count: -0.14em;
+  --tracking-range: -0.04em;
+
   /* --- Color: Relay semantic palette (design.md §2) --- */
   --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */
   --color-surface: #ffffff; /* cards, panels */
@@ -350,6 +375,25 @@
   --container-logo-input: 234px;
   --container-thread: 680px; /* Answer Desk thread (used from Phase 5) */
 
+  /* The narrative workspace (node 506:5375): a 1000 column — 600 of draft, a
+     gutter the draft's max-width leaves open, and a 320 evidence rail — beside
+     a 300 narratives panel that extends the nav. */
+  --container-workspace: 1000px;
+  --container-draft: 600px;
+  --spacing-narrative-side: 300px;
+  --spacing-evidence-rail: 320px;
+  /* The floating action bar (557:6049) and its preview popover (545:4538). */
+  --spacing-narrative-bar: 480px;
+  --spacing-bar-row: 34px; /* the bar's inner control row */
+  --spacing-preview-pop: 310px;
+  --spacing-preview-pop-cap: 215px;
+  /* A side-nav narrative card is pinned to 100 (node 552:5022). */
+  --spacing-side-card: 100px;
+  /* The selected-sentence rail beside the draft card (545:4405): a 4px track,
+     137 tall, carrying a 26px thumb. */
+  --spacing-rail-track: 137px;
+  --spacing-rail-thumb: 26px;
+
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
   --spacing-dialog-cap: 85svh;
 
@@ -370,6 +414,30 @@
      directly is silently overwritten the moment any ring class is active. */
   --shadow-input-active: 0 0 1.5px 1px var(--color-blue-150);
   --shadow-invalid-active: 0 0 1.5px 1px var(--color-red-200);
+
+  /* --- The narrative workspace's elevations (node 506:5375) --- */
+  /* The draft card, the resting evidence card, the preview popover's base
+     layer: the faintest of the card lifts. */
+  --shadow-card-quiet: 0 0 2.5px 0 rgb(217 217 217 / 0.2);
+  /* The SELECTED evidence card (545:3549): a real drop plus a Blue halo pair —
+     the stitch target, and the loudest shadow in the redesign on purpose. */
+  --shadow-evidence-selected:
+    0 4px 10px 0 rgb(120 120 120 / 0.15),
+    0 0 2.5px 0 #88b2ff,
+    0 2px 12px 0 #eef4ff;
+  /* A side-panel narrative card (552:5045). */
+  --shadow-side-card:
+    0 0 1.5px 0 rgb(163 163 163 / 0.15),
+    0 1px 1.5px 0 rgb(228 228 228 / 0.12);
+  /* The floating action bar (557:6049). */
+  --shadow-float-bar:
+    0 0 2px 0 rgb(61 60 60 / 0.1),
+    0 1.5px 3px 0 rgb(166 166 166 / 0.1);
+  /* Its preview popover (545:4538) — three layers, floats over content. */
+  --shadow-preview-pop:
+    0 0 12px 0 rgb(188 186 186 / 0.12),
+    0 0 2.5px 0 rgb(217 217 217 / 0.2),
+    0 2px 6px 0 rgb(243 243 243 / 0.04);
 }
 
 /* Hairline 1.5px border/underline weight (empty-state border, claim underline).
@@ -396,6 +464,31 @@
 }
 @utility claim-underline-strong {
   border-bottom: 1.5px dotted var(--color-verdigris);
+}
+
+/* The redesign's selected sentence (node 545:4400): a hairline DOTTED
+   text-decoration in Blue/900 — text-decoration rather than border-bottom
+   because the frame underlines the sentence, not its box, and a border on a
+   wrapping span draws only under the last line's box edge. */
+@utility sentence-underline {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--color-blue-900);
+  text-decoration-thickness: 0.7px;
+  text-underline-offset: 4px;
+}
+
+/* The sensitivity chip's inner glow (node 519:6127): a Yellow/300 inset under
+   the hairline. Chips never carry ring classes, so a box-shadow utility is
+   safe here where it was not on the field primitives. */
+@utility shadow-sensitivity {
+  box-shadow: inset 0 1px 3px 0 rgb(245 196 130 / 0.5);
+}
+
+/* The email preview's bottom fade (node 552:4615): the clipped tail of the
+   message dissolving into the popover's ground instead of cutting off. */
+@utility preview-fade {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0) 18%, #fafafa 82%);
 }
 
 /* Figma's font weights. Geist is a variable font, so these are real axis values

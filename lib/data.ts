@@ -207,6 +207,7 @@ function mapNarrative(r: any, claims: any[]): Narrative {
     channel: r.channel,
     emailGreeting: opt(r.email_greeting),
     whatsappVariant: opt(r.whatsapp_variant),
+    draftedAt: opt(r.drafted_at),
     reviewedAt: opt(r.reviewed_at),
     sentAt: opt(r.sent_at),
     claims: claims

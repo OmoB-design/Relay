@@ -1,28 +1,7 @@
-import { currentTeamSeenAt, requireProfile } from "@/lib/auth";
-import { getRequestClient } from "@/lib/supabase";
+import { requireProfile } from "@/lib/auth";
+import { countNewTeamJoins } from "@/lib/team";
 import { AppNav } from "@/components/relay/AppNav";
 import { LiveRefresh } from "@/components/relay/LiveRefresh";
-
-/* Colleagues who have accepted an invite since the admin last opened Team.
-   Null team_seen_at means they never have, so on a fresh account everyone
-   counts — on first run every colleague is news. */
-async function countNewJoins(adminId: string): Promise<number> {
-  // Already in hand from the profile read — asking again would be a whole
-  // round trip for one column.
-  const seenAt = await currentTeamSeenAt();
-  const sb = await getRequestClient();
-
-  let q = sb
-    .from("profiles")
-    .select("id", { count: "exact", head: true })
-    .eq("role", "buyer")
-    .not("accepted_at", "is", null)
-    .neq("id", adminId);
-  if (seenAt) q = q.gt("accepted_at", seenAt);
-
-  const { count } = await q;
-  return count ?? 0;
-}
 
 /* App shell. AppNav owns the whole sidebar now — logo strip, items and account
    card are a single Figma frame (357:2590), and splitting them between the
@@ -39,7 +18,7 @@ export default async function AppLayout({
 }) {
   const profile = await requireProfile();
   const isAdmin = profile.role === "admin";
-  const newTeamJoins = isAdmin ? await countNewJoins(profile.id) : 0;
+  const newTeamJoins = isAdmin ? await countNewTeamJoins(profile.id) : 0;
 
   /* THE SHELL IS EXACTLY ONE VIEWPORT TALL and never scrolls itself; the content
      sheet is the only scroll container. That is what keeps the sidebar and the
