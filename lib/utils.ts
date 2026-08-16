@@ -78,6 +78,7 @@ const SHADOWS = [
   "sheet",
   "evidence-selected",
   "side-card",
+  "side-card-active",
   "float-bar",
   "preview-pop",
   "sensitivity",

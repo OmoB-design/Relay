@@ -78,6 +78,7 @@
   --color-blue-900: #0a2a66; /* the selected sentence's dotted underline (545:4400) */
   --color-blue-500: #1969fe;
   --color-blue-400: #4787fe; /* hover, and the Working fill */
+  --color-blue-300: #75a5fe; /* the Reviewed pill's stroke (node 552:5149) */
   --color-blue-150: #bad2ff; /* focus ring */
   --color-blue-50: #e8f0ff; /* hover wash */
   --color-blue-10: #f7f9ff; /* the selected evidence source chip's wash (545:3568) */
@@ -426,10 +427,12 @@
     0 4px 10px 0 rgb(120 120 120 / 0.15),
     0 0 2.5px 0 #88b2ff,
     0 2px 12px 0 #eef4ff;
-  /* A side-panel narrative card (552:5045). */
+  /* A side-panel narrative card (552:5045), and the OPEN one's softer single
+     lift (552:4714) — white and bordered, it needs less shadow. */
   --shadow-side-card:
     0 0 1.5px 0 rgb(163 163 163 / 0.15),
     0 1px 1.5px 0 rgb(228 228 228 / 0.12);
+  --shadow-side-card-active: 0 0 1.5px 0 rgb(206 205 205 / 0.12);
   /* The floating action bar (557:6049). */
   --shadow-float-bar:
     0 0 2px 0 rgb(61 60 60 / 0.1),

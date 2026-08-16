@@ -45,20 +45,34 @@ function recipientName(narrative: Narrative, profile: ClientProfile): string {
   return profile.stakeholders[0]?.name ?? profile.name;
 }
 
-/** The status pill on a card. Sent is the one the frame draws (Green/50 on a
- *  Green/150 hairline, 552:5135); Draft and Reviewed extend the app's own
- *  status colours — yellow for attention, blue for pipeline-advancing. */
-function StatusPill({ status }: { status: NarrativeStatus }) {
+/** The status pill, per the set's three variants (552:5158). Draft is
+ *  NEUTRAL — foreground-01 on the open card, dashboard on the rest.
+ *  Reviewed and Sent are tinted (Blue/50+500, Green/50+500), and their
+ *  hairline appears ONLY on the cards that are not open — the open card's
+ *  pill sits borderless on white. */
+function StatusPill({
+  status,
+  active,
+}: {
+  status: NarrativeStatus;
+  active: boolean;
+}) {
   return (
     <span
       className={cn(
-        "flex items-center rounded-full px-2 py-0.5 font-geist text-fig-caption-2 fig-w450",
-        status === "sent" &&
-          "border-fig border-green-150 bg-green-50 text-green-500",
-        status === "reviewed" &&
-          "border-fig border-blue-150 bg-blue-10 text-blue-500",
+        "flex items-center rounded-full border-fig px-2 py-0.5 font-geist text-fig-caption-2 fig-w450",
         status === "drafted" &&
-          "border-fig border-yellow-300 bg-yellow-50 text-yellow-600",
+          (active
+            ? "border-transparent bg-surface-foreground-01 text-heading-05"
+            : "border-transparent bg-surface-dashboard text-heading-04"),
+        status === "reviewed" && [
+          "bg-blue-50 text-blue-500",
+          active ? "border-transparent" : "border-blue-300",
+        ],
+        status === "sent" && [
+          "bg-green-50 text-green-500",
+          active ? "border-transparent" : "border-green-150",
+        ],
       )}
     >
       {STATUS_LABEL[status]}
@@ -194,13 +208,18 @@ export function NarrativeSideNav({
                 className={cn(
                   "flex h-side-card w-full flex-col justify-center gap-3 rounded-10 px-2 pb-4 pt-2.5",
                   isOpen
-                    ? "border-fig border-border bg-surface-primary shadow-card-quiet"
+                    ? "border-fig border-border bg-surface-primary shadow-side-card-active"
                     : "shadow-side-card hover:bg-surface-primary/60",
                 )}
               >
                 <span className="flex w-full items-center justify-end gap-1">
-                  <StatusPill status={n.status} />
-                  <span className="flex items-center rounded-full bg-surface-foreground-01 px-1 py-0.5 font-geist text-fig-caption-2 fig-w450 text-heading-05">
+                  <StatusPill status={n.status} active={isOpen} />
+                  <span
+                    className={cn(
+                      "flex items-center rounded-full bg-surface-foreground-01 px-1 py-0.5 font-geist text-fig-caption-2 fig-w450",
+                      isOpen ? "text-heading-05" : "text-heading-04",
+                    )}
+                  >
                     {n.week.label ?? n.week.start}
                   </span>
                 </span>
