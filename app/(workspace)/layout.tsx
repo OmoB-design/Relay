@@ -20,7 +20,12 @@ export default async function WorkspaceLayout({
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-foreground-01">
       <LiveRefresh buyerId={isAdmin ? null : profile.id} />
-      <AppNav profile={profile} isAdmin={isAdmin} newTeamJoins={newTeamJoins} />
+      <AppNav
+        profile={profile}
+        isAdmin={isAdmin}
+        newTeamJoins={newTeamJoins}
+        defaultCollapsed
+      />
       <main className="flex min-w-0 flex-1 overflow-hidden pb-24 md:pb-0">
         {children}
       </main>

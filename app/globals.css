@@ -389,10 +389,6 @@
   --spacing-preview-pop-cap: 215px;
   /* A side-nav narrative card is pinned to 100 (node 552:5022). */
   --spacing-side-card: 100px;
-  /* The selected-sentence rail beside the draft card (545:4405): a 4px track,
-     137 tall, carrying a 26px thumb. */
-  --spacing-rail-track: 137px;
-  --spacing-rail-thumb: 26px;
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
   --spacing-dialog-cap: 85svh;

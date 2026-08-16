@@ -96,6 +96,7 @@ export function AppNav({
   profile,
   isAdmin = false,
   newTeamJoins = 0,
+  defaultCollapsed = false,
 }: {
   profile: Profile;
   isAdmin?: boolean;
@@ -103,17 +104,23 @@ export function AppNav({
    *  nav item, because an invite is accepted hours after it is sent and a
    *  message that only lands while someone is watching would mostly not. */
   newTeamJoins?: number;
+  /** The narrative workspace opens with the rail collapsed (Figma 552:5160
+   *  draws it at 55) — its own narratives panel takes the width the labels
+   *  would. The stored preference is not read there; the toggle still works
+   *  and still records the choice for the other screens. */
+  defaultCollapsed?: boolean;
 }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const items = NAV.filter((n) => !n.adminOnly || isAdmin);
 
   /* Read the stored preference after mount, not during render: the server has
      no localStorage, and reading it in useState's initialiser would render one
      width on the server and another on the client. */
   useEffect(() => {
+    if (defaultCollapsed) return;
     setCollapsed(window.localStorage.getItem(STORE_KEY) === "1");
-  }, []);
+  }, [defaultCollapsed]);
 
   function toggle() {
     setCollapsed((was) => {

@@ -46,12 +46,11 @@ const STATUS_LABEL: Record<NarrativeStatus, string> = {
   sent: "Sent",
 };
 
-/* The highlighter (component 552:4668): a 4px, 137px track that is ALWAYS
-   beside the card in plain Foreground-01. Selecting a fact raises the blue
-   thumb — sized to that sentence (the set draws 26 over a 22px line, so the
-   line plus 4) — and the track travels to centre on it. Numbers mirror
-   --spacing-rail-track/-thumb. */
-const RAIL_TRACK_PX = 137;
+/* The highlighter (component 552:4668): a 4px Foreground-01 track that is
+   ALWAYS beside the card, spanning the known facts in totality — first fact's
+   top to last fact's bottom — so the blue thumb TRAVELS smoothly inside a
+   still track. The thumb is sized to the selected sentence: the set draws 26
+   over a one-liner, the line plus 4 when it wraps. */
 const RAIL_THUMB_MIN_PX = 26;
 
 /** "Drafted, Jul 26, 5:30" (node 520:7956) — the stamp for the narrative's
@@ -99,8 +98,12 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const draftRef = useRef<HTMLDivElement | null>(null);
   const claimRefs = useRef<Record<string, HTMLElement | null>>({});
-  const [railTop, setRailTop] = useState<number | null>(null);
-  const [railThumbH, setRailThumbH] = useState<number | null>(null);
+  const [rail, setRail] = useState<{ top: number; height: number } | null>(
+    null,
+  );
+  const [thumb, setThumb] = useState<{ top: number; height: number } | null>(
+    null,
+  );
 
   // --- Edit state ---
   const [editing, setEditing] = useState(false);
@@ -144,38 +147,52 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [clearSelection]);
 
-  // The highlighter: the plain track parks beside the first fact; selecting
-  // one raises the thumb at that sentence's height and travels the track to
-  // centre on it. Clearing drops the thumb but leaves the track where it was.
+  // The highlighter: the track spans the facts region; selecting a fact
+  // raises the thumb at that sentence's position and height, and it travels
+  // inside the still track. Clearing drops the thumb; editing hides both.
   useEffect(() => {
-    const host = draftRef.current;
-    if (!host || editing) {
-      setRailThumbH(null);
-      return;
-    }
-    const hostBox = host.getBoundingClientRect();
-    const el = selectedClaimId ? claimRefs.current[selectedClaimId] : null;
-    if (el) {
-      const box = el.getBoundingClientRect();
-      setRailTop(box.top - hostBox.top + box.height / 2 - RAIL_TRACK_PX / 2);
-      setRailThumbH(
-        Math.max(
-          RAIL_THUMB_MIN_PX,
-          Math.min(Math.round(box.height) + 4, RAIL_TRACK_PX - 12),
-        ),
-      );
-      return;
-    }
-    setRailThumbH(null);
-    if (railTop == null) {
-      const first = claims.find((c) => c.kind === "fact");
-      const firstEl = first ? claimRefs.current[first.id] : null;
-      if (firstEl) {
-        const box = firstEl.getBoundingClientRect();
-        setRailTop(box.top - hostBox.top + box.height / 2 - RAIL_TRACK_PX / 2);
+    function measure() {
+      const host = draftRef.current;
+      if (!host || editing) {
+        setRail(null);
+        setThumb(null);
+        return;
       }
+      const hostBox = host.getBoundingClientRect();
+      const factBoxes = claims
+        .filter((c) => c.kind === "fact")
+        .map((c) => claimRefs.current[c.id])
+        .filter((el): el is HTMLElement => Boolean(el))
+        .map((el) => el.getBoundingClientRect());
+      if (factBoxes.length === 0) {
+        setRail(null);
+        setThumb(null);
+        return;
+      }
+      const top = Math.min(...factBoxes.map((b) => b.top)) - hostBox.top;
+      const bottom = Math.max(...factBoxes.map((b) => b.bottom)) - hostBox.top;
+      const trackH = bottom - top;
+      setRail({ top, height: trackH });
+
+      const el = selectedClaimId ? claimRefs.current[selectedClaimId] : null;
+      if (!el) {
+        setThumb(null);
+        return;
+      }
+      const box = el.getBoundingClientRect();
+      const h = Math.min(
+        Math.max(RAIL_THUMB_MIN_PX, Math.round(box.height) + 4),
+        trackH,
+      );
+      const center = box.top - hostBox.top + box.height / 2 - top;
+      setThumb({
+        top: Math.max(0, Math.min(trackH - h, center - h / 2)),
+        height: h,
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
   }, [selectedClaimId, editing, claims]);
 
   function selectClaim(id: string) {
@@ -311,21 +328,24 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
             {/* ── Draft + evidence (510:6124) ── */}
             <div className="mt-12 flex w-full items-start justify-between gap-6">
               {/* Message input (545:4483) */}
+              {/* Sticky against the sheet's scroll: when the evidence rail
+                  runs longer, the draft pins and rides until the row's end —
+                  the bottom of the evidence — releases it. */}
               <section
                 ref={draftRef}
                 aria-label="Draft"
-                className="relative min-w-0 max-w-draft flex-1"
+                className="sticky top-8 min-w-0 max-w-draft flex-1 self-start"
               >
-                {railTop != null && !editing && (
+                {rail && !editing && (
                   <div
                     aria-hidden="true"
-                    className="absolute -left-3.5 h-rail-track w-1 overflow-hidden rounded-4 bg-surface-foreground-01 transition-[top] duration-200 ease-out"
-                    style={{ top: railTop }}
+                    className="absolute -left-3.5 w-1 overflow-hidden rounded-4 bg-surface-foreground-01"
+                    style={{ top: rail.top, height: rail.height }}
                   >
-                    {railThumbH != null && (
+                    {thumb && (
                       <span
-                        className="absolute left-0 top-1/2 w-1 -translate-y-1/2 rounded-4 bg-blue-500 transition-[height] duration-200 ease-out"
-                        style={{ height: railThumbH }}
+                        className="absolute left-0 w-1 rounded-4 bg-blue-500 transition-[top,height] duration-200 ease-out"
+                        style={{ top: thumb.top, height: thumb.height }}
                       />
                     )}
                   </div>
@@ -515,19 +535,23 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
       <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex justify-center px-6">
         <div className="pointer-events-auto relative w-narrative-bar rounded-12 border-fig border-border bg-surface-primary p-1 shadow-float-bar">
           {previewOpen && (
-            <div className="absolute bottom-full left-0 mb-1.5 max-h-preview-pop-cap w-preview-pop overflow-hidden rounded-14 border-fig border-border bg-surface-primary shadow-preview-pop">
-              <div className="flex items-start gap-2 px-3 pb-4 pt-3">
-                <div className="min-w-0 flex-1">
-                  <p className="font-geist text-fig-caption-1 text-heading-06">
-                    {tone === "email"
-                      ? `${config.copy.channelLabel.email} — full`
-                      : `${config.copy.channelLabel.whatsapp} — condensed`}
-                  </p>
-                  <pre className="mt-4 whitespace-pre-wrap font-geist text-fig-caption-1 text-base-black">
-                    {formatForTone(tone, narrative, profile.name)}
-                  </pre>
+            <div className="absolute bottom-full left-0 mb-1.5 w-preview-pop overflow-hidden rounded-14 border-fig border-border bg-surface-primary shadow-preview-pop">
+              {/* The cap is on the SCROLLING layer, so the clipped tail can be
+                  reached; the fade only signals there is more below. */}
+              <div className="max-h-preview-pop-cap overflow-y-auto overscroll-contain">
+                <div className="flex items-start gap-2 px-3 pb-6 pt-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-geist text-fig-caption-1 text-heading-06">
+                      {tone === "email"
+                        ? `${config.copy.channelLabel.email} — full`
+                        : `${config.copy.channelLabel.whatsapp} — condensed`}
+                    </p>
+                    <pre className="mt-4 whitespace-pre-wrap font-geist text-fig-caption-1 text-base-black">
+                      {formatForTone(tone, narrative, profile.name)}
+                    </pre>
+                  </div>
+                  {tone === "email" && <GmailGlyph className="shrink-0" />}
                 </div>
-                {tone === "email" && <GmailGlyph className="shrink-0" />}
               </div>
               <div
                 aria-hidden="true"

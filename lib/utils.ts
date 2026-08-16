@@ -96,8 +96,6 @@ const HEIGHTS = [
   "field",
   "field-lg",
   "side-card",
-  "rail-track",
-  "rail-thumb",
   "bar-row",
 ];
 
