@@ -20,7 +20,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create type channel as enum ('whatsapp', 'email');
+  create type channel as enum ('slack', 'email');
 exception when duplicate_object then null; end $$;
 
 do $$ begin

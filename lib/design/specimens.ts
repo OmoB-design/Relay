@@ -379,7 +379,7 @@ export const specNarratives = {
     snapshotId: id(SNAPSHOT),
     week: per("2026-07-06", "2026-07-12"),
     status: "drafted",
-    channel: "whatsapp",
+    channel: "slack",
     claims: [claim(NARRATIVE.drafted, 1, "Spend came to $54.6k, up 18% on the week before.")],
   }),
   reviewed: NarrativeSchema.parse({

@@ -82,7 +82,7 @@ const dueClients: Record<string, DueClient> = {
     id: specClients.northbrook.id,
     name: "Northbrook",
     cadence: { primary: "weekly", anchorDay: "mon" },
-    channel: "whatsapp",
+    channel: "slack",
   },
   birkenstock: {
     id: specClients.birkenstock.id,

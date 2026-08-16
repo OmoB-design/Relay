@@ -334,8 +334,8 @@ export const SCREENS: ScreenSpec[] = [
         title: "Output",
         states: [
           {
-            slug: "narrative/tone-whatsapp",
-            title: "WhatsApp tone",
+            slug: "narrative/tone-slack",
+            title: "Slack tone",
             when: "Condensed variant — short paragraphs, no signature",
           },
           {
@@ -518,7 +518,7 @@ export const SCREENS: ScreenSpec[] = [
           {
             slug: "desk/answer-tone",
             title: "Tone toggle",
-            when: "Email / WhatsApp, then copy",
+            when: "Email / Slack, then copy",
             reach: "Toggle the tone on any answer",
           },
         ],

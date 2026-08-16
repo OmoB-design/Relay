@@ -31,7 +31,7 @@ This is the heart of the demo. Open Northbrook's drafted weekly.
 - "The amber chips up top are the rules of this relationship — this founder
   never gets daily numbers and never hears 'ROAS.' The draft obeys them."
 - Tweak one word (mention: *Relay quietly learns your phrasing from that edit*),
-  **Mark reviewed**, toggle **WhatsApp**, **Copy**. "Send from your own phone,
+  **Mark reviewed**, toggle **Slack**, **Copy**. "Send from your own phone,
   your number, your voice. Ninety seconds. Nothing auto-sent."
 
 **Land it:** "The stitch is the verification step that makes an AI draft

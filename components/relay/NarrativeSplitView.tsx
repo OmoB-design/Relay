@@ -69,7 +69,7 @@ export function NarrativeSplitView({ context }: { context: NarrativeContext }) {
 
   // --- Tone / preview ---
   const [tone, setTone] = useState<Tone>(
-    narrative.channel === "whatsapp" ? "whatsapp" : "email",
+    narrative.channel === "slack" ? "slack" : "email",
   );
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -194,7 +194,7 @@ export function NarrativeSplitView({ context }: { context: NarrativeContext }) {
 
   async function copyDraft() {
     const text = formatForTone(tone, narrative, profile.name);
-    const toneLabel = config.copy.channelLabel[tone === "email" ? "email" : "whatsapp"];
+    const toneLabel = config.copy.channelLabel[tone === "email" ? "email" : "slack"];
     try {
       await navigator.clipboard.writeText(text);
       toast(`${sv.copiedToastPrefix} ${toneLabel}`);
@@ -469,7 +469,7 @@ export function NarrativeSplitView({ context }: { context: NarrativeContext }) {
               aria-label="Tone"
               className="flex overflow-hidden rounded-md border border-line"
             >
-              {(["email", "whatsapp"] as const).map((t) => (
+              {(["email", "slack"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -500,12 +500,12 @@ export function NarrativeSplitView({ context }: { context: NarrativeContext }) {
             {previewOpen && (
               <div className="absolute bottom-12 left-0 z-40 max-h-72 w-80 overflow-y-auto rounded-lg border border-line bg-surface p-4 shadow-raised sm:w-96">
                 <p className="mb-2 font-ui text-12 uppercase tracking-wide text-ink-soft">
-                  {tone === "whatsapp" ? "WhatsApp — condensed" : "Email — full"}
+                  {tone === "slack" ? "Slack — condensed" : "Email — full"}
                 </p>
                 <pre
                   className={cn(
                     "whitespace-pre-wrap text-13 text-ink",
-                    tone === "whatsapp" ? "font-ui" : "font-narrative",
+                    tone === "slack" ? "font-ui" : "font-narrative",
                   )}
                 >
                   {formatForTone(tone, narrative, profile.name)}

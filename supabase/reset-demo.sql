@@ -2,7 +2,7 @@
 -- Reset the pilot demo state (safe to run before any demo, idempotent).
 -- Restores the narrative lifecycle to its seed shape — Northbrook DRAFTED,
 -- Birkenstock REVIEWED, Switchup SENT — plus Northbrook's original claim texts,
--- authored WhatsApp variant, and timeline dates.
+-- authored Slack variant, and timeline dates.
 -- Deliberately does NOT touch: voice_profiles / edit_diffs (captured voice
 -- corpus is real data), flags, profile edits (KPIs, sensitivities, etc.).
 -- ============================================================================
@@ -20,7 +20,7 @@
 
 -- Narrative lifecycle back to seed shape
 update narratives set status = 'drafted', reviewed_at = null, sent_at = null,
-  whatsapp_variant =
+  slack_variant =
 'Northbrook — week of Jul 6 👇
 Scaled on purpose: $54.6k total (+18%), extra went to Performance Max prospecting.
 Cost per order $26.40 — still ~9% under our $29 line even at higher spend. That''s the green light.

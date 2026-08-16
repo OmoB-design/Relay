@@ -26,7 +26,7 @@ truncate table clients cascade;
 -- Clients (Client Graph roots) ---------------------------------------------
 insert into clients (id, name, currency, source_of_truth, cadence, channel, descriptor) values
   ('11111111-0000-4000-8000-000000000001', 'Northbrook', 'USD', 'Google Ads',
-    '{"primary":"weekly","anchorDay":"mon"}'::jsonb, 'whatsapp', 'DTC functional beverage brand'),
+    '{"primary":"weekly","anchorDay":"mon"}'::jsonb, 'slack', 'DTC functional beverage brand'),
   ('11111111-0000-4000-8000-000000000002', 'Birkenstock', 'USD', 'Triple Whale',
     '{"primary":"weekly-lite","secondary":"monthly","note":"Monthly deep-dive; weekly is bullets only."}'::jsonb, 'email', 'DTC beauty brand'),
   ('11111111-0000-4000-8000-000000000003', 'Switchup', 'USD', 'Google Ads',
@@ -57,7 +57,7 @@ insert into kpis (id, client_id, label, maps_to, target, polarity, format, toler
 insert into sensitivities (id, client_id, type, text) values
   ('44444444-0000-4000-8000-000000000001', '11111111-0000-4000-8000-000000000001', 'framing', 'Frame cost per order weekly, never daily — Dana reacts to daily swings.'),
   ('44444444-0000-4000-8000-000000000002', '11111111-0000-4000-8000-000000000001', 'metric-avoidance', 'Never lead with ROAS; Dana doesn''t trust blended ROAS.'),
-  ('44444444-0000-4000-8000-000000000003', '11111111-0000-4000-8000-000000000001', 'tone', 'WhatsApp preferred; short paragraphs.'),
+  ('44444444-0000-4000-8000-000000000003', '11111111-0000-4000-8000-000000000001', 'tone', 'Slack preferred; short paragraphs.'),
   ('44444444-0000-4000-8000-000000000004', '11111111-0000-4000-8000-000000000002', 'cadence', 'Monthly deep-dive; weekly is bullets only.'),
   ('44444444-0000-4000-8000-000000000005', '11111111-0000-4000-8000-000000000002', 'framing', 'Always split new vs returning customers; the founder only trusts new-customer numbers.'),
   ('44444444-0000-4000-8000-000000000006', '11111111-0000-4000-8000-000000000003', 'tone', 'Formal register; deck-ready phrasing.'),
@@ -168,7 +168,7 @@ insert into evidence_items (snapshot_id, item_key, source, source_of_truth, metr
 -- Narratives ----------------------------------------------------------------
 insert into narratives (id, client_id, snapshot_id, week, status, channel, email_greeting, reviewed_at, sent_at) values
   ('11111111-0000-4000-8000-0000000000b1', '11111111-0000-4000-8000-000000000001', '11111111-0000-4000-8000-0000000000a1',
-    '{"start":"2026-07-06","end":"2026-07-12","label":"Jul 6–12"}'::jsonb, 'drafted', 'whatsapp', 'Hi Dana,', null, null),
+    '{"start":"2026-07-06","end":"2026-07-12","label":"Jul 6–12"}'::jsonb, 'drafted', 'slack', 'Hi Dana,', null, null),
   ('11111111-0000-4000-8000-0000000000b2', '11111111-0000-4000-8000-000000000002', '11111111-0000-4000-8000-0000000000a2',
     '{"start":"2026-07-06","end":"2026-07-09","label":"Jul 6–9"}'::jsonb, 'reviewed', 'email', 'Hi Lina,', '2026-07-10T09:00:00+04:00', null),
   ('11111111-0000-4000-8000-0000000000b3', '11111111-0000-4000-8000-000000000003', '11111111-0000-4000-8000-0000000000a3',
@@ -269,7 +269,7 @@ insert into timeline_entries (id, client_id, type, date, summary, body, snapshot
     'CPCs started climbing midweek — average $1.71, up about 7% — which looks like auction pressure rather than anything we changed. Cost per order held at $27.90 and orders reached 2,010, so no client-facing concern yet. Flagging it so we''re not surprised next week.',
     '11111111-0000-4000-8000-0000000000a6', null),
   ('77777777-0000-4000-8000-000000000004', '11111111-0000-4000-8000-000000000001', 'commentary', '2026-07-06', 'Deliberate scale-up: spend $54.6k, cost per order held at $26.40, orders 2,067.',
-    'Deliberate scale-up week: total spend $54.6k (+18%), cost per order held at $26.40 against the $29 line, 2,067 orders past the 1,900 target, and NCAC improved to $34.20. The midweek CPC climb we flagged last week settled by Friday. Full commentary drafted for WhatsApp.',
+    'Deliberate scale-up week: total spend $54.6k (+18%), cost per order held at $26.40 against the $29 line, 2,067 orders past the 1,900 target, and NCAC improved to $34.20. The midweek CPC climb we flagged last week settled by Friday. Full commentary drafted for Slack.',
     '11111111-0000-4000-8000-0000000000a1', '11111111-0000-4000-8000-0000000000b1'),
   ('77777777-0000-4000-8000-000000000005', '11111111-0000-4000-8000-000000000001', 'answer', '2026-07-10', 'Answered Dana on Thursday''s spend spike.',
     'Q: "Saw spend was really high on Thursday, everything ok?" — A: Thursday ran $10.4k, about 38% over the daily average, because the new Performance Max campaign exited learning and Google front-loaded delivery. Cost per order actually came in 12% under target that day — this is the algorithm scaling a winner, not waste.',

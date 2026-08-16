@@ -155,7 +155,7 @@ const ConfigSchema = z.object({
       monthly: z.string(),
     }),
     channelLabel: z.object({
-      whatsapp: z.string(),
+      slack: z.string(),
       email: z.string(),
     }),
     /** Auth. No Figma frame yet; wording lives here so the eventual redesign is
@@ -615,7 +615,7 @@ export const config: Config = ConfigSchema.parse({
       "weekly-lite": "Weekly-lite",
       monthly: "Monthly",
     },
-    channelLabel: { whatsapp: "WhatsApp", email: "Email" },
+    channelLabel: { slack: "Slack", email: "Email" },
     auth: {
       signInBody: "Sign in to your agency's workspace.",
       signInCta: "Sign in",
@@ -1058,10 +1058,10 @@ export function formatAge(iso: string): string {
 
 type CadenceLike = { primary: "daily" | "weekly" | "weekly-lite" | "monthly" };
 
-/** "Weekly · WhatsApp" style cadence + channel line for client rows. */
+/** "Weekly · Slack" style cadence + channel line for client rows. */
 export function formatCadenceLine(
   cadence: CadenceLike,
-  channel: "whatsapp" | "email",
+  channel: "slack" | "email",
 ): string {
   return `${config.copy.cadenceLabel[cadence.primary]} · ${config.copy.channelLabel[channel]}`;
 }

@@ -81,7 +81,7 @@ export async function deleteSensitivityAction(clientId: string, id: string) {
 const CommsInput = z.object({
   clientId: z.string().uuid(),
   cadencePrimary: z.enum(["weekly", "weekly-lite", "monthly"]),
-  channel: z.enum(["whatsapp", "email"]),
+  channel: z.enum(["slack", "email"]),
   anchorDay: z
     .enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"])
     .optional(),

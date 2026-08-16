@@ -36,7 +36,7 @@ const VALID = {
   currency: "USD",
   accountTimezone: "Asia/Dubai",
   cadence: { primary: "weekly", anchorDay: "mon" },
-  channel: "whatsapp",
+  channel: "slack",
   buyerIds: [],
 };
 

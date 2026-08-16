@@ -206,7 +206,7 @@ function mapNarrative(r: any, claims: any[]): Narrative {
     status: r.status,
     channel: r.channel,
     emailGreeting: opt(r.email_greeting),
-    whatsappVariant: opt(r.whatsapp_variant),
+    slackVariant: opt(r.slack_variant),
     draftedAt: opt(r.drafted_at),
     reviewedAt: opt(r.reviewed_at),
     sentAt: opt(r.sent_at),
@@ -667,12 +667,12 @@ export async function saveDraftEdits(
     throwIf(updateError);
   }
 
-  // The authored WhatsApp variant no longer matches the edited draft — drop it
+  // The authored Slack variant no longer matches the edited draft — drop it
   // so the tone toggle falls back to deterministic condensation (Phase 8
   // regenerates real variants).
   const { error: variantError } = await sb
     .from("narratives")
-    .update({ whatsapp_variant: null })
+    .update({ slack_variant: null })
     .eq("id", narrativeId);
   throwIf(variantError);
 
@@ -1445,7 +1445,7 @@ export async function updateComms(
   clientId: string,
   patch: {
     cadencePrimary: "weekly" | "weekly-lite" | "monthly";
-    channel: "whatsapp" | "email";
+    channel: "slack" | "email";
     /** The agreed moment, in the CLIENT's timezone. Undefined leaves whatever
      *  is already recorded — the admin overview treats a client with no anchor
      *  day as unscheduled rather than late, so clearing one by accident would

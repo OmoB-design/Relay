@@ -125,7 +125,7 @@ export function AddClientForm({ buyers }: { buyers: Profile[] }) {
   const [cadence, setCadence] = useState("weekly");
   const [anchorDay, setAnchorDay] = useState("mon");
   const [anchorTime, setAnchorTime] = useState(DEFAULT_ANCHOR_TIME);
-  const [channel, setChannel] = useState("whatsapp");
+  const [channel, setChannel] = useState("slack");
   const [buyerIds, setBuyerIds] = useState<string[]>([]);
 
   /* The workbook, fetched once. The tab list is small and changes when someone
@@ -284,7 +284,7 @@ export function AddClientForm({ buyers }: { buyers: Profile[] }) {
               value={channel}
               onChange={setChannel}
               options={[
-                { value: "whatsapp", label: "WhatsApp" },
+                { value: "slack", label: "Slack" },
                 { value: "email", label: "Email" },
               ]}
             />

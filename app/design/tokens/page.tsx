@@ -159,7 +159,7 @@ const TYPE_ROLES: {
     face: "Archivo (sans)",
     className: "font-ui",
     use: "All chrome: buttons, labels, metadata, section headings, nav.",
-    sample: "Mark reviewed · Copy for WhatsApp · as of Jul 12, 11:59pm",
+    sample: "Mark reviewed · Copy for Slack · as of Jul 12, 11:59pm",
     sampleClass: "font-ui text-14",
   },
 ];

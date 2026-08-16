@@ -63,7 +63,7 @@ export type MetricSegment = z.infer<typeof MetricSegmentSchema>;
 export const AccountHealthSchema = z.enum(["green", "amber", "red"]);
 export type AccountHealth = z.infer<typeof AccountHealthSchema>;
 
-export const ChannelSchema = z.enum(["whatsapp", "email"]);
+export const ChannelSchema = z.enum(["slack", "email"]);
 export type Channel = z.infer<typeof ChannelSchema>;
 
 /** A reporting window. `label` is a display convenience (e.g. "Jul 6–12"). */
@@ -301,9 +301,9 @@ export const NarrativeSchema = z.object({
   status: NarrativeStatusSchema,
   channel: ChannelSchema,
   emailGreeting: z.string().optional(), // e.g. "Hi Dana,"
-  /** Authored condensed WhatsApp variant. Cleared when the draft is edited
+  /** Authored condensed Slack variant. Cleared when the draft is edited
    *  (falls back to deterministic condensation); Phase 8 regenerates it. */
-  whatsappVariant: z.string().optional(),
+  slackVariant: z.string().optional(),
   claims: z.array(ClaimSchema),
   draftedAt: z.string().optional(),
   reviewedAt: z.string().optional(),

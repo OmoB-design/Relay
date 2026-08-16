@@ -56,7 +56,7 @@ export const clientProfiles: ClientProfile[] = ClientProfileSchema.array().parse
     currency: "USD",
     sourceOfTruth: "Google Ads",
     cadence: { primary: "weekly", anchorDay: "mon" },
-    channel: "whatsapp",
+    channel: "slack",
     descriptor: "DTC functional beverage brand",
     accounts: [
       {
@@ -77,7 +77,7 @@ export const clientProfiles: ClientProfile[] = ClientProfileSchema.array().parse
     sensitivities: [
       { id: "44444444-0000-4000-8000-000000000001", clientId: NORTHBROOK, type: "framing", text: "Frame cost per order weekly, never daily — Dana reacts to daily swings." },
       { id: "44444444-0000-4000-8000-000000000002", clientId: NORTHBROOK, type: "metric-avoidance", text: "Never lead with ROAS; Dana doesn't trust blended ROAS." },
-      { id: "44444444-0000-4000-8000-000000000003", clientId: NORTHBROOK, type: "tone", text: "WhatsApp preferred; short paragraphs." },
+      { id: "44444444-0000-4000-8000-000000000003", clientId: NORTHBROOK, type: "tone", text: "Slack preferred; short paragraphs." },
     ],
     stakeholders: [
       { id: "55555555-0000-4000-8000-000000000001", clientId: NORTHBROOK, name: "Dana K.", role: "founder", gets: "short" },
@@ -195,7 +195,7 @@ export const narratives: Narrative[] = NarrativeSchema.array().parse([
     snapshotId: SNAP_NB,
     week: per("2026-07-06", "2026-07-12"),
     status: "drafted",
-    channel: "whatsapp",
+    channel: "slack",
     emailGreeting: "Hi Dana,",
     claims: [
       { id: "66666666-0000-4000-8000-000000000001", narrativeId: "11111111-0000-4000-8000-0000000000b1", order: 1, kind: "fact", text: "We deliberately scaled last week — total spend came to $54.6k, up 18% on the week before, with most of the increase going into Performance Max prospecting.", evidenceRefs: [{ snapshotId: SNAP_NB, itemId: "E1" }, { snapshotId: SNAP_NB, itemId: "E2" }] },

@@ -26,6 +26,7 @@ import {
   DeltaUpGlyph,
   GmailGlyph,
   SentCheckGlyph,
+  SlackGlyph,
 } from "@/components/relay/NavIcons";
 import {
   markReviewedAction,
@@ -155,7 +156,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
 
   // --- Tone / preview ---
   const [tone, setTone] = useState<Tone>(
-    narrative.channel === "whatsapp" ? "whatsapp" : "email",
+    narrative.channel === "slack" ? "slack" : "email",
   );
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -347,7 +348,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
   async function copyDraft() {
     const text = formatForTone(tone, narrative, profile.name);
     const toneLabel =
-      config.copy.channelLabel[tone === "email" ? "email" : "whatsapp"];
+      config.copy.channelLabel[tone === "email" ? "email" : "slack"];
     try {
       await navigator.clipboard.writeText(text);
       toast(`${config.copy.splitView.copiedToastPrefix} ${toneLabel}`);
@@ -639,13 +640,17 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                     <p className="font-geist text-fig-caption-1 text-heading-06">
                       {tone === "email"
                         ? `${config.copy.channelLabel.email} — full`
-                        : `${config.copy.channelLabel.whatsapp} — condensed`}
+                        : `${config.copy.channelLabel.slack} — condensed`}
                     </p>
                     <pre className="mt-4 whitespace-pre-wrap font-geist text-fig-caption-1 text-base-black">
                       {formatForTone(tone, narrative, profile.name)}
                     </pre>
                   </div>
-                  {tone === "email" && <GmailGlyph className="shrink-0" />}
+                  {tone === "email" ? (
+                    <GmailGlyph className="shrink-0" />
+                  ) : (
+                    <SlackGlyph className="shrink-0" />
+                  )}
                 </div>
               </div>
               <div
@@ -689,19 +694,19 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                 </button>
                 <button
                   type="button"
-                  aria-pressed={tone === "whatsapp"}
+                  aria-pressed={tone === "slack"}
                   onClick={() => {
-                    setTone("whatsapp");
+                    setTone("slack");
                     setPreviewOpen(true);
                   }}
                   className={cn(
                     "flex h-full items-center rounded-r-8 border-fig border-border px-2.5 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
-                    tone === "whatsapp"
+                    tone === "slack"
                       ? "bg-base-black text-white"
                       : "bg-surface-primary text-heading-03",
                   )}
                 >
-                  {config.copy.channelLabel.whatsapp}
+                  {config.copy.channelLabel.slack}
                 </button>
               </div>
               <button

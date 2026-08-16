@@ -456,7 +456,7 @@ export default function ComponentsPage() {
                 id: specClients.northbrook.id,
                 name: "Northbrook",
                 cadence: { primary: "weekly", anchorDay: "mon" },
-                channel: "whatsapp",
+                channel: "slack",
               }}
             />
             <DueRow
@@ -1052,7 +1052,7 @@ export default function ComponentsPage() {
               <DropdownMenuContent align="start">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Copy for WhatsApp</DropdownMenuItem>
+                <DropdownMenuItem>Copy for Slack</DropdownMenuItem>
                 <DropdownMenuItem>Copy for email</DropdownMenuItem>
                 <DropdownMenuItem>Back to draft</DropdownMenuItem>
               </DropdownMenuContent>

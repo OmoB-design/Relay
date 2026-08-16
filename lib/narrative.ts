@@ -77,7 +77,7 @@ export function deltaToneClass(tone: DeltaTone): string {
 
 // --- Tone formatting (design.md §4.3 footer bar) -----------------------------
 
-export type Tone = "email" | "whatsapp";
+export type Tone = "email" | "slack";
 
 const sortedClaims = (n: Narrative): Claim[] =>
   [...n.claims].sort((a, b) => a.order - b.order);
@@ -95,20 +95,25 @@ export function formatEmail(narrative: Narrative): string {
   return `${greeting}\n\n${body}\n\n${emailSignoff}\n\n${signature}`;
 }
 
-/** WhatsApp variant: the authored condensed copy when present (seeded; Phase 8
- *  regenerates). Fallback: deterministic condensation — header line + each
- *  claim clipped to its first two em-dash segments. Naive by design and
- *  documented as such; it guarantees the output is genuinely shorter, never
- *  the email text re-pasted. */
-export function formatWhatsApp(narrative: Narrative, clientName: string): string {
-  if (narrative.whatsappVariant) return narrative.whatsappVariant;
+/** Slack variant: the authored condensed copy when present (seeded; Phase 8
+ *  regenerates). Fallback: deterministic condensation in the shape the
+ *  Narrative Nav's Slack preview draws (node 545:4566) — a header line, one
+ *  "• " bullet per fact clipped to its first two em-dash segments, and the
+ *  plan as a bare closing line. Naive by design and documented as such; it
+ *  guarantees the output is genuinely shorter, never the email re-pasted. */
+export function formatSlack(narrative: Narrative, clientName: string): string {
+  if (narrative.slackVariant) return narrative.slackVariant;
   const lines = sortedClaims(narrative).map((c) => {
     if (c.kind === "plan") return planText(c.text);
     const segments = c.text.split(" — ");
     const clipped = segments.slice(0, 2).join(" — ").replace(/[,;]\s*$/, "");
-    return clipped.endsWith(".") ? clipped : `${clipped}.`;
+    return `• ${clipped.endsWith(".") ? clipped.slice(0, -1) : clipped}`;
   });
-  return [`${clientName} — ${narrative.week.label ?? narrative.week.start}`, ...lines].join("\n");
+  return [
+    `${clientName} — ${narrative.week.label ?? narrative.week.start}`,
+    "",
+    ...lines,
+  ].join("\n");
 }
 
 export function formatForTone(
@@ -118,5 +123,5 @@ export function formatForTone(
 ): string {
   return tone === "email"
     ? formatEmail(narrative)
-    : formatWhatsApp(narrative, clientName);
+    : formatSlack(narrative, clientName);
 }

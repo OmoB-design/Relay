@@ -1,8 +1,8 @@
 /* Phase 3 proof, against live Supabase:
-   1. Edit a drafted claim → claims persist, whatsapp_variant cleared,
+   1. Edit a drafted claim → claims persist, slack_variant cleared,
       EditDiff silently captured on the voice profile (with word segments).
    2. drafted → reviewed → sent persists; timeline entry stays pinned.
-   3. WhatsApp copy output is genuinely shorter than email output.
+   3. Slack copy output is genuinely shorter than email output.
    Restores all demo state afterwards (LT back to drafted + authored variant).
    Run: export $(grep -v '^#' .env.local | xargs) && npx tsx scripts/verify-phase3-cycle.ts */
 import { getSupabase } from "../lib/supabase";
@@ -13,7 +13,7 @@ import {
   saveDraftEdits,
   sendNarrative,
 } from "../lib/data";
-import { formatEmail, formatWhatsApp } from "../lib/narrative";
+import { formatEmail, formatSlack } from "../lib/narrative";
 
 const B1 = "11111111-0000-4000-8000-0000000000b1"; // Northbrook, drafted
 
@@ -23,7 +23,7 @@ async function main() {
   if (!before) throw new Error("narrative not found");
   const claims = [...before.narrative.claims].sort((a, b) => a.order - b.order);
   const originalTexts = claims.map((c) => c.text);
-  const originalVariant = before.narrative.whatsappVariant;
+  const originalVariant = before.narrative.slackVariant;
   const { count: diffsBefore } = await sb
     .from("edit_diffs")
     .select("*", { count: "exact", head: true });
@@ -48,7 +48,7 @@ async function main() {
     `             evidenceRefs preserved: ${JSON.stringify(claim2.evidenceRefs)}`,
   );
   console.log(
-    `             whatsapp_variant cleared: ${afterEdit!.narrative.whatsappVariant === undefined}`,
+    `             slack_variant cleared: ${afterEdit!.narrative.slackVariant === undefined}`,
   );
 
   const { data: newDiffs, count: diffsAfter } = await sb
@@ -66,9 +66,9 @@ async function main() {
 
   // --- 3. Tone outputs differ ---
   const email = formatEmail(afterEdit!.narrative);
-  const whatsapp = formatWhatsApp(afterEdit!.narrative, "Northbrook");
+  const slack = formatSlack(afterEdit!.narrative, "Northbrook");
   console.log(
-    `3. tones    → email ${email.length} chars vs whatsapp ${whatsapp.length} chars (shorter: ${whatsapp.length < email.length})`,
+    `3. tones    → email ${email.length} chars vs slack ${slack.length} chars (shorter: ${slack.length < email.length})`,
   );
 
   // --- 4. Full cycle ---
@@ -99,7 +99,7 @@ async function main() {
       status: "drafted",
       reviewed_at: null,
       sent_at: null,
-      whatsapp_variant: originalVariant,
+      slack_variant: originalVariant,
     })
     .eq("id", B1);
   const rows = await sb
@@ -120,7 +120,7 @@ async function main() {
   await sb.from("edit_diffs").delete().eq("id", captured.id);
   const restored = await getNarrativeContext(B1);
   console.log(
-    `6. restore  → status=${restored!.narrative.status}, variant restored=${Boolean(restored!.narrative.whatsappVariant)}, texts intact=${restored!.narrative.claims.length === originalTexts.length}`,
+    `6. restore  → status=${restored!.narrative.status}, variant restored=${Boolean(restored!.narrative.slackVariant)}, texts intact=${restored!.narrative.claims.length === originalTexts.length}`,
   );
 
   console.log("\nPhase 3 cycle: PASS");

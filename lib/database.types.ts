@@ -123,7 +123,7 @@ export interface Database {
         status: string;
         channel: string;
         email_greeting: string | null;
-        whatsapp_variant: string | null;
+        slack_variant: string | null;
         drafted_at: string | null;
         reviewed_at: string | null;
         sent_at: string | null;

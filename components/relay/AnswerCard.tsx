@@ -11,7 +11,7 @@ import { EvidenceCard } from "@/components/relay/EvidenceCard";
 
 /* AnswerCard (design.md §3): the Answer Desk response. Client-ready answer in
    Newsreader, collapsible "Supporting data" (compact evidence cards),
-   confidence footer, tone toggle (Email / WhatsApp) + Copy.
+   confidence footer, tone toggle (Email / Slack) + Copy.
    The honest-miss variant (grounded: false) renders visibly different — dashed
    border, help icon, no evidence section — a miss must never look like an
    answer. */
@@ -19,10 +19,10 @@ import { EvidenceCard } from "@/components/relay/EvidenceCard";
 const ad = config.copy.answerDesk;
 const sv = config.copy.splitView;
 
-type AnswerTone = "email" | "whatsapp";
+type AnswerTone = "email" | "slack";
 
 function formatAnswer(tone: AnswerTone, answer: Answer): string {
-  if (tone === "whatsapp") return answer.text;
+  if (tone === "slack") return answer.text;
   return `Hi,\n\n${answer.text}\n\n${sv.emailSignoff}\n\n${sv.signature}`;
 }
 
@@ -34,13 +34,13 @@ export function AnswerCard({
   items: EvidenceItem[];
 }) {
   const [showData, setShowData] = useState(false);
-  const [tone, setTone] = useState<AnswerTone>("whatsapp");
+  const [tone, setTone] = useState<AnswerTone>("slack");
 
   async function copy() {
     try {
       await navigator.clipboard.writeText(formatAnswer(tone, answer));
       toast(
-        `${sv.copiedToastPrefix} ${config.copy.channelLabel[tone === "email" ? "email" : "whatsapp"]}`,
+        `${sv.copiedToastPrefix} ${config.copy.channelLabel[tone === "email" ? "email" : "slack"]}`,
       );
     } catch {
       toast("Copy blocked — select the text manually");
@@ -100,7 +100,7 @@ export function AnswerCard({
             aria-label="Tone"
             className="flex overflow-hidden rounded-md border border-line"
           >
-            {(["email", "whatsapp"] as const).map((t) => (
+            {(["email", "slack"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
