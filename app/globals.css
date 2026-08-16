@@ -110,6 +110,7 @@
   --color-red-50: #ffe9e9;
 
   /* Grey */
+  --color-grey-400: #959595; /* the Sent pill's label (node 557:6160) */
   --color-grey-300: #bfbfbf;
   --color-grey-200: #d9d9d9; /* the 5px and 3px separator dots */
   --color-grey-100: #eaeaea; /* text on disabled/working fills */

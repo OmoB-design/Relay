@@ -25,6 +25,7 @@ import {
   DeltaDownGlyph,
   DeltaUpGlyph,
   GmailGlyph,
+  SentCheckGlyph,
 } from "@/components/relay/NavIcons";
 import {
   markReviewedAction,
@@ -656,71 +657,114 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
 
           <div className="flex h-bar-row w-full items-center gap-4">
             <div className="flex h-full shrink-0 items-center gap-1.5">
+              {/* The channel pill (545:4593 / 545:4545): one capsule — the
+                  first channel is bare text in the container, the second is a
+                  nested capsule rounded on its outer corners. The SIDES never
+                  reorder; only the black surface moves to the active one. The
+                  container's hairline goes transparent when it is black, so
+                  the pill never changes size. */}
               <div
                 role="group"
                 aria-label="Channel"
-                className="flex h-full overflow-hidden rounded-8 border-fig border-border"
+                className={cn(
+                  "flex h-full items-center gap-2 rounded-8 border-fig pl-2.5",
+                  tone === "email"
+                    ? "border-transparent bg-base-black"
+                    : "border-border bg-surface-primary",
+                )}
               >
-                {(["email", "whatsapp"] as const).map((t, i) => (
-                  <button
-                    key={t}
-                    type="button"
-                    aria-pressed={tone === t}
-                    onClick={() => {
-                      setTone(t);
-                      setPreviewOpen(true);
-                    }}
-                    className={cn(
-                      "flex h-full items-center px-2.5 font-geist text-fig-button fig-medium whitespace-nowrap",
-                      i > 0 && "border-l-fig border-border",
-                      tone === t
-                        ? "bg-base-black text-white"
-                        : "bg-surface-primary text-heading-03",
-                    )}
-                  >
-                    {config.copy.channelLabel[t]}
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  aria-pressed={tone === "email"}
+                  onClick={() => {
+                    setTone("email");
+                    setPreviewOpen(true);
+                  }}
+                  className={cn(
+                    "h-full rounded-l-8 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
+                    tone === "email" ? "text-white" : "text-heading-02",
+                  )}
+                >
+                  {config.copy.channelLabel.email}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={tone === "whatsapp"}
+                  onClick={() => {
+                    setTone("whatsapp");
+                    setPreviewOpen(true);
+                  }}
+                  className={cn(
+                    "flex h-full items-center rounded-r-8 border-fig border-border px-2.5 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
+                    tone === "whatsapp"
+                      ? "bg-base-black text-white"
+                      : "bg-surface-primary text-heading-03",
+                  )}
+                >
+                  {config.copy.channelLabel.whatsapp}
+                </button>
               </div>
               <button
                 type="button"
                 onClick={() => setPreviewOpen((v) => !v)}
-                className="font-geist text-fig-caption-2 text-heading-06 hover:text-heading-01"
+                className="rounded-4 font-geist text-fig-caption-2 text-heading-06 outline-none hover:text-heading-01 focus-visible:ring-1 focus-visible:ring-blue-500"
               >
                 {config.copy.splitView.previewShow}
               </button>
             </div>
 
-            <div className="flex h-full min-w-0 flex-1 items-center gap-1">
+            {/* The Sent variant (557:6144) clears the pipeline: Copy darkens
+                to heading-02 and a quiet outline pill with the circled check
+                takes the actions' place, right-aligned. */}
+            <div
+              className={cn(
+                "flex h-full min-w-0 flex-1 items-center gap-1",
+                narrative.status === "sent" && "justify-end",
+              )}
+            >
               <button
                 type="button"
                 onClick={copyDraft}
-                className="flex h-full items-center rounded-8 border-fig border-border bg-surface-primary px-3.5 font-geist text-fig-button fig-medium text-heading-06 hover:bg-surface-foreground-01"
+                className={cn(
+                  "flex h-full items-center rounded-8 border-fig border-border bg-surface-primary px-3.5 font-geist text-fig-button fig-medium outline-none hover:bg-surface-foreground-01 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
+                  narrative.status === "sent"
+                    ? "text-heading-02"
+                    : "text-heading-06",
+                )}
               >
                 {config.copy.splitView.copy}
               </button>
-              <button
-                type="button"
-                onClick={
-                  narrative.status === "reviewed" ? onUnreview : onMarkReviewed
-                }
-                disabled={pending || editing || narrative.status === "sent"}
-                className="flex h-full min-w-0 flex-1 items-center justify-center rounded-8 border-fig border-border bg-base-black px-3.5 font-geist text-fig-button fig-medium text-white whitespace-nowrap disabled:opacity-50"
-              >
-                {narrative.status === "reviewed"
-                  ? config.copy.splitView.backToDraft
-                  : "Mark as reviewed"}
-              </button>
-              <button
-                type="button"
-                onClick={onSend}
-                disabled={narrative.status !== "reviewed" || pending}
-                className="flex h-full items-center rounded-8 border-fig border-border bg-blue-500 px-3.5 font-geist text-fig-button fig-medium text-white hover:bg-blue-400 disabled:opacity-50"
-              >
-                {narrative.status === "sent"
-                  ? "Sent ✓"
-                  : config.copy.splitView.send}
-              </button>
+              {narrative.status === "sent" ? (
+                <span className="flex h-full items-center gap-1.5 rounded-8 border-fig border-border px-3.5 font-geist text-fig-button fig-medium text-grey-400">
+                  {STATUS_LABEL.sent}
+                  <SentCheckGlyph className="shrink-0 text-grey-300" />
+                </span>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={
+                      narrative.status === "reviewed"
+                        ? onUnreview
+                        : onMarkReviewed
+                    }
+                    disabled={pending || editing}
+                    className="flex h-full min-w-0 flex-1 items-center justify-center rounded-8 border-fig border-border bg-base-black px-3.5 font-geist text-fig-button fig-medium text-white whitespace-nowrap outline-none disabled:opacity-50 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150"
+                  >
+                    {narrative.status === "reviewed"
+                      ? config.copy.splitView.backToDraft
+                      : "Mark as reviewed"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onSend}
+                    disabled={narrative.status !== "reviewed" || pending}
+                    className="flex h-full items-center rounded-8 border-fig border-border bg-blue-500 px-3.5 font-geist text-fig-button fig-medium text-white outline-none hover:bg-blue-400 disabled:opacity-50 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150"
+                  >
+                    {config.copy.splitView.send}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

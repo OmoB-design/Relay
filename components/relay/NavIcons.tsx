@@ -483,6 +483,37 @@ export function DeltaDownGlyph({
   );
 }
 
+/** The Narrative Nav's Sent mark (node 557:6167): a circled check, 14px,
+ *  drawn at Grey/300 beside the pill's Grey/400 label — the colour is the
+ *  caller's via currentColor. Not CheckGlyph: different geometry, own export. */
+export function SentCheckGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M7 12.6389C10.1143 12.6389 12.6389 10.1143 12.6389 7C12.6389 3.88573 10.1143 1.36111 7 1.36111C3.88573 1.36111 1.36111 3.88573 1.36111 7C1.36111 10.1143 3.88573 12.6389 7 12.6389Z"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.47222 7.19444L6.22222 9.13889L9.52778 4.86111"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The Gmail mark on the email preview (node 552:4646) — brand colours are
  *  literal on purpose; a logo does not take the theme. */
 export function GmailGlyph({ className }: GlyphProps) {
