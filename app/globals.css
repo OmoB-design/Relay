@@ -32,6 +32,10 @@
   /* Surface */
   --color-surface-primary: #ffffff;
   --color-surface-foreground-01: #f4f4f4;
+  /* Surface/Foreground-02 — Light mode aliases Grey/Grey 100 (variable table
+     read via the plugin API). One step darker than Foreground-01, which is
+     what lets a hover READ on a wash that is already Foreground-01. */
+  --color-surface-foreground-02: #eaeaea;
   --color-surface-stroke: #eaeaea;
   --color-surface-dashboard: #fcfcfc; /* Surface/Dashboard — row fill inside a card */
 

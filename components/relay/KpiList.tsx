@@ -148,11 +148,14 @@ function KpiForm({
           />
         </EditField>
         <EditField label="Target">
+          {/* Red marks EMPTY, not not-yet-numeric: the field goes blue the
+              moment there is anything in it (the modal set's language), and
+              the hint plus the disabled Save carry the numeric rule. */}
           <EditInput
             inputMode="decimal"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
-            invalid={!targetValid}
+            invalid={target.trim() === ""}
           />
         </EditField>
         <EditField label="Polarity">

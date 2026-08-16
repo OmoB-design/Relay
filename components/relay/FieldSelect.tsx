@@ -35,11 +35,17 @@ const PANEL =
 const OPTION =
   "flex w-full items-center justify-between gap-1.5 rounded-10 px-1.5 py-2.5 text-left font-geist text-fig-caption-1-md fig-medium text-heading-02 outline-none hover:bg-surface-foreground-01 focus-visible:bg-surface-foreground-01";
 const TRIGGER =
-  "flex h-field w-full items-center justify-between gap-3 rounded-8 border-fig border-border bg-surface-primary py-1.5 pl-2 pr-2 font-geist text-fig-caption-1 text-heading-03 shadow-field outline-none focus-visible:border focus-visible:border-blue-500 focus-visible:shadow-field-active";
+  "flex h-field w-full items-center justify-between gap-3 rounded-8 border-fig border-border bg-surface-primary py-1.5 pl-2 pr-2 font-geist text-fig-caption-1 text-heading-03 shadow-field outline-none focus-visible:outline focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-blue-500 focus-visible:shadow-field-active";
 /* The Selectors component's Selected variant (node 429:7122): 1px Blue/500
    with the Blue/150 halo. Worn while the panel is OPEN, and by keyboard focus
-   above, so the two ways of operating the field look the same. */
-const TRIGGER_ACTIVE = "border border-blue-500 shadow-field-active";
+   above, so the two ways of operating the field look the same.
+
+   AN OUTLINE, NOT A BORDER. Swapping the 0.7px border for a 1px one resizes
+   the content box, so the truncated value re-wrapped and the field visibly
+   staggered on every open. An outline is painted, not laid out: it covers
+   the resting hairline at -1 offset and moves nothing. */
+const TRIGGER_ACTIVE =
+  "outline outline-1 -outline-offset-1 outline-blue-500 shadow-field-active";
 
 /** Close on pointer-down outside `ref`, and on Escape. */
 function useDismiss(
@@ -101,10 +107,11 @@ export function FieldSelect<T extends string>({
   /** 8px option rows on a 30px trigger — the polarity dropdown (499:3922)
    *  pairs the standard field with the modal's tighter panel. */
   compactOptions?: boolean;
-  /** The panel hugs its longest option instead of the field — for a narrow
-   *  field whose option text must stay whole (the polarity dropdown, whose
-   *  trigger truncates "Lower is bet." but whose menu never should). Never
-   *  narrower than the field. */
+  /** The panel hugs its longest option instead of the field, anchored to the
+   *  field's RIGHT edge and growing leftward — for a narrow field whose
+   *  option text must stay whole (the polarity dropdown, whose trigger
+   *  truncates "Lower is bet." but whose menu never should). Never narrower
+   *  than the field. */
   wideOptions?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -157,7 +164,7 @@ export function FieldSelect<T extends string>({
           id={listboxId}
           role="listbox"
           aria-label={ariaLabel}
-          className={cn(PANEL, wideOptions && "inset-x-auto left-0 w-max min-w-full")}
+          className={cn(PANEL, wideOptions && "inset-x-auto right-0 w-max min-w-full")}
           onKeyDown={(e) => listNav(e, panel.current)}
         >
           <div className="flex flex-col gap-0.5">

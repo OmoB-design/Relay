@@ -35,7 +35,7 @@ const buttonVariants = cva(
         secondary:
           "border-fig border-border bg-secondary text-secondary-foreground shadow-control-sm hover:bg-blue-400 disabled:bg-heading-06 disabled:text-grey-100",
         ghost:
-          "bg-transparent text-heading-01 hover:bg-surface-foreground-01 hover:text-heading-01 focus-visible:bg-surface-foreground-01 disabled:opacity-50",
+          "bg-transparent text-heading-01 hover:bg-surface-foreground-02 hover:text-heading-01 focus-visible:bg-surface-foreground-02 disabled:opacity-50",
         /* The profile cards' footer button (node 422:6647): the wash colour on
            the wash, held apart from it by its hairline. */
         muted:
