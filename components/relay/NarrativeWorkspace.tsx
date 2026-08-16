@@ -130,16 +130,17 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
       highlighter: {
         // The jelly: the thumb enters from the track's top and springs to the
         // selected fact; the same spring carries fact-to-fact travel.
-        travel: { type: "spring", visualDuration: 0.55, bounce: 0.35 },
-        thumbPad: [4, 0, 16, 1],
+        // Defaults are the user's tuned values (2026-08-16).
+        travel: { type: "spring", visualDuration: 0.65, bounce: 0.35 },
+        thumbPad: [6, 0, 16, 1],
       },
       evidenceScroll: {
-        // The ride down to an off-screen evidence card.
+        // The ride to an off-screen evidence card, either direction.
         spring: { type: "spring", visualDuration: 0.8, bounce: 0.12 },
         margin: [32, 0, 160, 4],
       },
       dim: {
-        opacity: [0.75, 0.2, 1, 0.05],
+        opacity: [0.5, 0.2, 1, 0.05],
         fadeMs: [200, 0, 800, 10],
       },
     },
@@ -239,13 +240,17 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
     return () => window.removeEventListener("resize", measure);
   }, [thumbClaimId, editing, claims, thumbPad]);
 
-  // Selecting a fact whose evidence sits below the fold rides the sheet down
-  // to it — and no further than it needs to. The spring is on a dial.
+  // The ride: whichever way a selection lands — a fact whose evidence sits
+  // below the fold, or an evidence card picked while scrolled deep — the
+  // sheet springs to bring that card comfortably into view, and no further
+  // than it needs to. Picking an early card from the bottom is what carries
+  // the view back up to its resting frame.
+  const scrollItemId =
+    selectedItemId ?? selectedClaim?.evidenceRefs[0]?.itemId ?? null;
   useEffect(() => {
-    if (!selectedClaimId) return;
+    if (!scrollItemId) return;
     const scroller = scrollRef.current;
-    const firstItemId = selectedClaim?.evidenceRefs[0]?.itemId;
-    const card = firstItemId ? cardRefs.current[firstItemId] : null;
+    const card = cardRefs.current[scrollItemId];
     if (!scroller || !card) return;
     const margin = dial.evidenceScroll.margin;
     const box = card.getBoundingClientRect();
@@ -269,7 +274,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
     );
     return () => controls.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClaimId]);
+  }, [scrollItemId]);
 
   function selectClaim(id: string) {
     setSelectedItemId(null);
@@ -783,23 +788,31 @@ function EvidenceRailCard({
         /* The set's two variants (545:4485 / 545:4486): at REST every card is
            white with the figure in black; a selection turns the others onto
            the dashboard fill (the dials own the fade) with the figure
-           receding to heading-06. */
-        "w-full cursor-pointer rounded-14 text-left outline-none transition-opacity",
+           receding to heading-06.
+
+           The hairline is the SAME 0.7 in every state — swapping it for the
+           selected 1px resized the card by the difference and staggered the
+           whole rail. The blue stroke rides as an inset ring instead (painted,
+           not laid out), the selector recipe. */
+        "w-full cursor-pointer rounded-14 border-fig border-border text-left outline-none transition-opacity",
         selected
-          ? "border border-blue-500 bg-surface-primary shadow-evidence-selected"
+          ? "bg-surface-primary ring-1 ring-blue-500 ring-inset shadow-evidence-selected"
           : dimmed
-            ? "border-fig border-border bg-surface-dashboard shadow-card-quiet"
-            : "border-fig border-border bg-surface-primary shadow-card-quiet",
+            ? "bg-surface-dashboard shadow-card-quiet"
+            : "bg-surface-primary shadow-card-quiet",
       )}
     >
       <div className="divider-b flex flex-col px-3 py-2.5">
         <div className="flex items-start justify-between gap-2">
+          {/* The hairline stays in BOTH states (transparent when the wash goes
+              blue) so the chip — and with it the whole header row — never
+              changes height on selection. */}
           <span
             className={cn(
-              "flex items-center rounded-full px-1.5 py-0.5 font-geist text-fig-caption-2",
+              "flex items-center rounded-full border-fig px-1.5 py-0.5 font-geist text-fig-caption-2",
               selected
-                ? "bg-blue-10 text-blue-500"
-                : "border-fig border-border bg-surface-foreground-01 text-heading-06",
+                ? "border-transparent bg-blue-10 text-blue-500"
+                : "border-border bg-surface-foreground-01 text-heading-06",
             )}
           >
             {sourceLabel}
