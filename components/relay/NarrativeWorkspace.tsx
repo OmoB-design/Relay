@@ -46,9 +46,13 @@ const STATUS_LABEL: Record<NarrativeStatus, string> = {
   sent: "Sent",
 };
 
-/* The selected-sentence rail (545:4405): a 137px track carrying a 26px thumb,
-   centred on the sentence. Numbers mirror --spacing-rail-track/-thumb. */
+/* The highlighter (component 552:4668): a 4px, 137px track that is ALWAYS
+   beside the card in plain Foreground-01. Selecting a fact raises the blue
+   thumb — sized to that sentence (the set draws 26 over a 22px line, so the
+   line plus 4) — and the track travels to centre on it. Numbers mirror
+   --spacing-rail-track/-thumb. */
 const RAIL_TRACK_PX = 137;
+const RAIL_THUMB_MIN_PX = 26;
 
 /** "Drafted, Jul 26, 5:30" (node 520:7956) — the stamp for the narrative's
  *  current station in the pipeline. */
@@ -96,6 +100,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
   const draftRef = useRef<HTMLDivElement | null>(null);
   const claimRefs = useRef<Record<string, HTMLElement | null>>({});
   const [railTop, setRailTop] = useState<number | null>(null);
+  const [railThumbH, setRailThumbH] = useState<number | null>(null);
 
   // --- Edit state ---
   const [editing, setEditing] = useState(false);
@@ -139,22 +144,39 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [clearSelection]);
 
-  // The rail follows the selected sentence — its track centres on the span.
+  // The highlighter: the plain track parks beside the first fact; selecting
+  // one raises the thumb at that sentence's height and travels the track to
+  // centre on it. Clearing drops the thumb but leaves the track where it was.
   useEffect(() => {
-    if (!selectedClaimId || editing) {
-      setRailTop(null);
-      return;
-    }
     const host = draftRef.current;
-    const el = claimRefs.current[selectedClaimId];
-    if (!host || !el) {
-      setRailTop(null);
+    if (!host || editing) {
+      setRailThumbH(null);
       return;
     }
     const hostBox = host.getBoundingClientRect();
-    const box = el.getBoundingClientRect();
-    setRailTop(box.top - hostBox.top + box.height / 2 - RAIL_TRACK_PX / 2);
-  }, [selectedClaimId, editing]);
+    const el = selectedClaimId ? claimRefs.current[selectedClaimId] : null;
+    if (el) {
+      const box = el.getBoundingClientRect();
+      setRailTop(box.top - hostBox.top + box.height / 2 - RAIL_TRACK_PX / 2);
+      setRailThumbH(
+        Math.max(
+          RAIL_THUMB_MIN_PX,
+          Math.min(Math.round(box.height) + 4, RAIL_TRACK_PX - 12),
+        ),
+      );
+      return;
+    }
+    setRailThumbH(null);
+    if (railTop == null) {
+      const first = claims.find((c) => c.kind === "fact");
+      const firstEl = first ? claimRefs.current[first.id] : null;
+      if (firstEl) {
+        const box = firstEl.getBoundingClientRect();
+        setRailTop(box.top - hostBox.top + box.height / 2 - RAIL_TRACK_PX / 2);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClaimId, editing, claims]);
 
   function selectClaim(id: string) {
     setSelectedItemId(null);
@@ -294,41 +316,62 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                 aria-label="Draft"
                 className="relative min-w-0 max-w-draft flex-1"
               >
-                {railTop != null && (
+                {railTop != null && !editing && (
                   <div
                     aria-hidden="true"
-                    className="absolute -left-3.5 h-rail-track w-1 rounded-4 bg-surface-foreground-01"
+                    className="absolute -left-3.5 h-rail-track w-1 overflow-hidden rounded-4 bg-surface-foreground-01 transition-[top] duration-200 ease-out"
                     style={{ top: railTop }}
                   >
-                    <span className="absolute left-0 top-1/2 h-rail-thumb w-1 -translate-y-1/2 rounded-4 bg-blue-500" />
+                    {railThumbH != null && (
+                      <span
+                        className="absolute left-0 top-1/2 w-1 -translate-y-1/2 rounded-4 bg-blue-500 transition-[height] duration-200 ease-out"
+                        style={{ height: railThumbH }}
+                      />
+                    )}
                   </div>
                 )}
                 <div className="w-full rounded-18 border-fig border-border bg-surface-foreground-01 shadow-card">
                   <div className="flex w-full flex-col p-1">
+                    {/* The header chip: the status at rest; "Editing draft" on
+                        Foreground-02 while the card is open (545:4326). */}
                     <div className="flex items-center gap-1.5 px-2.5 py-2">
-                      <span className="flex items-center rounded-full border-fig border-border bg-surface-dashboard px-1.5 py-0.5 font-geist text-fig-caption-1 text-heading-05">
-                        {STATUS_LABEL[narrative.status]}
+                      <span
+                        className={cn(
+                          "flex items-center rounded-full border-fig border-border px-1.5 py-0.5 font-geist text-fig-caption-1 text-heading-05",
+                          editing
+                            ? "bg-surface-foreground-02"
+                            : "bg-surface-dashboard",
+                        )}
+                      >
+                        {editing ? "Editing draft" : STATUS_LABEL[narrative.status]}
                       </span>
                       <Dot size="sm" />
                       <span className="font-geist text-fig-caption-1 text-heading-06">
-                        Select any sentence to see its evidence
+                        {editing
+                          ? "One paragraph per claim, separated by blank lines."
+                          : "Select any sentence to see its evidence"}
                       </span>
                     </div>
 
                     {editing ? (
-                      <div className="flex w-full flex-col gap-2">
-                        <textarea
-                          value={draftText}
-                          onChange={(e) => setDraftText(e.target.value)}
-                          aria-label="Draft text — one paragraph per claim"
-                          className="min-h-96 w-full resize-y rounded-14 border-fig border-border bg-surface-primary px-3 py-4 font-geist text-fig-prose fig-w450 text-heading-01 shadow-card-quiet outline-none focus:shadow-input-active"
-                        />
+                      /* The Edit variant (545:4482): the SAME card, lifted onto
+                         the blue active stroke, its prose editable in place —
+                         not a separate grey editor. */
+                      <>
+                        <div className="w-full rounded-14 border border-blue-500 bg-surface-primary shadow-evidence-selected">
+                          <textarea
+                            value={draftText}
+                            onChange={(e) => setDraftText(e.target.value)}
+                            aria-label="Draft text — one paragraph per claim"
+                            className="min-h-96 w-full resize-y bg-transparent px-3 pb-16 pt-6 font-geist text-fig-prose fig-w450 text-heading-01 outline-none"
+                          />
+                        </div>
                         {editError && (
-                          <p className="px-2 font-geist text-fig-caption-1 text-red-700">
+                          <p className="px-2 pt-2 font-geist text-fig-caption-1 text-red-700">
                             {editError}
                           </p>
                         )}
-                        <div className="flex items-center justify-end gap-1.5 px-2 py-1.5">
+                        <div className="flex w-full items-center justify-end gap-1.5 px-2 py-1.5">
                           <Button
                             size="fig"
                             variant="ghost"
@@ -343,7 +386,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                             {config.copy.splitView.saveDraft}
                           </Button>
                         </div>
-                      </div>
+                      </>
                     ) : (
                       <>
                         <div
