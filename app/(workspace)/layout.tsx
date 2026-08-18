@@ -27,7 +27,7 @@ export default async function WorkspaceLayout({
         newTeamJoins={newTeamJoins}
         defaultCollapsed
       />
-      <main className="flex min-w-0 flex-1 overflow-hidden pb-24 md:pb-0">
+      <main className="flex min-w-0 flex-1 overflow-hidden pt-15 md:pt-0">
         {children}
       </main>
       <WorkspaceDials />

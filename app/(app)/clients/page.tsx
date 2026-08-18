@@ -22,8 +22,8 @@ export default async function ClientsPage() {
   return (
     /* The column geometry is Today's, because it is the same sheet: 32px of
        headroom from the sheet's own padding, the 550 column opening 64px below
-       it. px-6 never bites at 550 — it is the guard for a narrow viewport. */
-    <div className="flex flex-col items-center px-6 pt-8">
+       it. px-4 md:px-6 never bites at 550 — it is the guard for a narrow viewport. */
+    <div className="flex flex-col items-center px-4 md:px-6 pt-8">
       <div className="flex w-full max-w-sheet flex-col gap-16 pb-8 pt-16">
         <SectionHeader title={t.title} subline={t.subline}>
           {clients.length === 0 ? (

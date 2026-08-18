@@ -356,6 +356,9 @@
   /* The account tile, revised by node 357:1074 — taller and with a bigger
      avatar than the standalone nav frame drew it. */
   --spacing-nav-card: 42px;
+  /* The mobile drawer: the expanded nav's content on a 300 panel, sliding in
+     over a scrim from the header's toggle. */
+  --spacing-nav-drawer: 300px;
   --spacing-nav-avatar: 25px;
 
   /* Centered reading-column widths (design.md §4). */

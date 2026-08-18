@@ -27,7 +27,7 @@ export default function AppError({
     error.message.includes("Live tracker not configured");
 
   return (
-    <div className="mx-auto max-w-column px-6 py-16">
+    <div className="mx-auto max-w-column px-4 md:px-6 py-16">
       <div className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-6">
         <h1 className="font-display text-22 text-ink">
           {isConfig

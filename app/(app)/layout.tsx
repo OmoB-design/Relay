@@ -54,7 +54,7 @@ export default async function AppLayout({
           scrollbar-stable: with classic scrollbars the bar otherwise appears on
           tall tabs and vanishes on short ones, shifting the centred column
           (the client page's tab-toggle shrink). */}
-      <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain scrollbar-stable pb-24 md:rounded-l-24 md:border-fig md:border-border md:bg-surface-primary md:pb-0 md:shadow-sheet">
+      <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain scrollbar-stable bg-surface-primary pt-15 md:rounded-l-24 md:border-fig md:border-border md:pt-0 md:shadow-sheet">
         {children}
       </main>
     </div>

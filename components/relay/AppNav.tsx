@@ -112,7 +112,14 @@ export function AppNav({
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const items = NAV.filter((n) => !n.adminOnly || isAdmin);
+
+  // A navigation closes the drawer even when it lands on the same page the
+  // item click didn't remount.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
 
   /* Read the stored preference after mount, not during render: the server has
      no localStorage, and reading it in useState's initialiser would render one
@@ -244,26 +251,93 @@ export function AppNav({
         </div>
       </aside>
 
-      {/* Mobile ---------------------------------------------------------- */}
-      <nav
-        aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-10 flex divider-t border-border bg-surface-primary md:hidden"
+      {/* Mobile ------------------------------------------------------------
+          Not a bottom bar any more: a white top strip — the app's mark on the
+          left, the panel toggle on the right — and the toggle slides the
+          sidebar in as a drawer over a scrim, the way the desktop rail
+          expands. Route changes and the scrim both close it. */}
+      <header className="fixed inset-x-0 top-0 z-30 flex h-nav-header items-center justify-between divider-b border-border bg-surface-primary px-4 md:hidden">
+        <Link href="/today" aria-label="Relay">
+          <RelayMark className="size-nav-mark" />
+        </Link>
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Open navigation"
+          aria-expanded={drawerOpen}
+          className="text-icon-explainer"
+        >
+          <PanelToggleGlyph direction="expand" className="size-nav-icon" />
+        </button>
+      </header>
+
+      {/* The scrim stays mounted so it can fade; closed it neither shows nor
+          intercepts. */}
+      <div
+        aria-hidden="true"
+        onClick={() => setDrawerOpen(false)}
+        className={cn(
+          "fixed inset-0 z-40 bg-base-black transition-opacity duration-200 md:hidden",
+          drawerOpen ? "opacity-30" : "pointer-events-none opacity-0",
+        )}
+      />
+      <aside
+        aria-label="Navigation drawer"
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-nav-drawer flex-col justify-between rounded-r-24 border-fig border-border bg-surface-primary shadow-sheet transition-transform duration-200 ease-out md:hidden",
+          drawerOpen ? "translate-x-0" : "-translate-x-full",
+        )}
       >
-        {items.map(({ label, href, Glyph }) => {
-          const active = isActive(pathname, href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className="flex flex-1 flex-col items-center gap-1 py-2 font-geist text-fig-caption-2 text-heading-01"
-            >
-              <Glyph className={cn("size-nav-icon", glyphTone(active))} />
-              {label}
+        <div className="flex w-full flex-col">
+          <div className="flex h-nav-header w-full items-center justify-between px-4 pb-2 pt-2.5">
+            <Link href="/today" aria-label="Relay" onClick={() => setDrawerOpen(false)}>
+              <RelayMark className="size-nav-mark" />
             </Link>
-          );
-        })}
-      </nav>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close navigation"
+              className="text-icon-explainer"
+            >
+              <PanelToggleGlyph direction="collapse" className="size-nav-icon" />
+            </button>
+          </div>
+          <nav aria-label="Primary" className="flex w-full flex-col gap-0.5 px-2">
+            {items.map(({ label, href, Glyph }) => {
+              const active = isActive(pathname, href);
+              const badge = href === "/admin" ? newTeamJoins : 0;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => setDrawerOpen(false)}
+                  className={cn(
+                    "flex w-full items-center gap-1.5 overflow-hidden rounded-10 p-2",
+                    active ? "bg-surface-foreground-01" : "hover:bg-surface-foreground-01/60",
+                  )}
+                >
+                  <Glyph className={cn("size-nav-icon shrink-0", glyphTone(active))} />
+                  <span className="whitespace-nowrap font-geist text-fig-caption-1-md fig-medium text-heading-01">
+                    {label}
+                  </span>
+                  {badge > 0 && (
+                    <span
+                      className="ml-auto shrink-0 rounded-full bg-blue-500 px-1.5 py-0.5 font-geist text-fig-caption-2 text-primary-foreground"
+                      aria-label={`${badge} new ${badge === 1 ? "colleague" : "colleagues"}`}
+                    >
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+        <div className="flex w-full flex-col px-2 pb-2">
+          <AccountCard profile={profile} collapsed={false} />
+        </div>
+      </aside>
     </>
   );
 }
