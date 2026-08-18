@@ -5,9 +5,10 @@ import type { Narrative, NarrativeStatus } from "@/lib/types";
 import {
   ChevronGlyph,
   GmailGlyph,
+  NarrativeEmptyGlyph,
   SlackGlyph,
 } from "@/components/relay/NavIcons";
-import { EmptyState } from "@/components/relay/EmptyState";
+import { EmptyPanel } from "@/components/relay/EmptyPanel";
 
 /* ============================================================================
    The client workspace Narratives tab (Figma 506:4919) — the index a buyer
@@ -139,11 +140,15 @@ export function NarrativeList({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** First-run: Relay hasn't drafted a week for this client yet. */
+/** First-run (592:7134): Relay hasn't drafted a week for this client yet —
+ *  the dashed EmptyPanel with the speech-bubble-and-pencil mark. */
 export function NarrativeEmpty() {
   return (
-    <EmptyState title="No narratives yet">
+    <EmptyPanel
+      title="No narratives yet"
+      glyph={<NarrativeEmptyGlyph className="text-icon-explainer" />}
+    >
       Weekly drafts will land here, every claim stitched to its evidence.
-    </EmptyState>
+    </EmptyPanel>
   );
 }

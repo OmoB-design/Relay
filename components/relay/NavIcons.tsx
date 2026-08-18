@@ -514,6 +514,37 @@ export function SentCheckGlyph({ className }: GlyphProps) {
   );
 }
 
+/** The Narratives empty-state mark (node 592:7127): a speech bubble with a
+ *  pencil at its corner — commentary waiting to be written. 14px, drawn at
+ *  Icon/Icon-Explainer; currentColor. */
+export function NarrativeEmptyGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M12.5557 6.06426C12.1094 3.39633 9.7951 1.36111 7 1.36111C3.88578 1.36111 1.36111 3.88586 1.36111 7C1.36111 8.02573 1.63956 8.98489 2.1179 9.81314C2.45234 10.44 2.07667 11.9226 1.36111 12.6389C2.33333 12.6917 3.61433 12.2523 4.18678 11.882C4.56711 12.1015 5.16989 12.3924 5.95933 12.5417C6.07398 12.5633 6.19321 12.5722 6.31073 12.5857"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.7301 12.6033L13.1889 10.1446C13.4926 9.84083 13.4926 9.34834 13.1889 9.04462L12.7332 8.589C12.4295 8.28528 11.937 8.28528 11.6333 8.589L9.17459 11.0477L8.55563 13.2223L10.7301 12.6033Z"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The Eye set (588:6226) — the Narrative Nav's preview toggle, replacing the
  *  "Preview" text. Drawn at Grey/400; currentColor so hover darkens it. The
  *  icon shows the ACTION: the open eye offers the preview, the closed lid
