@@ -41,13 +41,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    /* The font variables MUST live on <html>, not <body>: the @theme aliases
+       (--font-geist: var(--font-geist-sans), …) are declared at :root, and a
+       custom property resolves its var() references WHERE IT IS DECLARED — so
+       with --font-geist-sans one level down on <body>, --font-geist computed
+       to invalid and every font-family: var(--font-geist) fell back to the
+       system face. Geist (and the legacy trio) never actually rendered. */
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${fraunces.variable} ${newsreader.variable} ${archivo.variable}`}
+    >
       {/* Geist is the redesign's single family, loaded from Vercel's official
           package (local files, no Google Fonts round trip). The three original
           faces stay until the screens still using them are redesigned. */}
-      <body
-        className={`${GeistSans.variable} ${fraunces.variable} ${newsreader.variable} ${archivo.variable}`}
-      >
+      <body>
         <TooltipProvider>{children}</TooltipProvider>
         {/* TOP RIGHT, not sonner's default bottom. Below md the nav is a fixed
             bottom bar, so a bottom toast lands on top of it.

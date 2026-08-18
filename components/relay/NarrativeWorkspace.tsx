@@ -395,7 +395,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
             </Link>
             <div className="mt-2.5 flex w-full items-center justify-between gap-4">
               <div className="flex min-w-0 flex-col gap-1">
-                <h1 className="font-greeting text-fig-h4 fig-medium text-heading-01">
+                <h1 className="font-greeting text-fig-h4 fig-sb text-heading-01">
                   {profile.name}
                 </h1>
                 <p className="flex items-center gap-2.5 font-geist text-fig-body fig-w450 text-heading-06">
@@ -500,6 +500,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                           <Button
                             size="fig"
                             variant="ghost"
+                            className="fig-sb"
                             onClick={() => {
                               setEditing(false);
                               setEditError(null);
@@ -507,7 +508,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                           >
                             {config.copy.actions.cancel}
                           </Button>
-                          <Button size="fig" onClick={saveDraft} disabled={pending}>
+                          <Button size="fig" className="fig-sb" onClick={saveDraft} disabled={pending}>
                             {config.copy.splitView.saveDraft}
                           </Button>
                         </div>
@@ -578,7 +579,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                         </div>
                         {canEdit && (
                           <div className="flex w-full items-center justify-end px-2 py-1.5">
-                            <Button size="fig" onClick={startEditing}>
+                            <Button size="fig" className="fig-sb" onClick={startEditing}>
                               {config.copy.splitView.editDraft}
                             </Button>
                           </div>
@@ -701,7 +702,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                     setPreviewOpen(true);
                   }}
                   className={cn(
-                    "flex h-full items-center rounded-l-8 border-fig bg-clip-padding pl-2.5 pr-2 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150",
+                    "flex h-full items-center rounded-l-8 border-fig bg-clip-padding pl-2.5 pr-2 font-geist text-fig-button fig-sb whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150",
                     tone === "email"
                       ? "border-transparent bg-base-black text-white"
                       : "border-border bg-surface-primary text-heading-02",
@@ -717,7 +718,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                     setPreviewOpen(true);
                   }}
                   className={cn(
-                    "flex h-full items-center rounded-r-8 border-fig bg-clip-padding px-2.5 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150",
+                    "flex h-full items-center rounded-r-8 border-fig bg-clip-padding px-2.5 font-geist text-fig-button fig-sb whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150",
                     tone === "slack"
                       ? "border-border bg-base-black text-white"
                       : "border-border bg-surface-primary text-heading-03",
@@ -748,7 +749,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                 type="button"
                 onClick={copyDraft}
                 className={cn(
-                  "flex h-full items-center rounded-8 border-fig border-border bg-surface-primary px-3.5 font-geist text-fig-button fig-medium outline-none hover:bg-surface-foreground-01 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
+                  "flex h-full items-center rounded-8 border-fig border-border bg-surface-primary px-3.5 font-geist text-fig-button fig-sb outline-none hover:bg-surface-foreground-01 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
                   narrative.status === "sent"
                     ? "text-heading-02"
                     : "text-heading-06",
@@ -757,7 +758,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                 {config.copy.splitView.copy}
               </button>
               {narrative.status === "sent" ? (
-                <span className="flex h-full items-center gap-1.5 rounded-8 border-fig border-border px-3.5 font-geist text-fig-button fig-medium text-grey-400">
+                <span className="flex h-full items-center gap-1.5 rounded-8 border-fig border-border px-3.5 font-geist text-fig-button fig-sb text-grey-400">
                   {STATUS_LABEL.sent}
                   <SentCheckGlyph className="shrink-0 text-grey-300" />
                 </span>
@@ -771,7 +772,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                         : onMarkReviewed
                     }
                     disabled={pending || editing}
-                    className="flex h-full min-w-0 flex-1 items-center justify-center rounded-8 border-fig border-border bg-base-black px-3.5 font-geist text-fig-button fig-medium text-white whitespace-nowrap outline-none disabled:opacity-50 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150"
+                    className="flex h-full min-w-0 flex-1 items-center justify-center rounded-8 border-fig border-border bg-base-black px-3.5 font-geist text-fig-button fig-sb text-white whitespace-nowrap outline-none disabled:opacity-50 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150"
                   >
                     {narrative.status === "reviewed"
                       ? config.copy.splitView.backToDraft
@@ -781,7 +782,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                     type="button"
                     onClick={onSend}
                     disabled={narrative.status !== "reviewed" || pending}
-                    className="flex h-full items-center rounded-8 border-fig border-border bg-blue-500 px-3.5 font-geist text-fig-button fig-medium text-white outline-none hover:bg-blue-400 disabled:opacity-50 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150"
+                    className="flex h-full items-center rounded-8 border-fig border-border bg-blue-500 px-3.5 font-geist text-fig-button fig-sb text-white outline-none hover:bg-blue-400 disabled:opacity-50 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150"
                   >
                     {config.copy.splitView.send}
                   </button>

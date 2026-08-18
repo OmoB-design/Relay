@@ -613,6 +613,11 @@
 @utility divider-b {
   border-bottom-width: 0.7px;
 }
+/* The seam between the icon rail and the narratives panel (552:4669 draws it
+   as the rail's border-right; the panel carries it as its left edge). */
+@utility divider-l {
+  border-left-width: 0.7px;
+}
 /* The same rule above an element — the mobile bar's lid. */
 @utility divider-t {
   border-top-width: 0.7px;

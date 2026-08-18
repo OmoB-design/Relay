@@ -122,7 +122,7 @@ export function NarrativeSideNav({
   return (
     <aside
       aria-label="Narratives"
-      className="hidden h-full w-narrative-side shrink-0 flex-col overflow-y-auto overscroll-contain border-l-fig border-border bg-surface-foreground-01 md:flex"
+      className="hidden h-full w-narrative-side shrink-0 flex-col overflow-y-auto overscroll-contain divider-l border-border bg-surface-foreground-01 md:flex"
     >
       {/* Search + the three sections (552:4984). */}
       <div className="flex w-full flex-col gap-2 px-2 pb-2.5 pt-5">
@@ -134,7 +134,7 @@ export function NarrativeSideNav({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search narratives"
             aria-label="Search narratives"
-            className="w-full bg-transparent font-geist text-fig-caption-1-md fig-medium text-heading-05 outline-none placeholder:text-heading-05"
+            className="w-full bg-transparent font-geist text-fig-caption-1-md fig-sb text-heading-05 outline-none placeholder:text-heading-05"
           />
         </label>
         <div className="flex w-full gap-1">
@@ -173,7 +173,7 @@ export function NarrativeSideNav({
             <div className="w-full rounded-14 border-fig border-border bg-surface-dashboard py-4">
               <div className="flex w-full items-center justify-between px-2">
                 <span className="flex items-end gap-1">
-                  <span className="font-greeting text-fig-h6 fig-medium tracking-count text-blue-500">
+                  <span className="font-greeting text-fig-h6 fig-sb tracking-count text-blue-500">
                     {narratives.length}
                   </span>
                   <span className="font-geist text-fig-caption-1 text-heading-04">
@@ -182,7 +182,7 @@ export function NarrativeSideNav({
                       : "total narratives"}
                   </span>
                 </span>
-                <span className="font-greeting text-fig-h6 fig-medium tracking-range text-heading-04">
+                <span className="font-greeting text-fig-h6 fig-sb tracking-range text-heading-04">
                   {rangeLabel(narratives)}
                 </span>
               </div>
@@ -224,11 +224,11 @@ export function NarrativeSideNav({
                   </span>
                 </span>
                 <span className="flex w-full items-start gap-1.5">
-                  <span className="flex size-avatar-well shrink-0 items-center justify-center rounded-full bg-surface-foreground-02 font-geist text-fig-body-lg fig-medium text-base-black">
+                  <span className="flex size-avatar-well shrink-0 items-center justify-center rounded-full bg-surface-foreground-02 font-geist text-fig-body-lg fig-sb text-base-black">
                     {recipientName(n, profile).charAt(0).toUpperCase()}
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="font-geist text-fig-caption-1-md fig-medium text-heading-02">
+                    <span className="font-geist text-fig-caption-1-md fig-sb text-heading-02">
                       {recipientName(n, profile)}
                     </span>
                     <span className="truncate font-geist text-fig-caption-1 text-heading-04">
