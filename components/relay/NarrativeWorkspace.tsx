@@ -429,10 +429,17 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
 
             {/* Sensitivities ride the header (527:7960) — always in view
                 while phrasing is being judged. */}
+            {/* The chips never stack: one rail, sliding sideways when the
+                constraints outrun the column. */}
             {profile.sensitivities.length > 0 && (
-              <div className="mt-3 flex w-full flex-wrap gap-3.5">
+              <div className="scrollbar-none mt-3 flex w-full gap-3.5 overflow-x-auto">
                 {profile.sensitivities.map((s) => (
-                  <SensitivityChip key={s.id} sensitivity={s} outlined />
+                  <SensitivityChip
+                    key={s.id}
+                    sensitivity={s}
+                    outlined
+                    className="max-w-none shrink-0"
+                  />
                 ))}
               </div>
             )}
