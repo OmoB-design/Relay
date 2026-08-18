@@ -38,7 +38,7 @@ export default async function ReviewPage({
   )}`;
 
   return (
-    <div className="mx-auto max-w-column px-4 md:px-6 py-10">
+    <div className="mx-auto max-w-column px-5 md:px-6 py-10">
       <header className="mb-8">
         <p className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
           {config.copy.overview.title}

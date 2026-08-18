@@ -397,7 +397,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
         ref={scrollRef}
         className="h-full overflow-y-auto overscroll-contain scrollbar-stable"
       >
-        <div className="flex flex-col items-center px-4 md:px-6 pt-8">
+        <div className="flex flex-col items-center px-5 md:px-6 pt-8">
           <div className="flex w-full max-w-workspace flex-col pb-32 pt-16">
             {/* ── Masthead (506:5384) ── */}
             <Link
@@ -685,7 +685,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
 
       {/* ── Narrative Nav (557:6049) — floats over the sheet, centred.
              Height pinned to the frame's 42; the row inside fills it. ── */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex justify-center px-4 md:px-6">
+      <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex justify-center px-5 md:px-6">
         <div
           ref={barRef}
           className="pointer-events-auto relative h-nav-bar w-narrative-bar rounded-12 border-fig border-border bg-surface-primary p-1 shadow-float-bar"

@@ -356,9 +356,10 @@
   /* The account tile, revised by node 357:1074 — taller and with a bigger
      avatar than the standalone nav frame drew it. */
   --spacing-nav-card: 42px;
-  /* The mobile drawer: the expanded nav's content on a 300 panel, sliding in
-     over a scrim from the header's toggle. */
-  --spacing-nav-drawer: 300px;
+  /* The mobile drawer, proportioned off the reference capture: a floating
+     284 panel (73% of a 390 viewport) opening under the top strip, inset 4
+     left and 16 bottom, 16 radius on all corners. */
+  --spacing-nav-drawer: 284px;
   --spacing-nav-avatar: 25px;
 
   /* Centered reading-column widths (design.md §4). */
@@ -497,6 +498,12 @@
    safe here where it was not on the field primitives. */
 @utility shadow-sensitivity {
   box-shadow: inset 0 1px 3px 0 rgb(245 196 130 / 0.5);
+}
+
+/* The closed drawer parks fully off-canvas INCLUDING its 4px left inset —
+   a bare -100% would leave that sliver of panel showing at the screen edge. */
+@utility drawer-hidden {
+  transform: translateX(calc(-100% - 4px));
 }
 
 /* A chip rail that scrolls sideways without showing a bar under the pills —

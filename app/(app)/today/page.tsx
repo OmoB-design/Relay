@@ -89,7 +89,7 @@ export default async function TodayPage({
      550, opens 64px below the sheet's own 32px of headroom, and leaves 64px
      between the header block and the first section. */
   return (
-    <div className="flex flex-col items-center px-4 md:px-6 pt-8">
+    <div className="flex flex-col items-center px-5 md:px-6 pt-8">
       <div className="flex w-full max-w-sheet flex-col gap-16 pb-8 pt-16">
         <PageHeader
           date={today}

@@ -52,7 +52,7 @@ export default async function ClientWorkspacePage({
   const snapshots = await getSnapshotsByIds(snapshotIds);
 
   return (
-    <div className="flex flex-col items-center px-4 md:px-6 pt-8">
+    <div className="flex flex-col items-center px-5 md:px-6 pt-8">
       <div className="flex w-full max-w-profile flex-col pb-8 pt-16">
         <ClientPageHeader client={profile} />
 

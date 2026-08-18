@@ -41,7 +41,7 @@ export default async function NewClientPage() {
   });
 
   return (
-    <div className="mx-auto max-w-column px-4 md:px-6 py-10">
+    <div className="mx-auto max-w-column px-5 md:px-6 py-10">
       <header className="mb-8">
         <Link
           href="/admin"

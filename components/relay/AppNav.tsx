@@ -256,7 +256,7 @@ export function AppNav({
           left, the panel toggle on the right — and the toggle slides the
           sidebar in as a drawer over a scrim, the way the desktop rail
           expands. Route changes and the scrim both close it. */}
-      <header className="fixed inset-x-0 top-0 z-30 flex h-nav-header items-center justify-between divider-b border-border bg-surface-primary px-4 md:hidden">
+      <header className="fixed inset-x-0 top-0 z-30 flex h-nav-header items-center justify-between divider-b border-border bg-surface-primary px-5 md:hidden">
         <Link href="/today" aria-label="Relay">
           <RelayMark className="size-nav-mark" />
         </Link>
@@ -281,60 +281,49 @@ export function AppNav({
           drawerOpen ? "opacity-30" : "pointer-events-none opacity-0",
         )}
       />
+      {/* The reference's floating panel: it opens UNDER the top strip (the
+          toggle stays visible above it), inset 4 from the left and 16 from the
+          bottom, rounded 16 on all four corners, with the list a size up from
+          the desktop rail — 15px labels on 20px glyphs, ~34px row pitch. */}
       <aside
         aria-label="Navigation drawer"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-nav-drawer flex-col justify-between rounded-r-24 border-fig border-border bg-surface-primary shadow-sheet transition-transform duration-200 ease-out md:hidden",
-          drawerOpen ? "translate-x-0" : "-translate-x-full",
+          "fixed bottom-4 left-1 top-16 z-50 flex w-nav-drawer flex-col justify-between rounded-16 border-fig border-border bg-surface-primary shadow-popover transition-transform duration-200 ease-out md:hidden",
+          drawerOpen ? "translate-x-0" : "drawer-hidden",
         )}
       >
-        <div className="flex w-full flex-col">
-          <div className="flex h-nav-header w-full items-center justify-between px-4 pb-2 pt-2.5">
-            <Link href="/today" aria-label="Relay" onClick={() => setDrawerOpen(false)}>
-              <RelayMark className="size-nav-mark" />
-            </Link>
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Close navigation"
-              className="text-icon-explainer"
-            >
-              <PanelToggleGlyph direction="collapse" className="size-nav-icon" />
-            </button>
-          </div>
-          <nav aria-label="Primary" className="flex w-full flex-col gap-0.5 px-2">
-            {items.map(({ label, href, Glyph }) => {
-              const active = isActive(pathname, href);
-              const badge = href === "/admin" ? newTeamJoins : 0;
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  onClick={() => setDrawerOpen(false)}
-                  className={cn(
-                    "flex w-full items-center gap-1.5 overflow-hidden rounded-10 p-2",
-                    active ? "bg-surface-foreground-01" : "hover:bg-surface-foreground-01/60",
-                  )}
-                >
-                  <Glyph className={cn("size-nav-icon shrink-0", glyphTone(active))} />
-                  <span className="whitespace-nowrap font-geist text-fig-caption-1-md fig-medium text-heading-01">
-                    {label}
+        <nav aria-label="Primary" className="flex w-full flex-col gap-0.5 px-3 pt-4">
+          {items.map(({ label, href, Glyph }) => {
+            const active = isActive(pathname, href);
+            const badge = href === "/admin" ? newTeamJoins : 0;
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                onClick={() => setDrawerOpen(false)}
+                className={cn(
+                  "flex w-full items-center gap-3 overflow-hidden rounded-10 p-2",
+                  active ? "bg-surface-foreground-01" : "hover:bg-surface-foreground-01/60",
+                )}
+              >
+                <Glyph className={cn("size-5 shrink-0", glyphTone(active))} />
+                <span className="whitespace-nowrap font-geist text-fig-body-lg fig-medium text-heading-01">
+                  {label}
+                </span>
+                {badge > 0 && (
+                  <span
+                    className="ml-auto shrink-0 rounded-full bg-blue-500 px-1.5 py-0.5 font-geist text-fig-caption-2 text-primary-foreground"
+                    aria-label={`${badge} new ${badge === 1 ? "colleague" : "colleagues"}`}
+                  >
+                    {badge}
                   </span>
-                  {badge > 0 && (
-                    <span
-                      className="ml-auto shrink-0 rounded-full bg-blue-500 px-1.5 py-0.5 font-geist text-fig-caption-2 text-primary-foreground"
-                      aria-label={`${badge} new ${badge === 1 ? "colleague" : "colleagues"}`}
-                    >
-                      {badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-        <div className="flex w-full flex-col px-2 pb-2">
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="flex w-full flex-col px-3 pb-3">
           <AccountCard profile={profile} collapsed={false} />
         </div>
       </aside>

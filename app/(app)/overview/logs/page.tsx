@@ -31,7 +31,7 @@ export default async function LogsPage({
   const oversight = await getLogOversight(days);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 md:px-6 py-10">
+    <div className="mx-auto max-w-5xl px-5 md:px-6 py-10">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-geist text-fig-caption-1 uppercase tracking-wide text-heading-06">
