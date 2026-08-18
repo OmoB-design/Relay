@@ -400,7 +400,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
             {/* ── Masthead (506:5384) ── */}
             <Link
               href={`/clients/${profile.id}?tab=narratives`}
-              className="flex items-center gap-0.5 font-geist text-fig-caption-1 text-grey-300 hover:text-heading-01"
+              className="flex items-center gap-0.5 font-geist text-fig-caption-1 text-heading-06 hover:text-heading-01"
             >
               <BackGlyph className="text-icon-explainer" />
               Back to narratives
@@ -419,7 +419,7 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                 </p>
               </div>
               {stamp && (
-                <span className="shrink-0 font-geist text-fig-caption-1 text-grey-300">
+                <span className="shrink-0 font-geist text-fig-caption-1 text-heading-06">
                   {stamp}
                 </span>
               )}
@@ -657,14 +657,15 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
         </div>
       </div>
 
-      {/* The scrim under the open preview: a base-black wash over the sheet,
-          its opacity on a dial. Clicking it lands outside the bar, so the
-          same pointer that dims the page also dismisses the popover. */}
+      {/* The scrim under the open preview: a base-black wash over the WHOLE
+          viewport — nav, panel and sheet — its opacity on a dial. Fixed, so it
+          escapes the sheet's overflow clip; clicking it lands outside the
+          bar, so the same pointer that dims the page dismisses the popover. */}
       <AnimatePresence>
         {previewOpen && (
           <motion.div
             aria-hidden="true"
-            className="absolute inset-0 z-20 bg-base-black"
+            className="fixed inset-0 z-20 bg-base-black"
             initial={{ opacity: 0 }}
             animate={{ opacity: dial.preview.overlayOpacity }}
             exit={{ opacity: 0 }}
