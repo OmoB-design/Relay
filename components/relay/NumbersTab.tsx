@@ -4,7 +4,7 @@ import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { config, formatCurrency } from "@/lib/config";
 import type { ClientProfile, DailyMetrics, DailyRow, MetricSegment } from "@/lib/types";
-import { Sparkline } from "@/components/relay/Sparkline";
+import { TrendSparkline } from "@/components/relay/TrendSparkline";
 import { EmptyState } from "@/components/relay/EmptyState";
 
 /* Numbers tab (Phase 7.5a) — the replacement for the chart-scan step of the
@@ -104,9 +104,10 @@ export function NumbersTab({
 
             <div className="grid gap-3 sm:grid-cols-2">
               {METRICS.map((m) => {
-                const series = segmentRows
-                  .map((r) => r.metrics[m.key])
-                  .filter((v): v is number => v !== undefined);
+                const series = segmentRows.flatMap((r) => {
+                  const v = r.metrics[m.key];
+                  return v === undefined ? [] : [{ date: r.date, value: v }];
+                });
                 const value = latest.metrics[m.key];
                 const unavailable = latest.unavailable[m.key];
                 const kpi = kpiFor(m.key);
@@ -159,10 +160,11 @@ export function NumbersTab({
                       )}
                     </div>
                     {series.length > 1 && (
-                      <Sparkline
-                        series={series}
-                        invert={polarity === "lower_is_better"}
-                        className="shrink-0 text-ink-soft"
+                      <TrendSparkline
+                        points={series}
+                        polarity={polarity}
+                        target={target}
+                        formatValue={(v) => display(m.kind, v)}
                       />
                     )}
                   </article>
