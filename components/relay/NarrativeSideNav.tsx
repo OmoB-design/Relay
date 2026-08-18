@@ -122,7 +122,7 @@ export function NarrativeSideNav({
   return (
     <aside
       aria-label="Narratives"
-      className="hidden h-full w-narrative-side shrink-0 flex-col overflow-y-auto overscroll-contain bg-surface-foreground-01 md:flex"
+      className="hidden h-full w-narrative-side shrink-0 flex-col overflow-y-auto overscroll-contain border-l-fig border-border bg-surface-foreground-01 md:flex"
     >
       {/* Search + the three sections (552:4984). */}
       <div className="flex w-full flex-col gap-2 px-2 pb-2.5 pt-5">
@@ -150,7 +150,7 @@ export function NarrativeSideNav({
                   "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-6 border-fig border-border px-2 py-1 font-geist text-fig-caption-1 whitespace-nowrap",
                   current
                     ? "bg-primary text-primary-foreground"
-                    : "bg-surface-dashboard text-heading-01 hover:bg-surface-primary",
+                    : "bg-surface-dashboard text-base-black hover:bg-surface-primary",
                 )}
               >
                 <span>{STATUS_LABEL[s]}</span>
@@ -165,7 +165,7 @@ export function NarrativeSideNav({
       <div className="mt-2 w-full divider-t divider-b px-2 py-4">
         <div className="w-full rounded-18 bg-surface-foreground-01 shadow-card">
           <div className="flex w-full flex-col overflow-hidden rounded-18 border-fig border-border bg-surface-foreground-02 p-1">
-            <div className="px-2.5 py-2">
+            <div className="px-2.5 py-1.5">
               <span className="font-geist text-fig-caption-1 text-heading-06">
                 {profile.name}
               </span>

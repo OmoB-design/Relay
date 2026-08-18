@@ -520,7 +520,10 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                             if (e.target === e.currentTarget) clearSelection();
                           }}
                         >
-                          <div className="px-3 pb-16 pt-6">
+                          {/* The set nests a 64 spacer around a pt-24 pb-10
+                              text block (545:4379/4380) — 74 under the prose
+                              in total, not 64. */}
+                          <div className="px-3 pb-18.5 pt-6">
                             {narrative.emailGreeting && (
                               <p className="py-1.5 font-geist text-fig-body fig-w450 text-heading-05">
                                 {narrative.emailGreeting}
@@ -680,22 +683,16 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
 
           <div className="flex h-full w-full items-center gap-bar-gap">
             <div className="flex h-full shrink-0 items-center gap-1.5">
-              {/* The channel pill (545:4593 / 545:4545): one capsule — the
-                  first channel is bare text in the container, the second is a
-                  nested capsule rounded on its outer corners. The SIDES never
-                  reorder; only the black surface moves to the active one. The
-                  container's hairline goes transparent when it is black, so
-                  the pill never changes size. */}
-              <div
-                role="group"
-                aria-label="Channel"
-                className={cn(
-                  "flex h-full items-center gap-2 rounded-8 border-fig pl-2.5",
-                  tone === "email"
-                    ? "border-transparent bg-base-black"
-                    : "border-border bg-surface-primary",
-                )}
-              >
+              {/* The channel pill (545:4593 / 545:4545): two SELF-CONTAINED
+                  halves — Email rounded on the left, the capsule on the right
+                  — because any structure that puts the black fill BEHIND the
+                  white capsule leaks a black rim at the capsule's edges (the
+                  fill paints under the transparent border, and the nested
+                  radii never quite cover its corners). Side by side, no black
+                  surface exists behind the white half at all. The black half
+                  clips its fill to the padding box so the transparent hairline
+                  that keeps the toggle size-stable stays unpainted. */}
+              <div role="group" aria-label="Channel" className="flex h-full items-stretch">
                 <button
                   type="button"
                   aria-pressed={tone === "email"}
@@ -704,8 +701,10 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                     setPreviewOpen(true);
                   }}
                   className={cn(
-                    "h-full rounded-l-8 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
-                    tone === "email" ? "text-white" : "text-heading-02",
+                    "flex h-full items-center rounded-l-8 border-fig bg-clip-padding pl-2.5 pr-2 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150",
+                    tone === "email"
+                      ? "border-transparent bg-base-black text-white"
+                      : "border-border bg-surface-primary text-heading-02",
                   )}
                 >
                   {config.copy.channelLabel.email}
@@ -718,10 +717,10 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                     setPreviewOpen(true);
                   }}
                   className={cn(
-                    "flex h-full items-center rounded-r-8 border-fig border-border px-2.5 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-500",
+                    "flex h-full items-center rounded-r-8 border-fig bg-clip-padding px-2.5 font-geist text-fig-button fig-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-150",
                     tone === "slack"
-                      ? "bg-base-black text-white"
-                      : "bg-surface-primary text-heading-03",
+                      ? "border-border bg-base-black text-white"
+                      : "border-border bg-surface-primary text-heading-03",
                   )}
                 >
                   {config.copy.channelLabel.slack}
