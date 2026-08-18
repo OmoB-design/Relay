@@ -114,9 +114,9 @@ export function NarrativeRow({
           >
             {STATUS_WORD[narrative.status]}
           </span>
-          {/* Drawn #777777 at rest, darkening with the hovered row — the row
-              chevron's own convention (418:5768). */}
-          <ChevronGlyph className="shrink-0 text-icon-explainer group-hover:text-heading-01" />
+          {/* Drawn #777777 at rest; the hovered row darkens it AND slides it
+              10px toward the door — the brightening alone was too quiet. */}
+          <ChevronGlyph className="shrink-0 text-icon-explainer transition duration-200 ease-out group-hover:translate-x-2.5 group-hover:text-heading-01" />
         </span>
       </div>
     </li>
