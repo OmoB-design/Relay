@@ -80,7 +80,11 @@
   --color-blue-400: #4787fe; /* hover, and the Working fill */
   --color-blue-300: #75a5fe; /* the Reviewed pill's stroke (node 552:5149) */
   --color-blue-150: #bad2ff; /* focus ring */
+  --color-blue-100: #d1e1ff; /* the Reviewed pill's stroke (node 592:6311) */
   --color-blue-50: #e8f0ff; /* hover wash */
+
+  /* Pink — the Loom brief pill's wash (node 592:6369). */
+  --color-pink-50: #ffeaf4;
   --color-blue-10: #f7f9ff; /* the selected evidence source chip's wash (545:3568) */
 
   /* Base/Black — the narrative action bar's filled buttons (545:4570). A step
@@ -395,6 +399,9 @@
   --spacing-preview-pop-cap: 215px;
   /* A side-nav narrative card is pinned to 100 (node 552:5022). */
   --spacing-side-card: 100px;
+  /* The narrative row's caption pills measure 21 in the frame (592:6259) —
+     line-height + padding + the hairline lands at 22.2 unpinned. */
+  --spacing-chip: 21px;
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
   --spacing-dialog-cap: 85svh;

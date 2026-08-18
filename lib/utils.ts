@@ -98,6 +98,7 @@ const HEIGHTS = [
   "field-lg",
   "side-card",
   "nav-bar",
+  "chip",
 ];
 
 const twMerge = extendTailwindMerge({
