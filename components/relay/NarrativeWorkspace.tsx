@@ -10,7 +10,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { animate, motion } from "motion/react";
+import { AnimatePresence, animate, motion } from "motion/react";
 import { useDialKit } from "dialkit";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -70,7 +70,14 @@ function toMotion(t: DialTransition) {
 const RAIL_THUMB_MIN_PX = 26;
 
 /** "Drafted, Jul 26, 5:30" (node 520:7956) — the stamp for the narrative's
- *  current station in the pipeline. */
+ *  current station in the pipeline. The stamp writes the past participle
+ *  ("Drafted"), unlike the pills' "Draft". */
+const STAMP_LABEL: Record<NarrativeStatus, string> = {
+  drafted: "Drafted",
+  reviewed: "Reviewed",
+  sent: "Sent",
+};
+
 function statusStamp(narrative: Narrative): string | null {
   const at =
     narrative.status === "sent"
@@ -87,7 +94,7 @@ function statusStamp(narrative: Narrative): string | null {
     hour12: true,
   }).formatToParts(new Date(at));
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-  return `${STATUS_LABEL[narrative.status]}, ${get("month")} ${get("day")}, ${get("hour")}:${get("minute")}`;
+  return `${STAMP_LABEL[narrative.status]}, ${get("month")} ${get("day")}, ${get("hour")}:${get("minute")}`;
 }
 
 function Dot({ size = "md" }: { size?: "md" | "sm" | "xs" }) {
@@ -143,6 +150,11 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
       },
       dim: {
         opacity: [0.5, 0.2, 1, 0.05],
+        fadeMs: [200, 0, 800, 10],
+      },
+      preview: {
+        // The scrim under the open preview — subtle but visible.
+        overlayOpacity: [0.1, 0, 0.6, 0.01],
         fadeMs: [200, 0, 800, 10],
       },
     },
@@ -645,6 +657,22 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
         </div>
       </div>
 
+      {/* The scrim under the open preview: a base-black wash over the sheet,
+          its opacity on a dial. Clicking it lands outside the bar, so the
+          same pointer that dims the page also dismisses the popover. */}
+      <AnimatePresence>
+        {previewOpen && (
+          <motion.div
+            aria-hidden="true"
+            className="absolute inset-0 z-20 bg-base-black"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: dial.preview.overlayOpacity }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: dial.preview.fadeMs / 1000 }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ── Narrative Nav (557:6049) — floats over the sheet, centred.
              Height pinned to the frame's 42; the row inside fills it. ── */}
       <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex justify-center px-6">
@@ -732,7 +760,9 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
                 onClick={() => setPreviewOpen((v) => !v)}
                 className="rounded-4 font-geist text-fig-caption-2 text-heading-06 outline-none hover:text-heading-01 focus-visible:ring-1 focus-visible:ring-blue-500"
               >
-                {config.copy.splitView.previewShow}
+                {previewOpen
+                  ? config.copy.splitView.previewHide
+                  : config.copy.splitView.previewShow}
               </button>
             </div>
 
