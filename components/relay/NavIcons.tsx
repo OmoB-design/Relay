@@ -514,6 +514,115 @@ export function SentCheckGlyph({ className }: GlyphProps) {
   );
 }
 
+/** The Eye set (588:6226) — the Narrative Nav's preview toggle, replacing the
+ *  "Preview" text. Drawn at Grey/400; currentColor so hover darkens it. The
+ *  icon shows the ACTION: the open eye offers the preview, the closed lid
+ *  hides it. */
+export function EyeOpenGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M1.44629 6.22201C2.85796 4.78234 4.82496 3.88867 7.0004 3.88867C9.17584 3.88867 11.1428 4.78156 12.5545 6.22201"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.00022 10.3056C8.18149 10.3056 9.13911 9.348 9.13911 8.16672C9.13911 6.98545 8.18149 6.02783 7.00022 6.02783C5.81894 6.02783 4.86133 6.98545 4.86133 8.16672C4.86133 9.348 5.81894 10.3056 7.00022 10.3056Z"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.12723 4.92189L2.13867 3.30566"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.67764 4.00103L5.30664 2.15381"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.8721 4.92189L11.8606 3.30566"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.32227 4.00103L8.69327 2.15381"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function EyeClosedGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M1.44629 5.6543C2.85796 7.09396 4.82496 7.98763 7.0004 7.98763C9.17584 7.98763 11.1428 7.09474 12.5545 5.6543"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.12723 6.95508L2.13867 8.57052"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.67764 7.87598L5.30664 9.72242"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.8721 6.95508L11.8606 8.57052"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.32227 7.87598L8.69327 9.72242"
+        stroke="currentColor"
+        strokeWidth={1.16667}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The Slack mark on the condensed preview (node 552:4658) — brand colours
  *  literal, same as Gmail's. */
 export function SlackGlyph({ className }: GlyphProps) {

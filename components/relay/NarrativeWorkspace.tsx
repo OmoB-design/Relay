@@ -24,6 +24,8 @@ import {
   BackGlyph,
   DeltaDownGlyph,
   DeltaUpGlyph,
+  EyeClosedGlyph,
+  EyeOpenGlyph,
   GmailGlyph,
   SentCheckGlyph,
   SlackGlyph,
@@ -759,11 +761,23 @@ export function NarrativeWorkspace({ context }: { context: NarrativeContext }) {
               <button
                 type="button"
                 onClick={() => setPreviewOpen((v) => !v)}
-                className="rounded-4 font-geist text-fig-caption-2 text-heading-06 outline-none hover:text-heading-01 focus-visible:ring-1 focus-visible:ring-blue-500"
+                aria-label={
+                  previewOpen
+                    ? config.copy.splitView.previewHide
+                    : config.copy.splitView.previewShow
+                }
+                title={
+                  previewOpen
+                    ? config.copy.splitView.previewHide
+                    : config.copy.splitView.previewShow
+                }
+                className="flex items-center rounded-4 text-grey-400 outline-none hover:text-heading-01 focus-visible:ring-1 focus-visible:ring-blue-500"
               >
-                {previewOpen
-                  ? config.copy.splitView.previewHide
-                  : config.copy.splitView.previewShow}
+                {previewOpen ? (
+                  <EyeClosedGlyph className="shrink-0" />
+                ) : (
+                  <EyeOpenGlyph className="shrink-0" />
+                )}
               </button>
             </div>
 
