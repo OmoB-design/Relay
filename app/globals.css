@@ -44,6 +44,9 @@
      is what Figma's node 357:2590 paints the RESTING nav icons, and Icon-System
      (#212121) the active one. The frame wins over the variable name. */
   --color-icon-system: #212121; /* the selected nav item */
+  /* The chatbox mic's hover ink (615:11227) — a step past icon-system. The
+     plus button's hover keeps #212121; only the fill changes there. */
+  --color-icon-system-hover: #050505;
   --color-icon-nav-active: #424242; /* every resting nav item */
   --color-icon-explainer: #777777; /* the collapse chevron */
 
@@ -457,6 +460,15 @@
     0 4px 2.5px 0 rgb(224 224 224 / 0.1),
     0 2px 8px 0 rgb(224 224 224 / 0.12),
     0 4px 10.4px 0 rgb(238 238 238 / 0.04);
+  /* The chatbox SELECTED and TYPING (615:11923 / 615:12010): the same three
+     layers plus two zero-offset halos — attention as glow, never as outline.
+     The stroke steps grey-150 → grey-300 alongside; both states share this. */
+  --shadow-chatbox-active:
+    0 0 8px 0 rgb(243 243 243 / 0.08),
+    0 0 12px 0 rgb(228 227 227 / 0.1),
+    0 4px 2.5px 0 rgb(224 224 224 / 0.1),
+    0 2px 8px 0 rgb(224 224 224 / 0.12),
+    0 4px 10.4px 0 rgb(238 238 238 / 0.04);
   /* The SELECTED evidence card (545:3549): a real drop plus a Blue halo pair —
      the stitch target, and the loudest shadow in the redesign on purpose. */
   --shadow-evidence-selected:
@@ -621,6 +633,11 @@
 }
 @utility shadow-avatar-well {
   filter: drop-shadow(0 0.919px 0.919px rgb(105 105 105 / 0.1));
+}
+/* The chatbox's small controls — the blue send (615:12078) and the tip's
+   label (615:12404) — share one faint zero-offset glint. */
+@utility shadow-chat-control {
+  filter: drop-shadow(0 0 1.5px rgb(186 186 186 / 0.15));
 }
 /* The 1.5px spread on a focused or invalid field (Figma nodes 305:12049 /
    300:8699). NOT named ring-* — that is Tailwind's own namespace, which shadowed

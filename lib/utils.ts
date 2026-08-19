@@ -84,6 +84,8 @@ const SHADOWS = [
   "preview-pop",
   "sensitivity",
   "chatbox",
+  "chatbox-active",
+  "chat-control",
 ];
 
 /** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB 500. */

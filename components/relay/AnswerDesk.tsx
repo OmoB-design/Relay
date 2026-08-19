@@ -17,7 +17,8 @@ import { TokenSelect } from "@/components/relay/TokenSelect";
 import { EmptyState } from "@/components/relay/EmptyState";
 import { AnswerCard } from "@/components/relay/AnswerCard";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
-import { MicGlyph, PlusGlyph, RelayMark } from "@/components/relay/NavIcons";
+import { DeskChatbox } from "@/components/relay/DeskChatbox";
+import { RelayMark } from "@/components/relay/NavIcons";
 import {
   answerThreadAction,
   askQuestionAction,
@@ -55,56 +56,6 @@ function resolveItems(
 }
 
 /* --- The landing (node 612:7139) --------------------------------------- */
-
-/** The chatbox (component 615:12432). A pinned 130px frame: the prompt line
- *  rides the top, the composer controls ride the bottom edge. */
-function DeskChatbox({ onNudge }: { onNudge: () => void }) {
-  const [question, setQuestion] = useState("");
-
-  return (
-    <form
-      className="flex h-chatbox w-full flex-col gap-4 overflow-clip rounded-20 border-fig border-grey-150 bg-surface-dashboard pb-5 pt-1 shadow-chatbox"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onNudge();
-      }}
-    >
-      <div className="flex w-full min-h-0 flex-1 px-4 pb-3 pt-3.5">
-        <textarea
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder={ad.inputPlaceholder}
-          aria-label="Question"
-          className="size-full resize-none bg-transparent font-geist text-fig-body-lg text-heading-01 outline-none placeholder:text-heading-06"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              onNudge();
-            }
-          }}
-        />
-      </div>
-      <div className="flex w-full items-center justify-between px-4">
-        <button
-          type="button"
-          aria-label="Add media"
-          onClick={onNudge}
-          className="flex size-7.5 items-center justify-center rounded-8 text-icon-system transition-colors duration-200 ease-out hover:bg-surface-foreground-01"
-        >
-          <PlusGlyph className="size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="Voice input"
-          onClick={onNudge}
-          className="flex size-7.5 items-center justify-center rounded-8 text-icon-system transition-colors duration-200 ease-out hover:bg-surface-foreground-01"
-        >
-          <MicGlyph className="size-4" />
-        </button>
-      </div>
-    </form>
-  );
-}
 
 /** One picker row (component 612:9952): the digest band's client mark inside
  *  its own washed tile, the name, and the client's own descriptor. The row
@@ -154,7 +105,17 @@ function DeskLanding({
           </h1>
         </header>
 
-        <DeskChatbox onNudge={nudge} />
+        {/* Unscoped, the box can't answer — every path nudges to the picker
+            and returns false so the typed question survives the nudge. */}
+        <DeskChatbox
+          placeholder={ad.inputPlaceholder}
+          onSubmit={() => {
+            nudge();
+            return false;
+          }}
+          onAttach={nudge}
+          onVoice={nudge}
+        />
 
         <section className="flex w-full flex-col gap-6 p-1">
           <h2 className="w-full font-geist text-fig-body fig-w450 text-heading-06">

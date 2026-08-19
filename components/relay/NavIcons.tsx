@@ -783,3 +783,25 @@ export function MicGlyph({ className }: GlyphProps) {
     </svg>
   );
 }
+
+/** The send arrow (615:12079) — drawn white in the frame, currentColor here
+ *  so the blue button's own text colour carries it. Exported paths, verbatim. */
+export function SendArrowGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...CHAT_ICON} aria-hidden="true" className={className}>
+      <path d="M8 2.4442V13.5553" {...CHAT_STROKE} />
+      <path d="M4.2221 6.22197L7.99988 2.4442L11.7777 6.22197" {...CHAT_STROKE} />
+    </svg>
+  );
+}
+
+/** The tip banner's dismiss (615:12410). A wider X than the modal's
+ *  CloseGlyph — 2.625 insets against its 3.11 — so it is its own asset. */
+export function TipDismissGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...NAV_SVG} aria-hidden="true" className={className}>
+      <path d="M2.625 11.375L11.375 2.625" stroke="currentColor" {...STROKE} />
+      <path d="M11.375 11.375L2.625 2.625" stroke="currentColor" {...STROKE} />
+    </svg>
+  );
+}
