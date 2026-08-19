@@ -461,6 +461,36 @@
   border-width: 1.5px;
 }
 
+/* Slim scrollbars, app-wide: the browser's default classic rail is 15px of
+   chrome against our hairline language. This narrows every scroll container
+   to an 8px rail carrying a 4px rounded pill (Grey/200, Grey/300 in hand),
+   the track invisible. Standards path for the engines without the WebKit
+   pseudos. Note: styling the pseudos opts a container out of macOS overlay
+   auto-hiding — the pill simply rests, which scrollbar-gutter already
+   reserves for. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  background-color: var(--color-grey-200);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-grey-300);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-grey-200) transparent;
+  }
+}
+
 /* Reserve the scrollbar gutter whether or not content overflows. With classic
    (space-consuming) scrollbars — external mouse, or macOS "Always show scroll
    bars" — a scroll container's inner width otherwise changes by ~15px whenever
