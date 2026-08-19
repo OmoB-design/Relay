@@ -1,3 +1,4 @@
+import { firstName, requireProfile } from "@/lib/auth";
 import { getClients, getSnapshotsByIds, getThreadsForClient } from "@/lib/data";
 import { AnswerDesk } from "@/components/relay/AnswerDesk";
 import type { AnswerThread } from "@/lib/types";
@@ -18,7 +19,10 @@ export default async function AnswerDeskPage({
 }: {
   searchParams: { client?: string };
 }) {
-  const clients = await getClients();
+  const [profile, clients] = await Promise.all([
+    requireProfile(),
+    getClients(),
+  ]);
   const selected = clients.find((c) => c.id === searchParams.client);
 
   const threads = selected ? await getThreadsForClient(selected.id) : [];
@@ -28,7 +32,13 @@ export default async function AnswerDeskPage({
 
   return (
     <AnswerDesk
-      clients={clients.map((c) => ({ id: c.id, name: c.name }))}
+      greetName={firstName(profile)}
+      clients={clients.map((c) => ({
+        id: c.id,
+        name: c.name,
+        descriptor: c.descriptor,
+        logoUrl: c.logoUrl,
+      }))}
       selectedClientId={selected?.id}
       threads={threads}
       snapshots={snapshots}

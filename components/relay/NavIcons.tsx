@@ -737,3 +737,49 @@ export function WaitingGlyph({ className }: GlyphProps) {
     </svg>
   );
 }
+
+/* --- The Answer Desk chatbox controls (node 615:12432) --- */
+
+/** 16×16, the chatbox pair's shared frame: both buttons draw at 1.33333. */
+const CHAT_ICON = {
+  width: 16,
+  height: 16,
+  viewBox: "0 0 16 16",
+  fill: "none",
+} as const;
+
+const CHAT_STROKE = {
+  stroke: "currentColor",
+  strokeWidth: 1.33333,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
+
+/** The add-media plus (615:11870). Exported paths, verbatim. */
+export function PlusGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...CHAT_ICON} aria-hidden="true" className={className}>
+      <path d="M8 2.88839V13.1106" {...CHAT_STROKE} />
+      <path d="M2.88895 8H13.1112" {...CHAT_STROKE} />
+    </svg>
+  );
+}
+
+/** The voice-input mic (615:11220). Exported paths, verbatim. */
+export function MicGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...CHAT_ICON} aria-hidden="true" className={className}>
+      <path
+        d="M13.5556 6.66629C13.5556 9.72941 11.0631 12.2219 8.00003 12.2219C4.93692 12.2219 2.44448 9.72941 2.44448 6.66629"
+        {...CHAT_STROKE}
+      />
+      <path
+        d="M10.8888 3.55518C10.8888 1.95972 9.59549 0.666295 7.99994 0.666295C6.40438 0.666295 5.11105 1.95972 5.11105 3.55518V6.66629C5.11105 8.26176 6.40438 9.55518 7.99994 9.55518C9.59549 9.55518 10.8888 8.26176 10.8888 6.66629V3.55518Z"
+        {...CHAT_STROKE}
+      />
+      <path d="M8 12.2221V15.3332" {...CHAT_STROKE} />
+      <path d="M8.66657 5.11161H10.8888" {...CHAT_STROKE} />
+      <path d="M5.11105 15.3337H10.8888" {...CHAT_STROKE} />
+    </svg>
+  );
+}

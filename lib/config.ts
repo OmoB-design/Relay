@@ -440,6 +440,7 @@ const ConfigSchema = z.object({
     }),
     answerDesk: z.object({
       title: z.string(),
+      greetingPrefix: z.string(),
       pickClient: z.string(),
       pickClientBody: z.string(),
       inputPlaceholder: z.string(),
@@ -930,10 +931,14 @@ export const config: Config = ConfigSchema.parse({
     },
     answerDesk: {
       title: "Answer Desk",
+      /* The landing greets the buyer by first name (node 612:7947). */
+      greetingPrefix: "Glad you’re here,",
       pickClient: "Pick a client to open their desk",
       pickClientBody:
         "The desk is always scoped to one client's data — answers are grounded, never general.",
-      inputPlaceholder: "Ask, or paste a client's question…",
+      /* The frame writes "How can i help you today?" — the lower-case i is a
+         typo in the mock, not a voice choice, so it is corrected here. */
+      inputPlaceholder: "How can I help you today?",
       answerButton: "Answer",
       supportingData: "Supporting data",
       emptyThread: "No questions yet",

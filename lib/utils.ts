@@ -33,6 +33,7 @@ import { extendTailwindMerge } from "tailwind-merge";
  *  on the screens awaiting redesign. */
 const FONT_SIZES = [
   "fig-button",
+  "fig-greeting",
   "fig-h4",
   "fig-h5",
   "fig-h6",
@@ -82,6 +83,7 @@ const SHADOWS = [
   "float-bar",
   "preview-pop",
   "sensitivity",
+  "chatbox",
 ];
 
 /** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB 500. */
@@ -99,6 +101,7 @@ const HEIGHTS = [
   "side-card",
   "nav-bar",
   "chip",
+  "chatbox",
 ];
 
 const twMerge = extendTailwindMerge({
@@ -115,7 +118,7 @@ const twMerge = extendTailwindMerge({
       "font-weight": FONT_WEIGHTS,
       h: [{ h: HEIGHTS }],
       "min-h": [{ "min-h": ["due-empty", "textarea"] }],
-      tracking: [{ tracking: ["count", "range"] }],
+      tracking: [{ tracking: ["count", "range", "greeting"] }],
       gap: [{ gap: ["bar-gap"] }],
     },
   },

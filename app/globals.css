@@ -48,7 +48,10 @@
   --color-icon-explainer: #777777; /* the collapse chevron */
 
   /* Typography — greys, darkest to lightest */
-  --color-heading-01: #000000; /* client names, headlines */
+  /* Typography/Heading-01, Light mode. The variable table says #080706 — the
+     same warm near-black as base-black — not #000; the pure black this held
+     was read off a canvas render, the same trap as Heading-06's grey. */
+  --color-heading-01: #080706; /* client names, headlines */
   --color-heading-02: #171717; /* strong UI text */
   /* Typography/Heading-03 — same hex as Heading-02 today, kept separate because
      they are separate Figma variables with separate lifecycles (the same reason
@@ -118,6 +121,7 @@
   --color-grey-400: #959595; /* the Sent pill's label (node 557:6160) */
   --color-grey-300: #bfbfbf;
   --color-grey-200: #d9d9d9; /* the 5px and 3px separator dots */
+  --color-grey-150: #dfdfdf; /* the desk chatbox's hairline (615:11614) */
   --color-grey-100: #eaeaea; /* text on disabled/working fills */
 
   /* Panel fill used inside cards (Figma reads it as a raw hex, no variable). */
@@ -260,10 +264,17 @@
   --text-fig-prose: 0.875rem;
   --text-fig-prose--line-height: 1.6;
 
+  /* The Answer Desk greeting (612:7947): 24/1.2 Helvetica Neue Medium — between
+     H5's section title and H4's workspace masthead, and the only one of the
+     three that is centred. Tracked at −0.48px. */
+  --text-fig-greeting: 1.5rem;
+  --text-fig-greeting--line-height: 1.2;
+
   /* The side panel's count figures (552:5016/5019): Figma tracks the 19px
      Helvetica figures at −2.66px and the month range at −0.76px. */
   --tracking-count: -0.14em;
   --tracking-range: -0.04em;
+  --tracking-greeting: -0.02em; /* −0.48px on the 24px desk greeting */
 
   /* --- Color: Relay semantic palette (design.md §2) --- */
   --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */
@@ -407,6 +418,14 @@
      line-height + padding + the hairline lands at 22.2 unpinned. */
   --spacing-chip: 21px;
 
+  /* The Answer Desk landing (node 612:7139): a 620 column — the chatbox frame
+     pins its height at 130 rather than deriving it from the rows inside. */
+  --container-desk: 620px;
+  --spacing-chatbox: 130px;
+  /* The picker's client tile (612:9774): the 34px mark in a washed 42px box.
+     Pinned for the inside-stroke reason — padding + a CSS border lands at 44. */
+  --spacing-desk-tile: 42px;
+
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
   --spacing-dialog-cap: 85svh;
 
@@ -432,6 +451,12 @@
   /* The draft card, the resting evidence card, the preview popover's base
      layer: the faintest of the card lifts. */
   --shadow-card-quiet: 0 0 2.5px 0 rgb(217 217 217 / 0.2);
+  /* The Answer Desk chatbox (615:11614): three near-white layers — a lift so
+     faint it reads as the box sitting a hair proud of the sheet. */
+  --shadow-chatbox:
+    0 4px 2.5px 0 rgb(224 224 224 / 0.1),
+    0 2px 8px 0 rgb(224 224 224 / 0.12),
+    0 4px 10.4px 0 rgb(238 238 238 / 0.04);
   /* The SELECTED evidence card (545:3549): a real drop plus a Blue halo pair —
      the stitch target, and the loudest shadow in the redesign on purpose. */
   --shadow-evidence-selected:
