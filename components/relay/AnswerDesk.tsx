@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/relay/EmptyState";
 import { AnswerCard } from "@/components/relay/AnswerCard";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
 import { DeskChatbox } from "@/components/relay/DeskChatbox";
+import { DeskDials } from "@/components/relay/DeskDials";
 import { RelayMark } from "@/components/relay/NavIcons";
 import {
   answerThreadAction,
@@ -134,6 +135,7 @@ function DeskLanding({
           )}
         </section>
       </div>
+      <DeskDials />
     </div>
   );
 }

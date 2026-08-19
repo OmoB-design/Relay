@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { useDialKit } from "dialkit";
 import { cn } from "@/lib/utils";
 import {
   MicGlyph,
@@ -26,7 +27,25 @@ import {
    box stays register-aligned with the bare one.
 
    The caret is real, not the mock's literal "|": caret-grey-400 is the same
-   #959595 the frame paints it. */
+   #959595 the frame paints it.
+
+   THE SEND ENTRY IS THE REFERENCE VIDEO'S, NOT A BOUNCE. Frame-by-frame the
+   reference (Claude, 60fps) crossfades in place: the resting glyph fades out
+   ~90ms, a beat of empty air, then send fades in ~110ms from ~92% scale —
+   opacity-led, no overshoot. Ours keeps the set's mic and lets it glide left
+   on a soft spring while send fades in beside it. All of it on dials. */
+
+/* A dialkit spring dial hands back either a spring or an easing curve; Motion
+   wants "tween", never "easing". Same adapter the workspace carries. */
+type DialTransition =
+  | { type: "spring"; [k: string]: unknown }
+  | { type: "easing"; duration: number; ease: [number, number, number, number] };
+
+function toMotion(t: DialTransition) {
+  return t.type === "easing"
+    ? { type: "tween" as const, duration: t.duration, ease: t.ease }
+    : t;
+}
 
 export function DeskChatbox({
   placeholder,
@@ -48,6 +67,21 @@ export function DeskChatbox({
 }) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
+
+  /* The send entry's tuning (dialkit). Defaults are the reference video's
+     measured profile; production ships these numbers. */
+  const dial = useDialKit(
+    "Desk chatbox",
+    {
+      send: {
+        inMs: [110, 40, 400, 5],
+        outMs: [90, 40, 400, 5],
+        scaleFrom: [0.92, 0.5, 1, 0.01],
+        micGlide: { type: "spring", visualDuration: 0.35, bounce: 0.15 },
+      },
+    },
+    { id: "desk-chatbox", persist: true },
+  );
 
   const hasText = value.trim().length > 0;
   /* Selected and Typing share one chrome, so text left in a blurred box keeps
@@ -109,6 +143,7 @@ export function DeskChatbox({
         <div className="flex items-center gap-2.5">
           <motion.button
             layout
+            transition={toMotion(dial.send.micGlide as DialTransition)}
             type="button"
             aria-label="Voice input"
             onClick={onVoice}
@@ -121,10 +156,22 @@ export function DeskChatbox({
               <motion.button
                 type="submit"
                 aria-label="Send"
-                initial={{ opacity: 0, scale: 0.6 }}
+                initial={{ opacity: 0, scale: dial.send.scaleFrom }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.6 }}
-                transition={{ type: "spring", visualDuration: 0.25, bounce: 0.3 }}
+                exit={{
+                  opacity: 0,
+                  scale: dial.send.scaleFrom,
+                  transition: {
+                    type: "tween",
+                    duration: dial.send.outMs / 1000,
+                    ease: "easeIn",
+                  },
+                }}
+                transition={{
+                  type: "tween",
+                  duration: dial.send.inMs / 1000,
+                  ease: "easeOut",
+                }}
                 className="flex size-7.5 items-center justify-center rounded-8 border-fig border-border bg-blue-500 bg-clip-padding text-white shadow-chat-control"
               >
                 <SendArrowGlyph className="size-4" />
