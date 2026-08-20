@@ -723,6 +723,24 @@
     transparent
   );
 }
+/* The composer's own clip edges (the reference video's): when the text
+   scrolls inside the box, the straddling line ghosts out under the top
+   boundary — the chip row's underside or the box's inner top — and
+   dissolves just above the icon row. Painted in the box's own wash. */
+@utility composer-clip-top {
+  background: linear-gradient(
+    to bottom,
+    var(--color-surface-dashboard),
+    transparent
+  );
+}
+@utility composer-clip-bottom {
+  background: linear-gradient(
+    to top,
+    var(--color-surface-dashboard),
+    transparent
+  );
+}
 /* The nav rail's width ride. Duration comes from the page (the desk syncs it
    with the chat panel's slide); everywhere else the var is unset, the
    duration is 0, and the toggle still snaps like it always has. */

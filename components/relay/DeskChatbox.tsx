@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { useDialKit } from "dialkit";
 import { cn } from "@/lib/utils";
@@ -78,7 +78,17 @@ function speechRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-type Attachment = { id: string; url: string };
+type Attachment = { id: string; url: string; loaded: boolean };
+
+/* The reference video's growth law (frame-measured): the box rises from the
+   frame's 130 one line-pitch at a time, bottom edge pinned, until ONE cap —
+   the same cap with or without attachments; the chip row eats viewport, the
+   box never exceeds it. Chrome the text can't use: top inset 4, block gap 16,
+   icon row 30, bottom pad 20 — and a chip row spends 48 + 8 + 16 more. */
+const GROW_CHROME = 4 + 16 + 30 + 20;
+const CHIP_ZONE = 48 + 8 + 16;
+/** One-line textarea height (14 top + 18 line + 12 bottom) — the floor. */
+const AREA_MIN = 44;
 
 export function DeskChatbox({
   placeholder,
@@ -119,6 +129,11 @@ export function DeskChatbox({
   const [focused, setFocused] = useState(false);
   const [images, setImages] = useState<Attachment[]>([]);
   const [listening, setListening] = useState(false);
+  /** The measured textarea height (grows with content, capped). */
+  const [areaH, setAreaH] = useState(AREA_MIN);
+  /** Which edges have content scrolled past them — the ghost fades. */
+  const [clipTop, setClipTop] = useState(false);
+  const [clipBottom, setClipBottom] = useState(false);
   const areaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const recRef = useRef<SpeechRecognitionLike | null>(null);
@@ -168,7 +183,11 @@ export function DeskChatbox({
     if (!list) return;
     const next = Array.from(list)
       .filter((f) => f.type.startsWith("image/"))
-      .map((f) => ({ id: crypto.randomUUID(), url: URL.createObjectURL(f) }));
+      .map((f) => ({
+        id: crypto.randomUUID(),
+        url: URL.createObjectURL(f),
+        loaded: false,
+      }));
     if (next.length) setImages((was) => [...was, ...next]);
   }
 
@@ -195,9 +214,56 @@ export function DeskChatbox({
         scaleFrom: [0.92, 0.5, 1, 0.01],
         micGlide: { type: "spring", visualDuration: 0.35, bounce: 0.15 },
       },
+      grow: {
+        // The box's ceiling and how fast it rises to meet the text.
+        maxHeight: [240, 160, 420, 2],
+        ms: [150, 60, 500, 10],
+      },
+      clip: {
+        // The scrolled text's ghost zones (video: ~18 over, ~14 under).
+        topH: [18, 8, 40, 1],
+        bottomH: [14, 6, 40, 1],
+        fadeMs: [150, 60, 500, 10],
+      },
+      chip: {
+        // The attachment's landing pop.
+        pop: { type: "spring", visualDuration: 0.28, bounce: 0.25 },
+      },
     },
     { id: "desk-chatbox", persist: true },
   );
+
+  /* Content drives the height: measure the textarea's natural size on every
+     change, cap it at what the box ceiling leaves after chrome (and the chip
+     row when one is up), and let CSS ease the difference. */
+  const maxText = Math.max(
+    AREA_MIN,
+    dial.grow.maxHeight - GROW_CHROME - (images.length ? CHIP_ZONE : 0),
+  );
+
+  function updateClips() {
+    const area = areaRef.current;
+    if (!area) return;
+    setClipTop(area.scrollTop > 2);
+    setClipBottom(area.scrollHeight - area.scrollTop - area.clientHeight > 2);
+  }
+
+  useLayoutEffect(() => {
+    const area = areaRef.current;
+    if (!area) return;
+    /* The height transition would ease the probe too — scrollHeight floors
+       at the still-animating clientHeight and the box could never shrink.
+       Suspend it for the measurement; nothing paints in between. */
+    const held = area.style.height;
+    area.style.transitionProperty = "none";
+    area.style.height = "0px";
+    const natural = area.scrollHeight;
+    area.style.height = held;
+    area.style.transitionProperty = "";
+    setAreaH(Math.max(AREA_MIN, Math.min(natural, maxText)));
+    // Clips read post-layout — the height above lands next frame.
+    requestAnimationFrame(updateClips);
+  }, [value, maxText]);
 
   const hasText = value.trim().length > 0;
   /* Selected and Typing share one chrome, so text left in a blurred box keeps
@@ -207,6 +273,8 @@ export function DeskChatbox({
 
   function submit() {
     if (!hasText) return;
+    // An image still decoding can't ride a send — the video holds too.
+    if (images.some((i) => !i.loaded)) return;
     if (listening) stopListening();
     if (onSubmit(value.trim(), images.map((i) => i.url)) === true) {
       setValue("");
@@ -215,12 +283,14 @@ export function DeskChatbox({
     }
   }
 
+  const anyLoading = images.some((i) => !i.loaded);
+
   const box = (
     <form
       className={cn(
-        /* Attachments grow the box; empty, it holds the frame's 130. */
-        images.length > 0 ? "min-h-chatbox" : "h-chatbox",
-        "flex w-full flex-col gap-4 overflow-clip rounded-20 border-fig bg-surface-dashboard pb-5 pt-1 transition-[border-color,box-shadow] duration-200 ease-out",
+        /* Content raises the box from the frame's 130 to the dialed cap;
+           past it, the text scrolls inside (the video's law). */
+        "flex min-h-chatbox w-full flex-col gap-4 overflow-clip rounded-20 border-fig bg-surface-dashboard pb-5 pt-1 transition-[border-color,box-shadow] duration-200 ease-out",
         tipped
           ? "shadow-chatbox"
           : active
@@ -241,20 +311,90 @@ export function DeskChatbox({
         submit();
       }}
     >
-      <div className="flex min-h-0 w-full flex-1 px-4 pb-3 pt-3.5">
+      {/* Attachments settle ABOVE the text (the video's row): each arrives on
+          a pop, holds a spinner until its image decodes, and removes via a
+          full-chip overlay under the pointer. */}
+      <AnimatePresence initial={false}>
+        {images.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex w-full flex-wrap gap-1.5 overflow-clip px-4 pt-2"
+          >
+            <AnimatePresence initial={false}>
+              {images.map((img) => (
+                <motion.span
+                  key={img.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={toMotion(dial.chip.pop as DialTransition)}
+                  className="group/chip relative size-12 shrink-0 overflow-clip rounded-10"
+                >
+                  {!img.loaded && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-surface-foreground-02">
+                      <span
+                        aria-label="Uploading"
+                        className="size-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
+                      />
+                    </span>
+                  )}
+                  {/* eslint-disable-next-line @next/next/no-img-element --
+                      object URLs can't go through next/image */}
+                  <img
+                    src={img.url}
+                    alt="Attachment preview"
+                    onLoad={() =>
+                      setImages((was) =>
+                        was.map((i) =>
+                          i.id === img.id ? { ...i, loaded: true } : i,
+                        ),
+                      )
+                    }
+                    className={cn(
+                      "size-12 object-cover transition-opacity duration-150 ease-out",
+                      !img.loaded && "opacity-0",
+                    )}
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remove attachment"
+                    onClick={() =>
+                      setImages((was) => was.filter((i) => i.id !== img.id))
+                    }
+                    className="absolute inset-0 flex items-center justify-center bg-base-black/50 text-white opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/chip:opacity-100"
+                  >
+                    <TipDismissGlyph className="size-4" />
+                  </button>
+                </motion.span>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div
+        className="relative min-h-0 w-full flex-1 cursor-text"
+        onClick={() => areaRef.current?.focus()}
+      >
         <textarea
           ref={areaRef}
           value={value}
           autoFocus={autoFocus}
+          style={{
+            height: areaH,
+            transitionDuration: `${dial.grow.ms}ms`,
+          }}
           onChange={(e) => {
             setValue(e.target.value);
             onDraftChange?.(e.target.value);
           }}
+          onScroll={updateClips}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
           aria-label="Question"
-          className="size-full resize-none bg-transparent font-geist text-fig-body-lg text-heading-01 caret-grey-400 outline-none placeholder:text-heading-06"
+          className="block w-full resize-none overflow-y-auto scrollbar-none bg-transparent px-4 pb-3 pt-3.5 font-geist text-fig-body-lg text-heading-01 caret-grey-400 outline-none transition-[height] ease-out placeholder:text-heading-06"
           onKeyDown={(e) => {
             // isComposing: an IME confirming a candidate is not a send.
             if (
@@ -267,40 +407,35 @@ export function DeskChatbox({
             }
           }}
         />
+        {/* The ghost zones — present only while text actually overflows that
+            edge, exactly as the video behaves at scroll start and end. */}
+        <AnimatePresence>
+          {clipTop && (
+            <motion.div
+              aria-hidden
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: dial.clip.fadeMs / 1000 }}
+              style={{ height: dial.clip.topH }}
+              className="pointer-events-none absolute inset-x-0 top-0 composer-clip-top"
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {clipBottom && (
+            <motion.div
+              aria-hidden
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: dial.clip.fadeMs / 1000 }}
+              style={{ height: dial.clip.bottomH }}
+              className="pointer-events-none absolute inset-x-0 bottom-0 composer-clip-bottom"
+            />
+          )}
+        </AnimatePresence>
       </div>
-      {/* Attached screenshots wait here until send — each removable. */}
-      <AnimatePresence initial={false}>
-        {images.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex w-full flex-wrap gap-1.5 px-4"
-          >
-            {images.map((img) => (
-              <span key={img.id} className="group/chip relative">
-                {/* eslint-disable-next-line @next/next/no-img-element --
-                    object URLs can't go through next/image */}
-                <img
-                  src={img.url}
-                  alt="Attachment preview"
-                  className="size-12 rounded-8 border-fig border-border object-cover"
-                />
-                <button
-                  type="button"
-                  aria-label="Remove attachment"
-                  onClick={() =>
-                    setImages((was) => was.filter((i) => i.id !== img.id))
-                  }
-                  className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-8 border-fig border-border bg-surface-primary text-icon-explainer opacity-0 transition-opacity duration-150 ease-out hover:text-heading-01 group-hover/chip:opacity-100"
-                >
-                  <TipDismissGlyph className="size-2.5" />
-                </button>
-              </span>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
       <div className="flex w-full items-center justify-between px-4">
         {/* Hover fills are the set's own (615:11881 / 615:11236): the wash is
             foreground-02, and only the MIC's ink darkens on hover. */}
@@ -363,6 +498,7 @@ export function DeskChatbox({
               <motion.button
                 type="submit"
                 aria-label="Send"
+                disabled={anyLoading}
                 initial={{ opacity: 0, scale: dial.send.scaleFrom }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{
@@ -379,7 +515,11 @@ export function DeskChatbox({
                   duration: dial.send.inMs / 1000,
                   ease: "easeOut",
                 }}
-                className="flex size-7.5 items-center justify-center rounded-8 border-fig border-border bg-blue-500 bg-clip-padding text-white shadow-chat-control"
+                className={cn(
+                  "flex size-7.5 items-center justify-center rounded-8 border-fig border-border bg-blue-500 bg-clip-padding text-white shadow-chat-control",
+                  /* The video's in-flight send: pale, not gone. */
+                  "transition-opacity duration-200 ease-out disabled:opacity-45",
+                )}
               >
                 <SendArrowGlyph className="size-4" />
               </motion.button>

@@ -443,6 +443,10 @@ export function AnswerDesk({
   const composer = (position: "landing" | "conversation") => (
     <motion.div
       layoutId="desk-composer"
+      /* position, not size: the ride to the bottom is a translation. Left
+         to animate size too, the wrapper's spring re-fires on every content
+         growth step and warps the box while it types. */
+      layout="position"
       transition={toMotion(dial.composer.drop as DialTransition)}
       className={cn(
         /* 43px, not the frame's 44: the sheet's own hairline is inside this
