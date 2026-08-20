@@ -124,7 +124,8 @@ export function AnswerDesk({
       },
       composer: {
         // The chatbox's ride from the centre to the bottom rail.
-        drop: { type: "spring", visualDuration: 0.7, bounce: 0.16 },
+        // Default is the user's tuned value (2026-08-20): a fast drop.
+        drop: { type: "spring", visualDuration: 0.2, bounce: 0.16 },
       },
       pill: {
         // The user message's landing.
@@ -139,15 +140,17 @@ export function AnswerDesk({
       },
       loader: {
         // The dot-matrix thinking loader (dotm-circular-8), every knob.
-        speed: [1.95, 0.2, 5, 0.05],
-        size: [16, 10, 40, 1],
-        dotSize: [2, 1, 6, 0.5],
-        color: { type: "color", default: "#080706" },
+        // Defaults are the user's tuned values (2026-08-20): a calmer,
+        // larger loader in Relay blue.
+        speed: [1.15, 0.2, 5, 0.05],
+        size: [24, 10, 40, 1],
+        dotSize: [2.5, 1, 6, 0.5],
+        color: { type: "color", default: "#0091ff" },
         halo: [0, 0, 1, 0.05],
         bloom: false,
         opacityBase: [0.08, 0, 1, 0.02],
         opacityMid: [0.16, 0, 1, 0.02],
-        opacityPeak: [0.95, 0, 1, 0.02],
+        opacityPeak: [0.96, 0, 1, 0.02],
       },
       stream: {
         chunkWords: [3, 1, 8, 1],
