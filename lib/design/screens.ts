@@ -452,7 +452,7 @@ export const SCREENS: ScreenSpec[] = [
     href: "/answer-desk",
     blurb:
       "A client's question, answered from evidence Relay holds — or an honest miss. The miss is the important state: it must never look like an answer.",
-    builtFrom: ["AnswerDesk", "AnswerCard", "EvidenceCard", "EmptyState"],
+    builtFrom: ["AnswerDesk", "DeskChatbox", "DeskMessages", "DeskSideBar"],
     groups: [
       {
         title: "Choosing a client",

@@ -97,6 +97,8 @@ export function AppNav({
   isAdmin = false,
   newTeamJoins = 0,
   defaultCollapsed = false,
+  collapsed: collapsedProp,
+  collapseMs,
 }: {
   profile: Profile;
   isAdmin?: boolean;
@@ -109,9 +111,19 @@ export function AppNav({
    *  would. The stored preference is not read there; the toggle still works
    *  and still records the choice for the other screens. */
   defaultCollapsed?: boolean;
+  /** CONTROLLED collapse, for the Answer Desk: the page folds the rail in
+   *  sync with its chat panel's slide, so the choice is the page's, not the
+   *  reader's — the toggle goes quiet and the stored preference is neither
+   *  read nor written while this is set. */
+  collapsed?: boolean;
+  /** How long the width ride takes when the controller flips it. Unset, the
+   *  toggle snaps like it always has. */
+  collapseMs?: number;
 }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const controlled = collapsedProp !== undefined;
+  const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
+  const collapsed = collapsedProp ?? internalCollapsed;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const items = NAV.filter((n) => !n.adminOnly || isAdmin);
 
@@ -125,12 +137,13 @@ export function AppNav({
      no localStorage, and reading it in useState's initialiser would render one
      width on the server and another on the client. */
   useEffect(() => {
-    if (defaultCollapsed) return;
-    setCollapsed(window.localStorage.getItem(STORE_KEY) === "1");
-  }, [defaultCollapsed]);
+    if (defaultCollapsed || controlled) return;
+    setInternalCollapsed(window.localStorage.getItem(STORE_KEY) === "1");
+  }, [defaultCollapsed, controlled]);
 
   function toggle() {
-    setCollapsed((was) => {
+    if (controlled) return;
+    setInternalCollapsed((was) => {
       window.localStorage.setItem(STORE_KEY, was ? "0" : "1");
       return !was;
     });
@@ -139,12 +152,17 @@ export function AppNav({
   return (
     <>
       <aside
+        style={
+          collapseMs !== undefined
+            ? ({ "--nav-collapse-ms": `${collapseMs}ms` } as React.CSSProperties)
+            : undefined
+        }
         className={cn(
           /* h-full inside the shell's h-dvh, so the nav is exactly one viewport
              and never scrolls — the account tile stays on screen no matter how
              long the morning's list gets. No sticky needed: the sheet beside it
              is the scroll container, not the page. */
-          "hidden h-full shrink-0 flex-col items-center justify-between overflow-hidden bg-surface-foreground-01 md:flex",
+          "hidden h-full shrink-0 flex-col items-center justify-between overflow-hidden bg-surface-foreground-01 nav-width-ride md:flex",
           collapsed ? "w-nav-collapsed" : "w-nav",
         )}
       >
@@ -159,28 +177,41 @@ export function AppNav({
             <Link href="/today" aria-label="Relay">
               <RelayMark className="size-nav-mark" />
             </Link>
-            {!collapsed && (
-              <button
-                type="button"
-                onClick={toggle}
-                aria-label="Collapse sidebar"
-                className="text-icon-explainer"
-              >
-                <PanelToggleGlyph direction="collapse" className="size-nav-icon" />
-              </button>
-            )}
+            {!collapsed &&
+              (controlled ? (
+                /* The page owns the width here — the glyph stays (the frame
+                   draws it) but it is furniture, not a control. */
+                <span aria-hidden className="text-icon-explainer">
+                  <PanelToggleGlyph direction="collapse" className="size-nav-icon" />
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-label="Collapse sidebar"
+                  className="text-icon-explainer"
+                >
+                  <PanelToggleGlyph direction="collapse" className="size-nav-icon" />
+                </button>
+              ))}
           </div>
 
           {collapsed && (
             <div className="flex w-full items-center justify-center pb-4 pt-2">
-              <button
-                type="button"
-                onClick={toggle}
-                aria-label="Expand sidebar"
-                className="text-icon-explainer"
-              >
-                <PanelToggleGlyph direction="expand" className="size-nav-icon" />
-              </button>
+              {controlled ? (
+                <span aria-hidden className="text-icon-explainer">
+                  <PanelToggleGlyph direction="expand" className="size-nav-icon" />
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-label="Expand sidebar"
+                  className="text-icon-explainer"
+                >
+                  <PanelToggleGlyph direction="expand" className="size-nav-icon" />
+                </button>
+              )}
             </div>
           )}
 

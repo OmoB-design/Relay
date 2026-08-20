@@ -444,12 +444,7 @@ const ConfigSchema = z.object({
       pickClient: z.string(),
       pickClientBody: z.string(),
       inputPlaceholder: z.string(),
-      answerButton: z.string(),
       supportingData: z.string(),
-      emptyThread: z.string(),
-      emptyThreadBody: z.string(),
-      answeredToast: z.string(),
-      waitingBadge: z.string(),
     }),
     loom: z.object({
       title: z.string(),
@@ -939,13 +934,7 @@ export const config: Config = ConfigSchema.parse({
       /* The frame writes "How can i help you today?" — the lower-case i is a
          typo in the mock, not a voice choice, so it is corrected here. */
       inputPlaceholder: "How can I help you today?",
-      answerButton: "Answer",
       supportingData: "Supporting data",
-      emptyThread: "No questions yet",
-      emptyThreadBody:
-        "Paste the next question this client sends you — the answer comes back grounded in their own numbers.",
-      answeredToast: "Answered",
-      waitingBadge: "Waiting",
     },
     loom: {
       title: "Loom brief",

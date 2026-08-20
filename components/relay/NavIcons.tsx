@@ -805,3 +805,193 @@ export function TipDismissGlyph({ className }: GlyphProps) {
     </svg>
   );
 }
+
+/* --- The desk conversation's glyph set (nodes 619:15490 / 619:17022 /
+       639:17444) — message meta controls, the agent's sparkles, and the chat
+       sidebar's furniture. Exported paths, verbatim; currentColor throughout
+       except the edit square's own two-tone fill. --- */
+
+/** 12×12, the message meta row's size; drawn at 0.9. */
+const META_ICON = {
+  width: 12,
+  height: 12,
+  viewBox: "0 0 12 12",
+  fill: "none",
+} as const;
+
+const META_STROKE = {
+  stroke: "currentColor",
+  strokeWidth: 0.9,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
+
+/** Re-run a message (619:15459). */
+export function RetryGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...META_ICON} aria-hidden="true" className={className}>
+      <path
+        d="M9.71124 8.5268C8.90184 9.71793 7.53571 10.5 5.98711 10.5C3.50184 10.5 1.48711 8.48527 1.48711 6C1.48711 3.51473 3.50184 1.5 5.98711 1.5C7.85091 1.5 9.44971 2.63307 10.1329 4.24747"
+        {...META_STROKE}
+      />
+      <path
+        d="M7.75313 4.14294L10.3083 4.49961L10.6623 1.94414"
+        {...META_STROKE}
+        strokeWidth={0.666667}
+      />
+    </svg>
+  );
+}
+
+/** Copy a message (619:15465). */
+export function CopyGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...META_ICON} aria-hidden="true" className={className}>
+      <path
+        d="M8.333 3.75H9.75C10.578 3.75 11.25 4.422 11.25 5.25V9.75C11.25 10.578 10.578 11.25 9.75 11.25H5.25C4.422 11.25 3.75 10.578 3.75 9.75V8.25"
+        {...META_STROKE}
+      />
+      <path
+        d="M6.75 0.75H2.25C1.42157 0.75 0.75 1.42157 0.75 2.25V6.75C0.75 7.57843 1.42157 8.25 2.25 8.25H6.75C7.57843 8.25 8.25 7.57843 8.25 6.75V2.25C8.25 1.42157 7.57843 0.75 6.75 0.75Z"
+        {...META_STROKE}
+      />
+    </svg>
+  );
+}
+
+/** Take the answer back into the composer (619:16985). */
+export function UndoGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...META_ICON} aria-hidden="true" className={className}>
+      <path
+        d="M1.25014 5.74972H8.75014C9.85514 5.74972 10.7501 6.64472 10.7501 7.74972V9.74972"
+        {...META_STROKE}
+        strokeWidth={1}
+      />
+      <path
+        d="M4.24986 9.00028L0.99986 5.75028L4.24986 2.50028"
+        {...META_STROKE}
+        strokeWidth={1}
+      />
+    </svg>
+  );
+}
+
+/** Edit a sent question (619:15462) — the one meta glyph with its own fill:
+ *  an 18px rounded square in Foreground-02 under a pencil at icon-system. */
+export function EditSquareGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={18}
+      height={18}
+      viewBox="0 0 18 18"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M0 6.4C0 4.15979 0 3.03968 0.435974 2.18404C0.819467 1.43139 1.43139 0.819467 2.18404 0.435974C3.03968 0 4.15979 0 6.4 0H11.6C13.8402 0 14.9603 0 15.816 0.435974C16.5686 0.819467 17.1805 1.43139 17.564 2.18404C18 3.03968 18 4.15979 18 6.4V11.6C18 13.8402 18 14.9603 17.564 15.816C17.1805 16.5686 16.5686 17.1805 15.816 17.564C14.9603 18 13.8402 18 11.6 18H6.4C4.15979 18 3.03968 18 2.18404 17.564C1.43139 17.1805 0.819467 16.5686 0.435974 15.816C0 14.9603 0 13.8402 0 11.6V6.4Z"
+        fill="var(--color-surface-foreground-02)"
+      />
+      <path
+        d="M4.5 13.4993C4.5 13.4993 7.09112 13.0903 7.77292 12.4085C8.45472 11.7267 13.048 7.13342 13.048 7.13342C13.6507 6.53082 13.6507 5.55384 13.048 4.95195C12.4454 4.34935 11.4685 4.34935 10.8666 4.95195C10.8666 4.95195 6.27325 9.54528 5.59145 10.2271C4.90966 10.9089 4.50072 13.5 4.50072 13.5L4.5 13.4993Z"
+        stroke="var(--color-icon-system)"
+        strokeWidth={0.971942}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** The agent's sparkles (619:16942) — "Thinking" while it works, "Thought Ns"
+ *  once it has. The SPIN lives on the element, not in the asset. */
+export function SparklesGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={16}
+      height={16}
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M5.91812 3.57917L4.79545 3.20493L4.42123 2.08227C4.29945 1.7196 3.69945 1.7196 3.57767 2.08227L3.20345 3.20493L2.08079 3.57917C1.89945 3.63962 1.77679 3.8094 1.77679 4.00051C1.77679 4.19162 1.89945 4.3614 2.08079 4.42184L3.20345 4.79608L3.57767 5.91875C3.63812 6.10008 3.80879 6.22273 3.9999 6.22273C4.19101 6.22273 4.36079 6.10008 4.42212 5.91875L4.79634 4.79608L5.91901 4.42184C6.10034 4.3614 6.22301 4.19162 6.22301 4.00051C6.22301 3.8094 6.09945 3.63962 5.91812 3.57917Z"
+        fill="currentColor"
+      />
+      <path
+        d="M13.9181 11.5781L12.7955 11.2039L12.4212 10.0812C12.2995 9.71848 11.6995 9.71848 11.5777 10.0812L11.2035 11.2039L10.0808 11.5781C9.89945 11.6386 9.77679 11.8084 9.77679 11.9995C9.77679 12.1906 9.89945 12.3604 10.0808 12.4208L11.2035 12.795L11.5777 13.9177C11.6381 14.099 11.8088 14.2217 11.9999 14.2217C12.191 14.2217 12.3608 14.099 12.4221 13.9177L12.7963 12.795L13.919 12.4208C14.1003 12.3604 14.223 12.1906 14.223 11.9995C14.223 11.8084 14.0995 11.6386 13.9181 11.5781Z"
+        fill="currentColor"
+      />
+      <path
+        d="M5.33309 7.7779L5.92953 10.0703L8.22197 10.6668L5.92953 11.2632L5.33309 13.5557L4.73664 11.2632L2.4442 10.6668L4.73664 10.0703L5.33309 7.7779Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth={0.888889}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.6668 2.4442L11.2632 4.73662L13.5557 5.33309L11.2632 5.92955L10.6668 8.22197L10.0703 5.92955L7.7779 5.33309L10.0703 4.73662L10.6668 2.4442Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth={0.888889}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** The sidebar's Search chat magnifier (639:17195). */
+export function SearchChatGlyph({ className }: GlyphProps) {
+  return (
+    <svg {...NAV_SVG} aria-hidden="true" className={className}>
+      <path d="M12.25 12.25L9.05225 9.05225" stroke="currentColor" {...STROKE} />
+      <path
+        d="M6.02778 10.3056C8.39028 10.3056 10.3056 8.39028 10.3056 6.02778C10.3056 3.66528 8.39028 1.75 6.02778 1.75C3.66528 1.75 1.75 3.66528 1.75 6.02778C1.75 8.39028 3.66528 10.3056 6.02778 10.3056Z"
+        stroke="currentColor"
+        {...STROKE}
+      />
+    </svg>
+  );
+}
+
+/** The client group's 8px chevron (639:17209), drawn at 0.8. */
+export function GroupChevronGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={8}
+      height={8}
+      viewBox="0 0 8 8"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M2.83329 6.83352L5.66662 4.00019L2.83329 1.16685"
+        stroke="currentColor"
+        strokeWidth={0.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** The chat row's 5px ring (639:17213) — grey-300 at 0.6, hollow. */
+export function ChatDotGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={5}
+      height={5}
+      viewBox="0 0 5 5"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx={2.5} cy={2.5} r={2.2} stroke="currentColor" strokeWidth={0.6} />
+    </svg>
+  );
+}

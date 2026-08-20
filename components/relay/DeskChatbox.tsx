@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { useDialKit } from "dialkit";
 import { cn } from "@/lib/utils";
@@ -54,6 +54,10 @@ export function DeskChatbox({
   onSubmit,
   onAttach,
   onVoice,
+  float = false,
+  seed,
+  autoFocus = false,
+  onDraftChange,
 }: {
   placeholder: string;
   /** The tip banner's label — renders the Tips housing when present. What
@@ -64,9 +68,32 @@ export function DeskChatbox({
   onSubmit: (question: string) => boolean | void;
   onAttach?: () => void;
   onVoice?: () => void;
+  /** The conversation composer's elevation (I619:14705): one deep soft layer
+   *  under each state's stack, because the box floats over the transcript. */
+  float?: boolean;
+  /** Hand a question back to the composer (the transcript's edit action).
+   *  The nonce forces a re-seed even for the same text. */
+  seed?: { text: string; nonce: number };
+  /** Focus the box the moment it mounts (the conversation composer). */
+  autoFocus?: boolean;
+  /** Every keystroke, so the page can carry a draft across a handoff. */
+  onDraftChange?: (text: string) => void;
 }) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
+  const areaRef = useRef<HTMLTextAreaElement>(null);
+
+  /* A seed is an invitation to keep typing: focus follows it, caret at the
+     end, so edit/undo/failure never strand a keyboard user. */
+  useEffect(() => {
+    if (!seed) return;
+    setValue(seed.text);
+    const area = areaRef.current;
+    if (area) {
+      area.focus();
+      area.setSelectionRange(seed.text.length, seed.text.length);
+    }
+  }, [seed]);
 
   /* The send entry's tuning (dialkit). Defaults are the reference video's
      measured profile; production ships these numbers. */
@@ -91,16 +118,25 @@ export function DeskChatbox({
 
   function submit() {
     if (!hasText) return;
-    if (onSubmit(value.trim()) === true) setValue("");
+    if (onSubmit(value.trim()) === true) {
+      setValue("");
+      onDraftChange?.("");
+    }
   }
 
   const box = (
     <form
       className={cn(
         "flex h-chatbox w-full flex-col gap-4 overflow-clip rounded-20 border-fig bg-surface-dashboard pb-5 pt-1 transition-[border-color,box-shadow] duration-200 ease-out",
-        tipped || !active
+        tipped
           ? "shadow-chatbox"
-          : "shadow-chatbox-active",
+          : active
+            ? float
+              ? "shadow-chatbox-float-active"
+              : "shadow-chatbox-active"
+            : float
+              ? "shadow-chatbox-float"
+              : "shadow-chatbox",
         tipped
           ? "border-border"
           : active
@@ -114,15 +150,25 @@ export function DeskChatbox({
     >
       <div className="flex min-h-0 w-full flex-1 px-4 pb-3 pt-3.5">
         <textarea
+          ref={areaRef}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          autoFocus={autoFocus}
+          onChange={(e) => {
+            setValue(e.target.value);
+            onDraftChange?.(e.target.value);
+          }}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
           aria-label="Question"
           className="size-full resize-none bg-transparent font-geist text-fig-body-lg text-heading-01 caret-grey-400 outline-none placeholder:text-heading-06"
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            // isComposing: an IME confirming a candidate is not a send.
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey &&
+              !e.nativeEvent.isComposing
+            ) {
               e.preventDefault();
               submit();
             }

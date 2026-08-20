@@ -33,6 +33,7 @@ import { extendTailwindMerge } from "tailwind-merge";
  *  on the screens awaiting redesign. */
 const FONT_SIZES = [
   "fig-button",
+  "fig-chat",
   "fig-greeting",
   "fig-h4",
   "fig-h5",
@@ -85,11 +86,23 @@ const SHADOWS = [
   "sensitivity",
   "chatbox",
   "chatbox-active",
+  "chatbox-float",
+  "chatbox-float-active",
   "chat-control",
+  "chat-group",
+  "side-control",
 ];
 
-/** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB 500. */
-const FONT_WEIGHTS = ["fig-regular", "fig-w450", "fig-medium", "fig-sb"];
+/** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB
+ *  500 — plus the desk's two below-Regular reading weights. */
+const FONT_WEIGHTS = [
+  "fig-regular",
+  "fig-w390",
+  "fig-w420",
+  "fig-w450",
+  "fig-medium",
+  "fig-sb",
+];
 
 /** Named heights, for the boxes Figma pins outright rather than deriving from
  *  their padding. `h-9` and friends must still be able to override them. */
@@ -104,6 +117,7 @@ const HEIGHTS = [
   "nav-bar",
   "chip",
   "chatbox",
+  "desk-pill",
 ];
 
 const twMerge = extendTailwindMerge({
@@ -120,7 +134,7 @@ const twMerge = extendTailwindMerge({
       "font-weight": FONT_WEIGHTS,
       h: [{ h: HEIGHTS }],
       "min-h": [{ "min-h": ["due-empty", "textarea"] }],
-      tracking: [{ tracking: ["count", "range", "greeting"] }],
+      tracking: [{ tracking: ["count", "range", "greeting", "chat"] }],
       gap: [{ gap: ["bar-gap"] }],
     },
   },

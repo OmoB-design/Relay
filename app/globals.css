@@ -127,6 +127,10 @@
   --color-grey-150: #dfdfdf; /* the desk chatbox's hairline (615:11614) */
   --color-grey-100: #eaeaea; /* text on disabled/working fills */
 
+  /* The desk sidebar's ACTIVE chat row (639:17211) — a half-step between
+     Foreground-01 and the dashboard wash, named where the frame uses it. */
+  --color-surface-foreground-03: #f3f3f3;
+
   /* Panel fill used inside cards (Figma reads it as a raw hex, no variable). */
   --color-panel: #fbfbfb;
 
@@ -273,11 +277,17 @@
   --text-fig-greeting: 1.5rem;
   --text-fig-greeting--line-height: 1.2;
 
+  /* The agent's reply (619:16977): 16/1.2 at weight 390, tracked −0.16px —
+     the desk's reading size, a shade lighter than Regular on purpose. */
+  --text-fig-chat: 1rem;
+  --text-fig-chat--line-height: 1.2;
+
   /* The side panel's count figures (552:5016/5019): Figma tracks the 19px
      Helvetica figures at −2.66px and the month range at −0.76px. */
   --tracking-count: -0.14em;
   --tracking-range: -0.04em;
   --tracking-greeting: -0.02em; /* −0.48px on the 24px desk greeting */
+  --tracking-chat: -0.01em; /* −0.16px on the 16px agent reply */
 
   /* --- Color: Relay semantic palette (design.md §2) --- */
   --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */
@@ -428,6 +438,10 @@
   /* The picker's client tile (612:9774): the 34px mark in a washed 42px box.
      Pinned for the inside-stroke reason — padding + a CSS border lands at 44. */
   --spacing-desk-tile: 42px;
+  /* The desk sidebar (639:17444): the 300 chat panel beside the collapsed
+     rail; Start-new-chat and the group header pin at 33 (inside stroke). */
+  --spacing-desk-panel: 300px;
+  --spacing-desk-pill: 33px;
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
   --spacing-dialog-cap: 85svh;
@@ -469,6 +483,24 @@
     0 4px 2.5px 0 rgb(224 224 224 / 0.1),
     0 2px 8px 0 rgb(224 224 224 / 0.12),
     0 4px 10.4px 0 rgb(238 238 238 / 0.04);
+  /* The CONVERSATION composer (I619:14705): the desk floats the box over the
+     transcript, so one deep soft layer rides UNDER each state's own stack —
+     the node draws it on the typing chrome; the rest pairing follows the rule. */
+  --shadow-chatbox-float:
+    0 27px 20.4px 0 rgb(237 237 237 / 0.25),
+    0 4px 2.5px 0 rgb(224 224 224 / 0.1),
+    0 2px 8px 0 rgb(224 224 224 / 0.12),
+    0 4px 10.4px 0 rgb(238 238 238 / 0.04);
+  --shadow-chatbox-float-active:
+    0 27px 20.4px 0 rgb(237 237 237 / 0.25),
+    0 0 8px 0 rgb(243 243 243 / 0.08),
+    0 0 12px 0 rgb(228 227 227 / 0.1),
+    0 4px 2.5px 0 rgb(224 224 224 / 0.1),
+    0 2px 8px 0 rgb(224 224 224 / 0.12),
+    0 4px 10.4px 0 rgb(238 238 238 / 0.04);
+  /* The desk sidebar's controls — Search chat and Start new chat (639:17194 /
+     639:17200) share one whisper of a lift. */
+  --shadow-side-control: 0 1px 1.5px 0 rgb(228 228 228 / 0.12);
   /* The SELECTED evidence card (545:3549): a real drop plus a Blue halo pair —
      the stitch target, and the loudest shadow in the redesign on purpose. */
   --shadow-evidence-selected:
@@ -602,6 +634,14 @@
 @utility fig-sb {
   font-weight: 500;
 }
+/* The desk's two below-Regular weights: the agent reply reads at 390
+   (619:16977), the sidebar's chat rows at 420 (639:17215). */
+@utility fig-w390 {
+  font-weight: 390;
+}
+@utility fig-w420 {
+  font-weight: 420;
+}
 
 /* Card elevations, straight from the Figma nodes. Borders still carry most of
    the separation; these are the faint lifts on the flag and digest cards. */
@@ -638,6 +678,35 @@
    label (615:12404) — share one faint zero-offset glint. */
 @utility shadow-chat-control {
   filter: drop-shadow(0 0 1.5px rgb(186 186 186 / 0.15));
+}
+/* The sidebar's client-group header (639:17205): an even fainter one. */
+@utility shadow-chat-group {
+  filter: drop-shadow(0 0 0.75px rgb(206 205 205 / 0.12));
+}
+/* The chat row's right-edge wash (639:17216): the title runs out under a
+   fade in the row's own colour — the frame blurs a rectangle; a gradient is
+   the same read without the paint cost. One per row background. */
+@utility chat-fade {
+  background: linear-gradient(
+    to left,
+    var(--color-surface-dashboard) 20%,
+    transparent
+  );
+}
+@utility chat-fade-active {
+  background: linear-gradient(
+    to left,
+    var(--color-surface-foreground-03) 20%,
+    transparent
+  );
+}
+/* The nav rail's width ride. Duration comes from the page (the desk syncs it
+   with the chat panel's slide); everywhere else the var is unset, the
+   duration is 0, and the toggle still snaps like it always has. */
+@utility nav-width-ride {
+  transition-property: width;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-duration: var(--nav-collapse-ms, 0ms);
 }
 /* The 1.5px spread on a focused or invalid field (Figma nodes 305:12049 /
    300:8699). NOT named ring-* — that is Tailwind's own namespace, which shadowed

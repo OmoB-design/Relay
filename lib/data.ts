@@ -822,7 +822,7 @@ export async function askQuestion(
   clientId: string,
   question: string,
   answer: Answer,
-): Promise<void> {
+): Promise<string> {
   const id = crypto.randomUUID();
   const { error } = await (await getSupabase()).from("answer_threads").insert({
     id,
@@ -833,6 +833,8 @@ export async function askQuestion(
   });
   throwIf(error);
   await pinAnswerToTimeline(clientId, id, question, answer);
+  // The desk prepends the new thread to its chat rail without a round trip.
+  return id;
 }
 
 /** Answer an existing (waiting) thread — the Today "Waiting on you" flow. */
