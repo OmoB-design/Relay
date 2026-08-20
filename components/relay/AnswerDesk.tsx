@@ -39,9 +39,10 @@ import {
 
    THE CONVERSATION (619:14680) is a 620 transcript over a floating composer.
    Real questions go through the same engine as ever (askDeskQuestionAction);
-   the reply streams in pale chunks that darken to ink, the sparkles spin for
-   exactly as long as the answer takes, and the settled header keeps the real
-   "Thought Ns". Every one of these moves is on the "Desk interactions" dials.
+   the reply follows the reference video's three acts — the dotmatrix shimmer
+   alone at the reply slot, then text streaming above it while it stays
+   alive, then the same glyph frozen still one line under the finished
+   reply. No header, no label, no sparkles. Every move is on the dials.
 
    Scope stays mandatory: the landing chatbox nudges toward the picker, and
    the transcript is always one client's data. */
@@ -70,7 +71,8 @@ type DeskMessage =
       id: string;
       chunks: AgentChunk[];
       thinking: boolean;
-      thoughtSecs: number | null;
+      /** The stream has finished — the shimmer freezes in place. */
+      done: boolean;
       at: number;
       synthetic?: boolean;
     };
@@ -142,8 +144,8 @@ export function AnswerDesk({
       },
       loader: {
         // The thinking shimmer — dotm-circular-5, the user's pick. It runs
-        // alone at the reply's first-line slot (claude 2.mov) and becomes
-        // the static sparkles the moment text arrives.
+        // alone at the reply's first-line slot, rides below the streaming
+        // text, and freezes still under the finished reply (claude 2.mov).
         speed: [1.7, 0.2, 5, 0.05],
         size: [28, 12, 48, 1],
         dotSize: [4, 1, 8, 0.5],
@@ -228,14 +230,13 @@ export function AnswerDesk({
 
   /** Streams `text` into the agent message `id` in pale chunks. */
   const streamReply = useCallback(
-    (id: string, text: string, startedAt: number, onDone?: () => void) => {
+    (id: string, text: string, onDone?: () => void) => {
       const words = text.split(/(?<=\s)/);
       const per = Math.max(1, Math.round(dial.stream.chunkWords));
       const chunks: string[] = [];
       for (let i = 0; i < words.length; i += per) {
         chunks.push(words.slice(i, i + per).join(""));
       }
-      const secs = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
       chunks.forEach((chunk, i) => {
         later(i * dial.stream.intervalMs, () => {
           setMessages((was) =>
@@ -244,7 +245,7 @@ export function AnswerDesk({
                 ? {
                     ...m,
                     thinking: false,
-                    thoughtSecs: secs,
+                    done: i === chunks.length - 1,
                     chunks: [...m.chunks, { id: i, text: chunk }],
                   }
                 : m,
@@ -284,7 +285,6 @@ export function AnswerDesk({
       })
       .catch(() => {});
 
-    const started = Date.now();
     const t0 = rippleMs + dial.pill.delayMs;
     later(t0, () => {
       setMessages([
@@ -306,7 +306,7 @@ export function AnswerDesk({
           id: agentId,
           chunks: [],
           thinking: true,
-          thoughtSecs: null,
+          done: false,
           at: Date.now(),
           synthetic: true,
         },
@@ -321,7 +321,6 @@ export function AnswerDesk({
       streamReply(
         agentId,
         `Hey ${greetName}! Ask me anything about ${picked.name}`,
-        started,
         () => later(dial.sidebar.delayMs, () => setSidebarIn(true)),
       );
     });
@@ -334,7 +333,6 @@ export function AnswerDesk({
     if (!client || pending) return false;
     setPending(true);
     setActiveChatId(null);
-    const started = Date.now();
     const userId = nextId();
     const agentId = nextId();
     setMessages((was) => [
@@ -351,7 +349,7 @@ export function AnswerDesk({
         id: agentId,
         chunks: [],
         thinking: true,
-        thoughtSecs: null,
+        done: false,
         at: Date.now(),
       },
     ]);
@@ -368,7 +366,7 @@ export function AnswerDesk({
           ...was,
           [client.id]: [thread, ...(was[client.id] ?? [])],
         }));
-        streamReply(agentId, answer.text, started, () => setPending(false));
+        streamReply(agentId, answer.text, () => setPending(false));
       })
       .catch(() => {
         setPending(false);
@@ -413,7 +411,7 @@ export function AnswerDesk({
         id: nextId(),
         chunks: thread.answer ? [{ id: 0, text: thread.answer.text }] : [],
         thinking: false,
-        thoughtSecs: null,
+        done: true,
         at: Date.parse(thread.createdAt),
       },
     ]);
@@ -552,8 +550,13 @@ export function AnswerDesk({
                       >
                         <AgentReply
                           chunks={m.chunks}
-                          thinking={m.thinking}
-                          thoughtSecs={m.thoughtSecs}
+                          phase={
+                            m.thinking
+                              ? "thinking"
+                              : m.done
+                                ? "done"
+                                : "streaming"
+                          }
                           at={m.at}
                           meta={!m.synthetic}
                           chunkFadeMs={dial.stream.chunkFadeMs}
@@ -708,7 +711,7 @@ function greetingTranscript(
         { id: 0, text: `Hey ${greetName}! Ask me anything about ${clientName}` },
       ],
       thinking: false,
-      thoughtSecs: null,
+      done: true,
       at: Date.now(),
       synthetic: true,
     },

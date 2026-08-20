@@ -1,17 +1,15 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { DotmCircular5 } from "@/components/ui/dotm-circular-5";
 import "@/components/dotmatrix-loader.css";
 /* eslint-disable @next/next/no-img-element -- attachment previews are
    client-side object URLs; next/image cannot optimise a blob. */
-import { cn } from "@/lib/utils";
 import {
   CopyGlyph,
   EditPencilGlyph,
   RetryGlyph,
-  SparklesGlyph,
   UndoGlyph,
 } from "@/components/relay/NavIcons";
 
@@ -26,16 +24,15 @@ import {
 
    THE AGENT STREAMS IN CHUNKS THAT DARKEN. The reference video lands each new
    span of text pale and fades it to ink while the next arrives behind it;
-   AgentReply renders its chunk list exactly that way, and the sparkles spin
-   only while the answer is still owed ("Thinking" at caption-2/explainer),
-   then rest ("Thought Ns" at caption-1/heading-05 — the set's own size step). */
+   AgentReply renders its chunk list exactly that way. The reply carries NO
+   header: the dotmatrix shimmer runs below the text through thinking and
+   streaming, then freezes in place when the reply is done (claude 2.mov). */
 
 export type AgentChunk = { id: number; text: string };
 
 /** The thinking shimmer's knobs — the dotm-circular-5 loader, dialed from
- *  the desk's panel. Per the reference video it runs ALONE at the reply's
- *  first-line slot, no label, and becomes the static sparkles SVG the
- *  moment text arrives. */
+ *  the desk's panel. It runs alone at the reply's first-line slot, rides
+ *  below the streaming text, and freezes still under the finished reply. */
 export type LoaderDials = {
   speed: number;
   size: number;
@@ -44,15 +41,6 @@ export type LoaderDials = {
   halo: number;
   bloom: boolean;
 };
-
-/* The header's two swaps carry transitions.dev's tuned recipes: icon-swap
-   (200ms, 2px blur, 0.25 start scale, ease-in-out) between the loader and the
-   sparkles, and text-states-swap (200ms, 8px travel, 2px blur, ease-out)
-   between "Thinking" and "Thought Ns" — ported into Motion so they respect
-   reduced-motion with everything else. */
-type SwapRecipe = { duration: number; ease: "easeInOut" | "easeOut" };
-const ICON_SWAP: SwapRecipe = { duration: 0.2, ease: "easeInOut" };
-const TEXT_SWAP: SwapRecipe = { duration: 0.2, ease: "easeOut" };
 
 function timeAgo(at: number): string {
   const mins = Math.max(0, Math.round((Date.now() - at) / 60000));
@@ -223,8 +211,7 @@ export function UserMessage({
 
 export function AgentReply({
   chunks,
-  thinking,
-  thoughtSecs,
+  phase,
   at,
   meta = true,
   chunkFadeMs,
@@ -236,9 +223,12 @@ export function AgentReply({
   /** The reply so far, in arrival order — one span per chunk so each can
    *  carry its own fade without re-animating the settled ones. */
   chunks: AgentChunk[];
-  /** Still owed an answer: the shimmer runs alone, no label. */
-  thinking: boolean;
-  thoughtSecs: number | null;
+  /** The reference video's three acts: "thinking" — no text yet, the
+   *  shimmer runs alone at the reply's first-line slot; "streaming" — text
+   *  arrives above while the shimmer rides below it, still alive; "done" —
+   *  the shimmer freezes into the static sparkles one line under the reply.
+   *  No header, no label, ever. */
+  phase: "thinking" | "streaming" | "done";
   at: number;
   /** The greeting is theater — it takes no controls row. */
   meta?: boolean;
@@ -250,86 +240,11 @@ export function AgentReply({
 }) {
   const reducedMotion = useReducedMotion();
   const full = chunks.map((c) => c.text).join("");
-  const swap = (recipe: SwapRecipe, scale?: number) => ({
-    initial: reducedMotion
-      ? false
-      : {
-          opacity: 0,
-          filter: "blur(2px)",
-          ...(scale !== undefined ? { scale } : { y: 8 }),
-        },
-    animate: {
-      opacity: 1,
-      filter: "blur(0px)",
-      ...(scale !== undefined ? { scale: 1 } : { y: 0 }),
-    },
-    exit: {
-      opacity: 0,
-      filter: "blur(2px)",
-      ...(scale !== undefined ? { scale } : { y: -8 }),
-    },
-    transition: recipe,
-  });
 
   return (
     <div className="group flex w-full flex-col items-start gap-4">
-      <div className="flex w-full items-center gap-1">
-        {/* The slot takes the CURRENT icon's own size — the shimmer is dialed
-            independently of the 16px sparkles, and the gap to the label must
-            read the same either way. */}
-        <span
-          className="flex items-center justify-center transition-[width,height] duration-200 ease-out"
-          style={{
-            width: thinking ? loader.size : 16,
-            height: thinking ? loader.size : 16,
-          }}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {thinking ? (
-              <motion.span
-                key="shimmer"
-                {...swap(ICON_SWAP, 0.25)}
-                className="flex items-center justify-center"
-              >
-                <DotmCircular5
-                  ariaLabel="Thinking"
-                  speed={loader.speed}
-                  size={loader.size}
-                  dotSize={loader.dotSize}
-                  color={loader.color}
-                  halo={loader.halo}
-                  bloom={loader.bloom}
-                />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="sparkles"
-                {...swap(ICON_SWAP, 0.25)}
-                className="flex items-center justify-center text-heading-01"
-              >
-                <SparklesGlyph className="size-4" />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </span>
-        <span className="relative flex items-center">
-          <AnimatePresence mode="wait" initial={false}>
-            {/* The video's law: the shimmer carries the thinking state ALONE —
-                no label until there is a thought to count. */}
-            {thinking ? null : thoughtSecs !== null ? (
-              <motion.span
-                key="thought"
-                {...swap(TEXT_SWAP)}
-                className="font-geist text-fig-caption-1-md fig-medium text-heading-05"
-              >
-                {`Thought ${thoughtSecs}s`}
-              </motion.span>
-            ) : null}
-          </AnimatePresence>
-        </span>
-      </div>
       {chunks.length > 0 && (
-        <div className="flex w-full flex-col items-start justify-center gap-2.5 py-2.5">
+        <div className="flex w-full flex-col items-start justify-center py-2.5">
           <p className="w-full font-geist text-fig-chat fig-w390 tracking-chat text-heading-01 [overflow-wrap:anywhere]">
             {chunks.map((c) => (
               <motion.span
@@ -348,42 +263,56 @@ export function AgentReply({
               </motion.span>
             ))}
           </p>
-          {/* The Hover variant's row (619:16951): controls first, time last —
-              mirrored from the user's. */}
-          {meta && (
-          <div
-            className={cn(
-              "flex items-center justify-end gap-2.5 rounded-14 py-1 pr-3.5 opacity-0 transition-opacity duration-200 ease-out",
-              !thinking && "group-hover:opacity-100",
-            )}
-          >
-            <MetaIconRow
-              actions={[
-                {
-                  label: "Copy",
-                  onClick: () => copyText(full),
-                  node: <CopyGlyph className="size-3" />,
-                },
-                {
-                  label: "Take into composer",
-                  onClick: onUndo,
-                  node: <UndoGlyph className="size-3" />,
-                  /* Chromeless at rest; its Figma box fill is the hover. */
-                  className:
-                    "flex size-4.5 items-center justify-center overflow-clip rounded-4 p-1 text-icon-explainer transition-colors duration-200 ease-out hover:bg-surface-foreground-02 hover:text-heading-01",
-                },
-                {
-                  label: "Ask again",
-                  onClick: onRetry,
-                  node: <RetryGlyph className="size-3" />,
-                },
-              ]}
-            />
-            <span className="text-right font-geist text-fig-caption-2 fig-medium text-icon-explainer">
-              {timeAgo(at)}
-            </span>
-          </div>
-          )}
+        </div>
+      )}
+      {/* The indicator rides BELOW the text (the video's law): the shimmer
+          alone before any text, still alive under the growing reply — and
+          when the reply finishes it simply FREEZES in place, the same glyph
+          gone still, exactly as the reference's does. No sparkles anywhere. */}
+      <span
+        className="flex items-center justify-center"
+        style={{ width: loader.size, height: loader.size }}
+      >
+        <DotmCircular5
+          ariaLabel={phase === "done" ? "Answered" : "Thinking"}
+          animated={phase !== "done"}
+          speed={loader.speed}
+          size={loader.size}
+          dotSize={loader.dotSize}
+          color={loader.color}
+          halo={loader.halo}
+          bloom={loader.bloom}
+        />
+      </span>
+      {/* The Hover variant's row (619:16951): controls first, time last —
+          mirrored from the user's. Only a finished reply has one. */}
+      {meta && phase === "done" && (
+        <div className="flex items-center justify-end gap-2.5 rounded-14 py-1 pr-3.5 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
+          <MetaIconRow
+            actions={[
+              {
+                label: "Copy",
+                onClick: () => copyText(full),
+                node: <CopyGlyph className="size-3" />,
+              },
+              {
+                label: "Take into composer",
+                onClick: onUndo,
+                node: <UndoGlyph className="size-3" />,
+                /* Chromeless at rest; its Figma box fill is the hover. */
+                className:
+                  "flex size-4.5 items-center justify-center overflow-clip rounded-4 p-1 text-icon-explainer transition-colors duration-200 ease-out hover:bg-surface-foreground-02 hover:text-heading-01",
+              },
+              {
+                label: "Ask again",
+                onClick: onRetry,
+                node: <RetryGlyph className="size-3" />,
+              },
+            ]}
+          />
+          <span className="text-right font-geist text-fig-caption-2 fig-medium text-icon-explainer">
+            {timeAgo(at)}
+          </span>
         </div>
       )}
     </div>
