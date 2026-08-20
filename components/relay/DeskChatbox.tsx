@@ -261,10 +261,22 @@ export function DeskChatbox({
     area.style.height = "0px";
     const natural = area.scrollHeight;
     area.style.height = held;
+    /* FLIP discipline: the probe's 0px was a REAL layout (scrollHeight
+       forced it), so without a reflow at the restored height — still
+       untransitioned — the browser would treat 0 as the transition's start
+       and the shrink would snap instead of glide. */
+    void area.offsetHeight;
     area.style.transitionProperty = "";
-    setAreaH(Math.max(AREA_MIN, Math.min(natural, maxText)));
-    // Clips read post-layout — the height above lands next frame.
-    requestAnimationFrame(updateClips);
+    const h = Math.max(AREA_MIN, Math.min(natural, maxText));
+    setAreaH(h);
+    /* The buttery-shrink laws (the reference video's): content that will fit
+       the target height rides at the top the whole way down — a residual
+       scrollTop from the taller state would pin the text to the border and
+       snap it later. And the ghost washes obey the TARGET geometry, never
+       the mid-transition one, so no ghost flashes over a settling line. */
+    if (natural <= h + 2) area.scrollTop = 0;
+    setClipTop(area.scrollTop > 2);
+    setClipBottom(natural - area.scrollTop - h > 2);
   }, [value, maxText]);
 
   const hasText = value.trim().length > 0;

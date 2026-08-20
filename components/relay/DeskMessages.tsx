@@ -164,7 +164,9 @@ export function UserMessage({
         </div>
       )}
       <div className="flex max-w-full items-center justify-end rounded-14 bg-surface-foreground-01 p-3.5">
-        <p className="text-right font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]">
+        {/* The bubble sits right; the TEXT inside reads left (the reference's
+            law) — long questions rag naturally instead of centring ragged. */}
+        <p className="text-left font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]">
           {text}
         </p>
       </div>
