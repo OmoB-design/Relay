@@ -741,6 +741,15 @@
     transparent
   );
 }
+/* A clamped user message's last lines dissolve into the bubble's own wash
+   above the Show more control (the reference video's two-line fade). */
+@utility user-clamp-fade {
+  background: linear-gradient(
+    to top,
+    var(--color-surface-foreground-01),
+    transparent
+  );
+}
 /* The nav rail's width ride. Duration comes from the page (the desk syncs it
    with the chat panel's slide); everywhere else the var is unset, the
    duration is 0, and the toggle still snaps like it always has. */

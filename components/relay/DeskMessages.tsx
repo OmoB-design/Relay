@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 /* eslint-disable @next/next/no-img-element -- attachment previews are
    client-side object URLs; next/image cannot optimise a blob. */
@@ -60,6 +61,64 @@ function timeAgo(at: number): string {
   if (mins < 60) return `${mins} mins ago`;
   const hours = Math.round(mins / 60);
   return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+}
+
+/* The user bubble, with the reference video's clamp: the frame never grows
+   past 320 wide, so long questions fall vertically — and past ten lines the
+   bubble folds. The last two visible lines dissolve into the bubble's own
+   wash, and a quiet "Show more" sits below in its own zone: plain text at
+   rest, a grey pill wash under the pointer (the composer's + button
+   language). Expand and collapse are INSTANT — the video swaps states
+   between adjacent frames, no height tween. */
+const CLAMP_H = 180; // ten lines of the 15/1.2 body
+const CLAMP_PAST = 216; // fold only when at least two lines would be hidden
+
+function ClampedBubble({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+    setOverflows(el.scrollHeight > CLAMP_PAST);
+    // A different (edited/retried) text starts folded again.
+    setExpanded(false);
+  }, [text]);
+
+  const clamped = overflows && !expanded;
+  return (
+    <div className="flex max-w-80 flex-col items-start rounded-14 bg-surface-foreground-01 p-3.5">
+      {/* overflow-hidden, not clip: clip zeroes scrollHeight and the fold
+          could never measure its own overflow. */}
+      <div
+        ref={textRef}
+        className="relative w-full overflow-hidden"
+        style={{ maxHeight: clamped ? CLAMP_H : undefined }}
+      >
+        {/* The bubble sits right; the TEXT inside reads left (the reference's
+            law) — long questions rag naturally instead of centring ragged. */}
+        <p className="text-left font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]">
+          {text}
+        </p>
+        {clamped && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-9 user-clamp-fade"
+          />
+        )}
+      </div>
+      {overflows && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="-ml-1.5 mt-2 rounded-8 px-1.5 py-1 font-geist text-fig-caption-1-md fig-medium text-heading-03 transition-colors duration-150 ease-out hover:bg-surface-foreground-02"
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      )}
+    </div>
+  );
 }
 
 /* The meta icon cluster: still buttons, no theater. Every icon — the pencil
@@ -130,13 +189,7 @@ export function UserMessage({
           ))}
         </div>
       )}
-      <div className="flex max-w-full items-center justify-end rounded-14 bg-surface-foreground-01 p-3.5">
-        {/* The bubble sits right; the TEXT inside reads left (the reference's
-            law) — long questions rag naturally instead of centring ragged. */}
-        <p className="text-left font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]">
-          {text}
-        </p>
-      </div>
+      <ClampedBubble text={text} />
       {/* The Hover variant's row (619:15455): time first, then the controls. */}
       {meta && (
       <div className="flex items-center justify-end gap-2.5 rounded-14 px-3.5 py-1 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
