@@ -214,6 +214,7 @@ export function AgentReply({
   phase,
   at,
   meta = true,
+  tail = false,
   chunkFadeMs,
   chunkFromOpacity,
   loader,
@@ -232,6 +233,9 @@ export function AgentReply({
   at: number;
   /** The greeting is theater — it takes no controls row. */
   meta?: boolean;
+  /** True on the transcript's LAST agent reply — the only one that keeps
+   *  the frozen mark (the video holds exactly one under the tail). */
+  tail?: boolean;
   chunkFadeMs: number;
   chunkFromOpacity: number;
   loader: LoaderDials;
@@ -265,27 +269,9 @@ export function AgentReply({
           </p>
         </div>
       )}
-      {/* The indicator rides BELOW the text (the video's law): the shimmer
-          alone before any text, still alive under the growing reply — and
-          when the reply finishes it simply FREEZES in place, the same glyph
-          gone still, exactly as the reference's does. No sparkles anywhere. */}
-      <span
-        className="flex items-center justify-center"
-        style={{ width: loader.size, height: loader.size }}
-      >
-        <DotmCircular5
-          ariaLabel={phase === "done" ? "Answered" : "Thinking"}
-          animated={phase !== "done"}
-          speed={loader.speed}
-          size={loader.size}
-          dotSize={loader.dotSize}
-          color={loader.color}
-          halo={loader.halo}
-          bloom={loader.bloom}
-        />
-      </span>
       {/* The Hover variant's row (619:16951): controls first, time last —
-          mirrored from the user's. Only a finished reply has one. */}
+          mirrored from the user's. Only a finished reply has one, and it
+          sits ABOVE the mark — the reply's tail glyph closes the message. */}
       {meta && phase === "done" && (
         <div className="flex items-center justify-end gap-2.5 rounded-14 py-1 pr-3.5 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
           <MetaIconRow
@@ -314,6 +300,27 @@ export function AgentReply({
             {timeAgo(at)}
           </span>
         </div>
+      )}
+      {/* The indicator rides BELOW everything (the video's law): the shimmer
+          alone before any text, still alive under the growing reply — and on
+          the LATEST finished reply it FREEZES in place, the same glyph gone
+          still. Older replies give the mark up; the video keeps exactly one. */}
+      {(phase !== "done" || tail) && (
+        <span
+          className="flex items-center justify-center"
+          style={{ width: loader.size, height: loader.size }}
+        >
+          <DotmCircular5
+            ariaLabel={phase === "done" ? "Answered" : "Thinking"}
+            animated={phase !== "done"}
+            speed={loader.speed}
+            size={loader.size}
+            dotSize={loader.dotSize}
+            color={loader.color}
+            halo={loader.halo}
+            bloom={loader.bloom}
+          />
+        </span>
       )}
     </div>
   );

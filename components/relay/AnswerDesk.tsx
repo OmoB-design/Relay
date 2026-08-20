@@ -559,6 +559,11 @@ export function AnswerDesk({
                           }
                           at={m.at}
                           meta={!m.synthetic}
+                          tail={
+                            m.id ===
+                            messages.filter((x) => x.kind === "agent").at(-1)
+                              ?.id
+                          }
                           chunkFadeMs={dial.stream.chunkFadeMs}
                           chunkFromOpacity={dial.stream.fromOpacity}
                           loader={dial.loader}
