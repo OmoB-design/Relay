@@ -18,7 +18,15 @@ export default async function AnswerDeskPage({
   const isAdmin = profile.role === "admin";
   const newTeamJoins = isAdmin ? await countNewTeamJoins(profile.id) : 0;
   const selected = clients.find((c) => c.id === searchParams.client);
-  const threads = selected ? await getThreadsForClient(selected.id) : [];
+
+  /* The chat rail groups by client (639:17442), so every client's history
+     loads up front — a handful of small reads, in parallel. */
+  const threadLists = await Promise.all(
+    clients.map((c) => getThreadsForClient(c.id)),
+  );
+  const initialThreadsByClient = Object.fromEntries(
+    clients.map((c, i) => [c.id, threadLists[i]!]),
+  );
 
   return (
     <AnswerDesk
@@ -33,7 +41,7 @@ export default async function AnswerDeskPage({
         logoUrl: c.logoUrl,
       }))}
       initialClientId={selected?.id}
-      initialThreads={threads}
+      initialThreadsByClient={initialThreadsByClient}
     />
   );
 }

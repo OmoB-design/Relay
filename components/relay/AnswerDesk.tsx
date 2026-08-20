@@ -11,7 +11,10 @@ import { AppNav } from "@/components/relay/AppNav";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
 import { DeskChatbox } from "@/components/relay/DeskChatbox";
 import { DeskDials } from "@/components/relay/DeskDials";
-import { DeskSideBar, type DeskChat } from "@/components/relay/DeskSideBar";
+import {
+  DeskSideBar,
+  type DeskChatGroup,
+} from "@/components/relay/DeskSideBar";
 import {
   AgentReply,
   UserMessage,
@@ -90,7 +93,7 @@ export function AnswerDesk({
   greetName,
   clients,
   initialClientId,
-  initialThreads,
+  initialThreadsByClient,
 }: {
   profile: Profile;
   isAdmin: boolean;
@@ -99,7 +102,8 @@ export function AnswerDesk({
   greetName: string;
   clients: DeskClient[];
   initialClientId?: string;
-  initialThreads: AnswerThread[];
+  /** Every client's history — the rail groups by client (639:17442). */
+  initialThreadsByClient: Record<string, AnswerThread[]>;
 }) {
   /* Every ride's tuning (dialkit). Defaults are the tuned values; production
      ships them as constants. */
@@ -171,16 +175,28 @@ export function AnswerDesk({
   const [messages, setMessages] = useState<DeskMessage[]>(() =>
     client ? greetingTranscript(greetName, client.name) : [],
   );
-  const [chats, setChats] = useState<DeskChat[]>(() =>
-    initialThreads.map((t) => ({ id: t.id, title: t.question })),
-  );
+  const [threadsByClient, setThreadsByClient] = useState<
+    Record<string, AnswerThread[]>
+  >(initialThreadsByClient);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+
+  /* The rail's groups: every client with history, in the picker's order —
+     the question text is the row's preview. */
+  const chatGroups: DeskChatGroup[] = clients
+    .filter((c) => (threadsByClient[c.id] ?? []).length > 0)
+    .map((c) => ({
+      clientId: c.id,
+      clientName: c.name,
+      chats: (threadsByClient[c.id] ?? []).map((t) => ({
+        id: t.id,
+        title: t.question,
+      })),
+    }));
   const [seed, setSeed] = useState<{ text: string; nonce: number }>();
   const [pending, setPending] = useState(false);
   const [shakeNonce, setShakeNonce] = useState(0);
   const [pickedId, setPickedId] = useState<string | null>(null);
 
-  const threadsRef = useRef<AnswerThread[]>(initialThreads);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const draftRef = useRef("");
@@ -252,12 +268,11 @@ export function AnswerDesk({
         setSeed({ text: draftRef.current, nonce: Date.now() });
     });
 
-    /* The picked client's history arrives by action while the theater plays,
-       so the chat rail is furnished by the time it slides in. */
+    /* The picked client's history refreshes by action while the theater
+       plays, so the chat rail is current by the time it slides in. */
     getDeskThreadsAction(picked.id)
       .then((threads) => {
-        threadsRef.current = threads;
-        setChats(threads.map((t) => ({ id: t.id, title: t.question })));
+        setThreadsByClient((was) => ({ ...was, [picked.id]: threads }));
       })
       .catch(() => {});
 
@@ -326,17 +341,17 @@ export function AnswerDesk({
     ]);
     askDeskQuestionAction({ clientId: client.id, question })
       .then(({ threadId, answer }) => {
-        setChats((was) => [{ id: threadId, title: question }, ...was]);
-        threadsRef.current = [
-          {
-            id: threadId,
-            clientId: client.id,
-            question,
-            createdAt: new Date().toISOString(),
-            answer,
-          },
-          ...threadsRef.current,
-        ];
+        const thread: AnswerThread = {
+          id: threadId,
+          clientId: client.id,
+          question,
+          createdAt: new Date().toISOString(),
+          answer,
+        };
+        setThreadsByClient((was) => ({
+          ...was,
+          [client.id]: [thread, ...(was[client.id] ?? [])],
+        }));
         streamReply(agentId, answer.text, started, () => setPending(false));
       })
       .catch(() => {
@@ -354,14 +369,21 @@ export function AnswerDesk({
     return true;
   }
 
-  /** A chat row recalls its exchange into the transcript. */
-  function selectChat(id: string | null) {
+  /** A chat row recalls its exchange — across clients: picking another
+   *  client's question swaps the desk's scope with it, no theater. */
+  function selectChat(clientId: string, id: string | null) {
+    const rowClient = clients.find((c) => c.id === clientId);
+    if (!rowClient) return;
+    if (client?.id !== clientId) {
+      setClient(rowClient);
+      window.history.replaceState(null, "", `/answer-desk?client=${clientId}`);
+    }
     setActiveChatId(id);
     if (id === null) {
-      if (client) setMessages(greetingTranscript(greetName, client.name));
+      setMessages(greetingTranscript(greetName, rowClient.name));
       return;
     }
-    const thread = threadsRef.current.find((t) => t.id === id);
+    const thread = (threadsByClient[clientId] ?? []).find((t) => t.id === id);
     if (!thread) return;
     setMessages([
       {
@@ -381,10 +403,18 @@ export function AnswerDesk({
     ]);
   }
 
+  /** "Start new chat" keeps the desk chrome exactly where it is — the rail
+   *  stays folded, the panel stays — and only the CONTENT returns to the
+   *  centre: the chatbox and the client picker, ready for the next scope. */
   function newChat() {
-    if (!client) return;
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    setClient(null);
+    setPickedId(null);
     setActiveChatId(null);
-    setMessages(greetingTranscript(greetName, client.name));
+    setMessages([]);
+    setPending(false);
+    window.history.replaceState(null, "", "/answer-desk");
   }
 
   function nudge() {
@@ -443,11 +473,11 @@ export function AnswerDesk({
           collapseMs={dial.sidebar.slideMs}
         />
         <AnimatePresence>
-          {sidebarIn && client && (
+          {sidebarIn && (
             <DeskSideBar
               key="desk-panel"
-              clientName={client.name}
-              chats={chats}
+              groups={chatGroups}
+              activeClientId={client?.id ?? null}
               activeChatId={activeChatId}
               slideMs={dial.sidebar.slideMs}
               staggerMs={dial.sidebar.staggerMs}
@@ -676,7 +706,9 @@ function DeskClientCard({
     <button
       type="button"
       onClick={onPick}
-      className="flex items-center gap-2.5 rounded-10 p-2 text-left transition-colors duration-200 ease-out hover:bg-surface-foreground-01"
+      /* w-full: a button shrinks to its content where the old link filled
+         the grid cell — the hover pill must span the 299 column (612:9846). */
+      className="flex w-full items-center gap-2.5 rounded-10 p-2 text-left transition-colors duration-200 ease-out hover:bg-surface-foreground-01"
     >
       <span className="flex size-desk-tile shrink-0 items-center justify-center rounded-8 border-fig border-border bg-surface-dashboard bg-clip-padding">
         <ClientAvatar name={client.name} logo={client.logoUrl} />

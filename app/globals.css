@@ -442,6 +442,9 @@
      rail; Start-new-chat and the group header pin at 33 (inside stroke). */
   --spacing-desk-panel: 300px;
   --spacing-desk-pill: 33px;
+  /* A client group shows eight chats before its own frame scrolls:
+     8 rows × 34 + 7 gaps × 2. */
+  --spacing-chat-cap: 286px;
 
   /* Dialog height cap — scrollable dialogs (snapshot viewer) stop here. */
   --spacing-dialog-cap: 85svh;

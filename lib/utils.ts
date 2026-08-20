@@ -134,6 +134,7 @@ const twMerge = extendTailwindMerge({
       "font-weight": FONT_WEIGHTS,
       h: [{ h: HEIGHTS }],
       "min-h": [{ "min-h": ["due-empty", "textarea"] }],
+      "max-h": [{ "max-h": ["chat-cap", "dialog-cap"] }],
       tracking: [{ tracking: ["count", "range", "greeting", "chat"] }],
       gap: [{ gap: ["bar-gap"] }],
     },
