@@ -83,10 +83,11 @@ type Attachment = { id: string; url: string; loaded: boolean };
 /* The reference video's growth law (frame-measured): the box rises from the
    frame's 130 one line-pitch at a time, bottom edge pinned, until ONE cap —
    the same cap with or without attachments; the chip row eats viewport, the
-   box never exceeds it. Chrome the text can't use: top inset 4, block gap 16,
-   icon row 30, bottom pad 20 — and a chip row spends 48 + 8 + 16 more. */
-const GROW_CHROME = 4 + 16 + 30 + 20;
-const CHIP_ZONE = 48 + 8 + 16;
+   box never exceeds it. Chrome the text can't use: top inset 4, block gap 8,
+   icon row 30, bottom pad 12 — the video's tight icon housing (their icons
+   ride ~11px off the floor) — and a chip row spends 48 + 8 + 8 more. */
+const GROW_CHROME = 4 + 8 + 30 + 12;
+const CHIP_ZONE = 48 + 8 + 8;
 /** One-line textarea height (14 top + 18 line + 12 bottom) — the floor. */
 const AREA_MIN = 44;
 
@@ -304,7 +305,7 @@ export function DeskChatbox({
       className={cn(
         /* Content raises the box from the frame's 130 to the dialed cap;
            past it, the text scrolls inside (the video's law). */
-        "flex min-h-chatbox w-full flex-col gap-4 overflow-clip rounded-20 border-fig bg-surface-dashboard pb-5 pt-1 transition-[border-color,box-shadow] duration-200 ease-out",
+        "flex min-h-chatbox w-full flex-col gap-2 overflow-clip rounded-20 border-fig bg-surface-dashboard pb-3 pt-1 transition-[border-color,box-shadow] duration-200 ease-out",
         tipped
           ? "shadow-chatbox"
           : active
