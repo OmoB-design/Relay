@@ -703,6 +703,26 @@
     transparent
   );
 }
+/* The veil under the conversation composer: the transcript fades as it
+   reaches the composer's top and is unseen below it — solid in the sheet's
+   own white for most of its height, then a soft ramp to nothing. The solid
+   share rides a variable so the dial can move it. */
+@utility composer-veil {
+  background: linear-gradient(
+    to top,
+    var(--color-surface-primary) var(--veil-solid, 72%),
+    transparent
+  );
+}
+/* A capped chat group's bottom edge: the eighth row runs out under a wash in
+   the panel's own colour — scroll continuity, said quietly. */
+@utility chat-scroll-fade {
+  background: linear-gradient(
+    to top,
+    var(--color-surface-dashboard),
+    transparent
+  );
+}
 /* The nav rail's width ride. Duration comes from the page (the desk syncs it
    with the chat panel's slide); everywhere else the var is unset, the
    duration is 0, and the toggle still snaps like it always has. */

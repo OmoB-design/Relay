@@ -10,6 +10,7 @@ import {
   SendArrowGlyph,
   TipDismissGlyph,
 } from "@/components/relay/NavIcons";
+// (TipDismissGlyph doubles as the attachment chip's remove mark.)
 
 /* The Answer Desk chatbox — Figma component set 615:12436, all six variants.
 
@@ -47,6 +48,38 @@ function toMotion(t: DialTransition) {
     : t;
 }
 
+/* Voice input rides the Web Speech API where the browser has it — dictation
+   streams interim words into the box, a second press (or submit) stops it.
+   Browsers without it get a truthful title and a quiet button. */
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult:
+    | ((e: {
+        resultIndex: number;
+        results: ArrayLike<
+          ArrayLike<{ transcript: string }> & { isFinal: boolean }
+        >;
+      }) => void)
+    | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start(): void;
+  stop(): void;
+};
+
+function speechRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as {
+    SpeechRecognition?: new () => SpeechRecognitionLike;
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+type Attachment = { id: string; url: string };
+
 export function DeskChatbox({
   placeholder,
   tip,
@@ -64,9 +97,12 @@ export function DeskChatbox({
    *  feeds it is still the client's call; the surface is ready either way. */
   tip?: string;
   onDismissTip?: () => void;
-  /** Return true when the question was consumed — that clears the box. */
-  onSubmit: (question: string) => boolean | void;
+  /** Return true when the question was consumed — that clears the box.
+   *  Attached images ride along as client-side object URLs. */
+  onSubmit: (question: string, images: string[]) => boolean | void;
+  /** Overrides the built-in file picker (the landing nudges instead). */
   onAttach?: () => void;
+  /** Overrides the built-in dictation (the landing nudges instead). */
   onVoice?: () => void;
   /** The conversation composer's elevation (I619:14705): one deep soft layer
    *  under each state's stack, because the box floats over the transcript. */
@@ -81,7 +117,60 @@ export function DeskChatbox({
 }) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
+  const [images, setImages] = useState<Attachment[]>([]);
+  const [listening, setListening] = useState(false);
   const areaRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const recRef = useRef<SpeechRecognitionLike | null>(null);
+  /** What the box held when dictation started — interim words replace only
+   *  their own tail, never the typed base. */
+  const dictationBaseRef = useRef("");
+  const speechCtor = speechRecognitionCtor();
+
+  useEffect(() => {
+    return () => recRef.current?.stop();
+  }, []);
+
+  function stopListening() {
+    recRef.current?.stop();
+    recRef.current = null;
+    setListening(false);
+  }
+
+  function toggleListening() {
+    if (listening) {
+      stopListening();
+      return;
+    }
+    if (!speechCtor) return;
+    const rec = new speechCtor();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+    dictationBaseRef.current = value ? `${value.trimEnd()} ` : "";
+    rec.onresult = (e) => {
+      let transcript = "";
+      for (let i = 0; i < e.results.length; i++) {
+        transcript += e.results[i]![0]!.transcript;
+      }
+      const next = dictationBaseRef.current + transcript;
+      setValue(next);
+      onDraftChange?.(next);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recRef.current = rec;
+    setListening(true);
+    rec.start();
+  }
+
+  function addFiles(list: FileList | null) {
+    if (!list) return;
+    const next = Array.from(list)
+      .filter((f) => f.type.startsWith("image/"))
+      .map((f) => ({ id: crypto.randomUUID(), url: URL.createObjectURL(f) }));
+    if (next.length) setImages((was) => [...was, ...next]);
+  }
 
   /* A seed is an invitation to keep typing: focus follows it, caret at the
      end, so edit/undo/failure never strand a keyboard user. */
@@ -118,8 +207,10 @@ export function DeskChatbox({
 
   function submit() {
     if (!hasText) return;
-    if (onSubmit(value.trim()) === true) {
+    if (listening) stopListening();
+    if (onSubmit(value.trim(), images.map((i) => i.url)) === true) {
       setValue("");
+      setImages([]);
       onDraftChange?.("");
     }
   }
@@ -127,7 +218,9 @@ export function DeskChatbox({
   const box = (
     <form
       className={cn(
-        "flex h-chatbox w-full flex-col gap-4 overflow-clip rounded-20 border-fig bg-surface-dashboard pb-5 pt-1 transition-[border-color,box-shadow] duration-200 ease-out",
+        /* Attachments grow the box; empty, it holds the frame's 130. */
+        images.length > 0 ? "min-h-chatbox" : "h-chatbox",
+        "flex w-full flex-col gap-4 overflow-clip rounded-20 border-fig bg-surface-dashboard pb-5 pt-1 transition-[border-color,box-shadow] duration-200 ease-out",
         tipped
           ? "shadow-chatbox"
           : active
@@ -175,13 +268,58 @@ export function DeskChatbox({
           }}
         />
       </div>
+      {/* Attached screenshots wait here until send — each removable. */}
+      <AnimatePresence initial={false}>
+        {images.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex w-full flex-wrap gap-1.5 px-4"
+          >
+            {images.map((img) => (
+              <span key={img.id} className="group/chip relative">
+                {/* eslint-disable-next-line @next/next/no-img-element --
+                    object URLs can't go through next/image */}
+                <img
+                  src={img.url}
+                  alt="Attachment preview"
+                  className="size-12 rounded-8 border-fig border-border object-cover"
+                />
+                <button
+                  type="button"
+                  aria-label="Remove attachment"
+                  onClick={() =>
+                    setImages((was) => was.filter((i) => i.id !== img.id))
+                  }
+                  className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-8 border-fig border-border bg-surface-primary text-icon-explainer opacity-0 transition-opacity duration-150 ease-out hover:text-heading-01 group-hover/chip:opacity-100"
+                >
+                  <TipDismissGlyph className="size-2.5" />
+                </button>
+              </span>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex w-full items-center justify-between px-4">
         {/* Hover fills are the set's own (615:11881 / 615:11236): the wash is
             foreground-02, and only the MIC's ink darkens on hover. */}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            addFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
         <button
           type="button"
-          aria-label="Add media"
-          onClick={onAttach}
+          aria-label="Attach images"
+          title="Attach images"
+          onClick={onAttach ?? (() => fileRef.current?.click())}
           className="flex size-7.5 items-center justify-center rounded-8 text-icon-system transition-colors duration-200 ease-out hover:bg-surface-foreground-02"
         >
           <PlusGlyph className="size-4" />
@@ -191,11 +329,34 @@ export function DeskChatbox({
             layout
             transition={toMotion(dial.send.micGlide as DialTransition)}
             type="button"
-            aria-label="Voice input"
-            onClick={onVoice}
-            className="flex size-7.5 items-center justify-center rounded-8 text-icon-system transition-colors duration-200 ease-out hover:bg-surface-foreground-02 hover:text-icon-system-hover"
+            aria-label={listening ? "Stop voice input" : "Voice input"}
+            aria-pressed={listening}
+            title={
+              onVoice || speechCtor
+                ? listening
+                  ? "Stop voice input"
+                  : "Voice input"
+                : "Voice input isn't supported in this browser"
+            }
+            onClick={onVoice ?? (speechCtor ? toggleListening : undefined)}
+            className={cn(
+              "flex size-7.5 items-center justify-center rounded-8 transition-colors duration-200 ease-out",
+              listening
+                ? "bg-red-50 text-red-500"
+                : "text-icon-system hover:bg-surface-foreground-02 hover:text-icon-system-hover",
+            )}
           >
-            <MicGlyph className="size-4" />
+            {listening ? (
+              <motion.span
+                animate={{ opacity: [1, 0.45, 1] }}
+                transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+                className="flex items-center justify-center"
+              >
+                <MicGlyph className="size-4" />
+              </motion.span>
+            ) : (
+              <MicGlyph className="size-4" />
+            )}
           </motion.button>
           <AnimatePresence initial={false}>
             {hasText && (

@@ -59,6 +59,8 @@ type DeskMessage =
       id: string;
       text: string;
       at: number;
+      /** Attached screenshots — client-side object URLs for this session. */
+      images?: string[];
       /** The scope pill and its greeting are theater, not engine output —
        *  they carry no retry/edit controls. */
       synthetic?: boolean;
@@ -165,6 +167,12 @@ export function AnswerDesk({
         slideMs: [460, 120, 1200, 10],
         staggerMs: [45, 0, 150, 5],
         itemMs: [240, 60, 600, 5],
+      },
+      veil: {
+        // The wash under the composer: the transcript fades at its top edge
+        // and is unseen below. Height in px; solid share in percent.
+        height: [216, 120, 400, 4],
+        solidPct: [72, 30, 100, 1],
       },
     },
     { id: "desk-interactions", persist: true },
@@ -322,8 +330,10 @@ export function AnswerDesk({
     });
   }
 
-  /** A real question — the engine answers, the transcript streams it. */
-  function ask(question: string): boolean {
+  /** A real question — the engine answers, the transcript streams it.
+   *  Attached images ride the message visually; the engine reads them when
+   *  Phase 8's real engine takes over this same action. */
+  function ask(question: string, images: string[] = []): boolean {
     if (!client || pending) return false;
     setPending(true);
     setActiveChatId(null);
@@ -332,7 +342,13 @@ export function AnswerDesk({
     const agentId = nextId();
     setMessages((was) => [
       ...was,
-      { kind: "user", id: userId, text: question, at: Date.now() },
+      {
+        kind: "user",
+        id: userId,
+        text: question,
+        at: Date.now(),
+        images: images.length ? images : undefined,
+      },
       {
         kind: "agent",
         id: agentId,
@@ -514,6 +530,7 @@ export function AnswerDesk({
                         <UserMessage
                           text={m.text}
                           at={m.at}
+                          images={m.images}
                           meta={!m.synthetic}
                           onRetry={() => ask(m.text)}
                           onEdit={() =>
@@ -556,6 +573,19 @@ export function AnswerDesk({
                   )}
                 </div>
               </div>
+              {/* The transcript fades at the composer's top edge and is
+                  unseen below it — the veil sits between them. */}
+              {/* DOM order stacks it: above the scroller, under the composer. */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 bottom-0 composer-veil"
+                style={
+                  {
+                    height: dial.veil.height,
+                    "--veil-solid": `${dial.veil.solidPct}%`,
+                  } as React.CSSProperties
+                }
+              />
               {composer("conversation")}
             </>
           )}

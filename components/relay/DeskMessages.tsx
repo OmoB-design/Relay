@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+/* eslint-disable @next/next/no-img-element -- attachment previews are
+   client-side object URLs; next/image cannot optimise a blob. */
 import { cn } from "@/lib/utils";
 import { DotmCircular8 } from "@/components/ui/dotm-circular-8";
 import "@/components/dotmatrix-loader.css";
@@ -60,26 +63,68 @@ function timeAgo(at: number): string {
   return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
 }
 
-/** The little 18px meta button both rows share. */
-function MetaButton({
-  label,
-  onClick,
-  children,
-}: {
+/* The meta icon cluster carries transitions.dev's avatar-group-hover comb:
+   the hovered icon lifts −4px and scales 1.05, its neighbours lift with a
+   0.45 power falloff, and mouseleave snaps everything back on an overshoot
+   curve. Icons rest in the explainer grey and only take ink ON hover. */
+const COMB_LIFT = -4;
+const COMB_FALLOFF = 0.45;
+const COMB_SCALE = 1.05;
+const COMB_IN: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const COMB_OUT: [number, number, number, number] = [0.34, 3.85, 0.64, 1];
+
+type MetaAction = {
   label: string;
   onClick?: () => void;
-  children: React.ReactNode;
-}) {
+  node: React.ReactNode;
+  /** The boxed variants (edit square, the agent's undo) keep their own
+   *  chrome; everything else colours only under the pointer. */
+  className?: string;
+};
+
+function MetaIconRow({ actions }: { actions: MetaAction[] }) {
+  const reducedMotion = useReducedMotion();
+  const [hovered, setHovered] = useState<number | null>(null);
+
   return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      className="flex size-4.5 items-center justify-center text-icon-explainer transition-colors duration-200 ease-out hover:text-heading-01"
+    <span
+      className="flex items-center gap-1.5"
+      onMouseLeave={() => setHovered(null)}
     >
-      {children}
-    </button>
+      {actions.map((a, i) => {
+        const distance = hovered === null ? null : Math.abs(i - hovered);
+        const y =
+          distance === null || reducedMotion
+            ? 0
+            : COMB_LIFT * Math.pow(COMB_FALLOFF, distance);
+        const scale =
+          !reducedMotion && distance === 0 ? COMB_SCALE : 1;
+        return (
+          <motion.button
+            key={a.label}
+            type="button"
+            aria-label={a.label}
+            title={a.label}
+            onClick={a.onClick}
+            onMouseEnter={() => setHovered(i)}
+            onFocus={() => setHovered(i)}
+            onBlur={() => setHovered(null)}
+            animate={{ y, scale }}
+            transition={{
+              type: "tween",
+              duration: 0.32,
+              ease: hovered === null ? COMB_OUT : COMB_IN,
+            }}
+            className={
+              a.className ??
+              "flex size-4.5 items-center justify-center text-icon-explainer transition-colors duration-200 ease-out hover:text-heading-01"
+            }
+          >
+            {a.node}
+          </motion.button>
+        );
+      })}
+    </span>
   );
 }
 
@@ -90,12 +135,15 @@ function copyText(text: string) {
 export function UserMessage({
   text,
   at,
+  images,
   meta = true,
   onRetry,
   onEdit,
 }: {
   text: string;
   at: number;
+  /** Attached screenshots — client-side object URLs, shown above the pill. */
+  images?: string[];
   /** The scope pill is theater — it takes no retry/edit row. */
   meta?: boolean;
   onRetry?: () => void;
@@ -103,6 +151,18 @@ export function UserMessage({
 }) {
   return (
     <div className="group flex w-full flex-col items-end justify-center gap-1.5">
+      {images && images.length > 0 && (
+        <div className="flex max-w-full flex-wrap justify-end gap-1.5">
+          {images.map((src) => (
+            <img
+              key={src}
+              src={src}
+              alt="Attached image"
+              className="h-28 max-w-44 rounded-10 border-fig border-border object-cover"
+            />
+          ))}
+        </div>
+      )}
       <div className="flex max-w-full items-center justify-end rounded-14 bg-surface-foreground-01 p-3.5">
         <p className="text-right font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]">
           {text}
@@ -114,23 +174,27 @@ export function UserMessage({
         <span className="text-right font-geist text-fig-caption-2 fig-medium text-icon-explainer">
           {timeAgo(at)}
         </span>
-        <span className="flex items-center gap-1.5">
-          <MetaButton label="Ask again" onClick={onRetry}>
-            <RetryGlyph className="size-3" />
-          </MetaButton>
-          <button
-            type="button"
-            aria-label="Edit question"
-            title="Edit question"
-            onClick={onEdit}
-            className="flex size-4.5 items-center justify-center transition-opacity duration-200 ease-out hover:opacity-80"
-          >
-            <EditSquareGlyph className="size-4.5" />
-          </button>
-          <MetaButton label="Copy" onClick={() => copyText(text)}>
-            <CopyGlyph className="size-3" />
-          </MetaButton>
-        </span>
+        <MetaIconRow
+          actions={[
+            {
+              label: "Ask again",
+              onClick: onRetry,
+              node: <RetryGlyph className="size-3" />,
+            },
+            {
+              label: "Edit question",
+              onClick: onEdit,
+              node: <EditSquareGlyph className="size-4.5" />,
+              className:
+                "flex size-4.5 items-center justify-center transition-opacity duration-200 ease-out hover:opacity-80",
+            },
+            {
+              label: "Copy",
+              onClick: () => copyText(text),
+              node: <CopyGlyph className="size-3" />,
+            },
+          ]}
+        />
       </div>
       )}
     </div>
@@ -190,7 +254,16 @@ export function AgentReply({
   return (
     <div className="group flex w-full flex-col items-start gap-4">
       <div className="flex w-full items-center gap-1">
-        <span className="flex size-4 items-center justify-center">
+        {/* The slot takes the CURRENT icon's own size — the loader is dialed
+            independently of the 16px sparkles, and the gap to the label must
+            read the same either way. */}
+        <span
+          className="flex items-center justify-center transition-[width,height] duration-200 ease-out"
+          style={{
+            width: thinking ? loader.size : 16,
+            height: thinking ? loader.size : 16,
+          }}
+        >
           <AnimatePresence mode="wait" initial={false}>
             {thinking ? (
               <motion.span
@@ -228,7 +301,7 @@ export function AgentReply({
               <motion.span
                 key="thinking"
                 {...swap(TEXT_SWAP)}
-                className="font-geist text-fig-caption-2 fig-medium text-icon-explainer"
+                className="font-geist text-fig-caption-1-md fig-medium text-heading-05"
               >
                 Thinking
               </motion.span>
@@ -273,23 +346,27 @@ export function AgentReply({
               !thinking && "group-hover:opacity-100",
             )}
           >
-            <span className="flex items-center gap-1.5">
-              <MetaButton label="Copy" onClick={() => copyText(full)}>
-                <CopyGlyph className="size-3" />
-              </MetaButton>
-              <button
-                type="button"
-                aria-label="Take into composer"
-                title="Take into composer"
-                onClick={onUndo}
-                className="flex size-4.5 items-center justify-center overflow-clip rounded-4 bg-surface-foreground-02 p-1 text-icon-system transition-colors duration-200 ease-out hover:text-heading-01"
-              >
-                <UndoGlyph className="size-3" />
-              </button>
-              <MetaButton label="Ask again" onClick={onRetry}>
-                <RetryGlyph className="size-3" />
-              </MetaButton>
-            </span>
+            <MetaIconRow
+              actions={[
+                {
+                  label: "Copy",
+                  onClick: () => copyText(full),
+                  node: <CopyGlyph className="size-3" />,
+                },
+                {
+                  label: "Take into composer",
+                  onClick: onUndo,
+                  node: <UndoGlyph className="size-3" />,
+                  className:
+                    "flex size-4.5 items-center justify-center overflow-clip rounded-4 bg-surface-foreground-02 p-1 text-icon-system transition-colors duration-200 ease-out hover:text-heading-01",
+                },
+                {
+                  label: "Ask again",
+                  onClick: onRetry,
+                  node: <RetryGlyph className="size-3" />,
+                },
+              ]}
+            />
             <span className="text-right font-geist text-fig-caption-2 fig-medium text-icon-explainer">
               {timeAgo(at)}
             </span>
