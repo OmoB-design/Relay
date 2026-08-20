@@ -210,18 +210,20 @@ export function DeskChatbox({
     {
       send: {
         inMs: [110, 40, 400, 5],
-        outMs: [90, 40, 400, 5],
+        outMs: [110, 40, 400, 5],
         scaleFrom: [0.92, 0.5, 1, 0.01],
         micGlide: { type: "spring", visualDuration: 0.35, bounce: 0.15 },
       },
       grow: {
         // The box's ceiling and how fast it rises to meet the text.
+        // Defaults are the user's tuned values (2026-08-20): a slow,
+        // deliberate rise.
         maxHeight: [240, 160, 420, 2],
-        ms: [150, 60, 500, 10],
+        ms: [500, 60, 500, 10],
       },
       clip: {
-        // The scrolled text's ghost zones (video: ~18 over, ~14 under).
-        topH: [18, 8, 40, 1],
+        // The scrolled text's ghost zones (user-tuned: 16 over, 14 under).
+        topH: [16, 8, 40, 1],
         bottomH: [14, 6, 40, 1],
         fadeMs: [150, 60, 500, 10],
       },
