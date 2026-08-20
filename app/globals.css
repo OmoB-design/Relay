@@ -745,56 +745,6 @@
 @theme {
   --spacing-user-bubble: 500px;
 }
-/* The thinking spark (claude 2.mov): a scalloped blob and a spread burst in
-   antiphase on one slow spin — rays reading as extending. Plain CSS, not
-   Motion: the header lives in an AnimatePresence subtree whose initial=false
-   context keeps Motion's infinite keyframes from ever starting. Durations
-   ride CSS vars so the dials stay in charge. */
-@keyframes spark-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes spark-blob-morph {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  40%,
-  60% {
-    opacity: 0;
-  }
-}
-@keyframes spark-spread-morph {
-  0%,
-  100% {
-    opacity: 0;
-    transform: scale(0.72);
-  }
-  40%,
-  60% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@utility spark-spin {
-  animation: spark-spin var(--spark-spin, 7s) linear infinite;
-}
-@utility spark-blob {
-  animation: spark-blob-morph var(--spark-cycle, 1.1s) ease-in-out infinite;
-}
-@utility spark-spread {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: spark-spread-morph var(--spark-cycle, 1.1s) ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .spark-spin,
-  .spark-blob,
-  .spark-spread {
-    animation: none;
-  }
-}
 /* A clamped user message's last lines dissolve into the bubble's own wash
    above the Show more control (the reference video's two-line fade). */
 @utility user-clamp-fade {
