@@ -140,19 +140,14 @@ export function AnswerDesk({
         // How long the desk "weighs" the opening move before greeting.
         greetDelayMs: [1100, 0, 3000, 50],
       },
-      loader: {
-        // The dot-matrix thinking loader (dotm-circular-8), every knob.
-        // Defaults are the user's tuned values (2026-08-20): a calmer,
-        // larger loader in Relay blue.
-        speed: [1.15, 0.2, 5, 0.05],
-        size: [24, 10, 40, 1],
-        dotSize: [2.5, 1, 6, 0.5],
-        color: { type: "color", default: "#0091ff" },
-        halo: [0, 0, 1, 0.05],
-        bloom: false,
-        opacityBase: [0.08, 0, 1, 0.02],
-        opacityMid: [0.16, 0, 1, 0.02],
-        opacityPeak: [0.96, 0, 1, 0.02],
+      shimmer: {
+        // The thinking spark (claude 2.mov): a blob↔burst morph on a slow
+        // spin, alone while thinking; it settles into the static sparkles
+        // the moment text arrives.
+        cycle: [1.1, 0.4, 3, 0.05],
+        spin: [7, 2, 20, 0.5],
+        size: [18, 12, 40, 1],
+        color: { type: "color", default: "#080706" },
       },
       stream: {
         chunkWords: [3, 1, 8, 1],
@@ -561,7 +556,7 @@ export function AnswerDesk({
                           meta={!m.synthetic}
                           chunkFadeMs={dial.stream.chunkFadeMs}
                           chunkFromOpacity={dial.stream.fromOpacity}
-                          loader={dial.loader}
+                          shimmer={dial.shimmer}
                           onUndo={() => {
                             const paired = pairedQuestion(messages, m.id);
                             if (paired)

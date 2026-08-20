@@ -5,8 +5,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 /* eslint-disable @next/next/no-img-element -- attachment previews are
    client-side object URLs; next/image cannot optimise a blob. */
 import { cn } from "@/lib/utils";
-import { DotmCircular8 } from "@/components/ui/dotm-circular-8";
-import "@/components/dotmatrix-loader.css";
 import {
   CopyGlyph,
   EditPencilGlyph,
@@ -32,18 +30,91 @@ import {
 
 export type AgentChunk = { id: number; text: string };
 
-/** Every knob the thinking loader exposes, dialed from the desk's panel. */
-export type LoaderDials = {
-  speed: number;
+/** The thinking spark's knobs, dialed from the desk's panel. */
+export type ShimmerDials = {
+  /** Seconds per blob↔burst morph cycle. */
+  cycle: number;
+  /** Seconds per full rotation. */
+  spin: number;
   size: number;
-  dotSize: number;
   color: string;
-  halo: number;
-  bloom: boolean;
-  opacityBase: number;
-  opacityMid: number;
-  opacityPeak: number;
 };
+
+/* The thinking shimmer (claude 2.mov, read at 30fps): while the answer is
+   owed, the spark lives — a soft scalloped blob breathing open into a spread
+   starburst and back, on a slow continuous spin, no label beside it. The
+   moment text arrives it settles into the crisp static sparkles SVG. The
+   morph is two same-skeleton starburst paths in antiphase crossfade, the
+   spread one scaling up as it arrives so the rays read as EXTENDING. */
+function starburstPath(spikes: number, rOut: number, rIn: number): string {
+  const step = Math.PI / spikes;
+  let d = "";
+  for (let i = 0; i < spikes * 2; i++) {
+    const r = i % 2 === 0 ? rOut : rIn;
+    const a = i * step - Math.PI / 2;
+    const x = 8 + Math.cos(a) * r;
+    const y = 8 + Math.sin(a) * r;
+    d += `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+  }
+  return `${d}Z`;
+}
+const SPARK_SPREAD = starburstPath(8, 7.7, 2.4);
+const SPARK_BLOB = starburstPath(8, 6.1, 4.8);
+
+function SparkMorph({ cycle, spin, size, color }: ShimmerDials) {
+  const reducedMotion = useReducedMotion();
+  if (reducedMotion) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          d={SPARK_SPREAD}
+          fill={color}
+          stroke={color}
+          strokeWidth={1}
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  return (
+    <span
+      role="status"
+      aria-label="Thinking"
+      className="spark-spin flex items-center justify-center"
+      style={
+        {
+          "--spark-cycle": `${cycle}s`,
+          "--spark-spin": `${spin}s`,
+        } as React.CSSProperties
+      }
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          className="spark-blob"
+          d={SPARK_BLOB}
+          fill={color}
+          stroke={color}
+          strokeWidth={1.4}
+          strokeLinejoin="round"
+        />
+        <path
+          className="spark-spread"
+          d={SPARK_SPREAD}
+          fill={color}
+          stroke={color}
+          strokeWidth={1}
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
 
 /* The header's two swaps carry transitions.dev's tuned recipes: icon-swap
    (200ms, 2px blur, 0.25 start scale, ease-in-out) between the loader and the
@@ -88,7 +159,7 @@ function ClampedBubble({ text }: { text: string }) {
 
   const clamped = overflows && !expanded;
   return (
-    <div className="flex max-w-80 flex-col items-start rounded-14 bg-surface-foreground-01 p-3.5">
+    <div className="flex max-w-user-bubble flex-col items-start rounded-14 bg-surface-foreground-01 p-3.5">
       {/* overflow-hidden, not clip: clip zeroes scrollHeight and the fold
           could never measure its own overflow. */}
       <div
@@ -229,14 +300,14 @@ export function AgentReply({
   meta = true,
   chunkFadeMs,
   chunkFromOpacity,
-  loader,
+  shimmer,
   onRetry,
   onUndo,
 }: {
   /** The reply so far, in arrival order — one span per chunk so each can
    *  carry its own fade without re-animating the settled ones. */
   chunks: AgentChunk[];
-  /** Still owed an answer: the dot loader runs, the label reads "Thinking". */
+  /** Still owed an answer: the spark shimmers alone, no label. */
   thinking: boolean;
   thoughtSecs: number | null;
   at: number;
@@ -244,7 +315,7 @@ export function AgentReply({
   meta?: boolean;
   chunkFadeMs: number;
   chunkFromOpacity: number;
-  loader: LoaderDials;
+  shimmer: ShimmerDials;
   onRetry?: () => void;
   onUndo?: () => void;
 }) {
@@ -274,35 +345,24 @@ export function AgentReply({
   return (
     <div className="group flex w-full flex-col items-start gap-4">
       <div className="flex w-full items-center gap-1">
-        {/* The slot takes the CURRENT icon's own size — the loader is dialed
+        {/* The slot takes the CURRENT icon's own size — the shimmer is dialed
             independently of the 16px sparkles, and the gap to the label must
             read the same either way. */}
         <span
           className="flex items-center justify-center transition-[width,height] duration-200 ease-out"
           style={{
-            width: thinking ? loader.size : 16,
-            height: thinking ? loader.size : 16,
+            width: thinking ? shimmer.size : 16,
+            height: thinking ? shimmer.size : 16,
           }}
         >
           <AnimatePresence mode="wait" initial={false}>
             {thinking ? (
               <motion.span
-                key="loader"
+                key="shimmer"
                 {...swap(ICON_SWAP, 0.25)}
                 className="flex items-center justify-center"
               >
-                <DotmCircular8
-                  ariaLabel="Thinking"
-                  speed={loader.speed}
-                  size={loader.size}
-                  dotSize={loader.dotSize}
-                  color={loader.color}
-                  halo={loader.halo}
-                  bloom={loader.bloom}
-                  opacityBase={loader.opacityBase}
-                  opacityMid={loader.opacityMid}
-                  opacityPeak={loader.opacityPeak}
-                />
+                <SparkMorph {...shimmer} />
               </motion.span>
             ) : (
               <motion.span
@@ -317,15 +377,9 @@ export function AgentReply({
         </span>
         <span className="relative flex items-center">
           <AnimatePresence mode="wait" initial={false}>
-            {thinking ? (
-              <motion.span
-                key="thinking"
-                {...swap(TEXT_SWAP)}
-                className="font-geist text-fig-caption-1-md fig-medium text-heading-05"
-              >
-                Thinking
-              </motion.span>
-            ) : thoughtSecs !== null ? (
+            {/* The video's law: the shimmer carries the thinking state ALONE —
+                no label until there is a thought to count. */}
+            {thinking ? null : thoughtSecs !== null ? (
               <motion.span
                 key="thought"
                 {...swap(TEXT_SWAP)}
