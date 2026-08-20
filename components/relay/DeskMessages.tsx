@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 /* eslint-disable @next/next/no-img-element -- attachment previews are
    client-side object URLs; next/image cannot optimise a blob. */
@@ -9,7 +8,7 @@ import { DotmCircular8 } from "@/components/ui/dotm-circular-8";
 import "@/components/dotmatrix-loader.css";
 import {
   CopyGlyph,
-  EditSquareGlyph,
+  EditPencilGlyph,
   RetryGlyph,
   SparklesGlyph,
   UndoGlyph,
@@ -63,67 +62,35 @@ function timeAgo(at: number): string {
   return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
 }
 
-/* The meta icon cluster carries transitions.dev's avatar-group-hover comb:
-   the hovered icon lifts −4px and scales 1.05, its neighbours lift with a
-   0.45 power falloff, and mouseleave snaps everything back on an overshoot
-   curve. Icons rest in the explainer grey and only take ink ON hover. */
-const COMB_LIFT = -4;
-const COMB_FALLOFF = 0.45;
-const COMB_SCALE = 1.05;
-const COMB_IN: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const COMB_OUT: [number, number, number, number] = [0.34, 3.85, 0.64, 1];
-
+/* The meta icon cluster: still buttons, no theater. Every icon — the pencil
+   and the agent's undo included — rests chromeless in the explainer grey;
+   ink and any box fill arrive only under the pointer. */
 type MetaAction = {
   label: string;
   onClick?: () => void;
   node: React.ReactNode;
-  /** The boxed variants (edit square, the agent's undo) keep their own
-   *  chrome; everything else colours only under the pointer. */
+  /** For icons whose hover brings back their Figma box (the agent's undo). */
   className?: string;
 };
 
 function MetaIconRow({ actions }: { actions: MetaAction[] }) {
-  const reducedMotion = useReducedMotion();
-  const [hovered, setHovered] = useState<number | null>(null);
-
   return (
-    <span
-      className="flex items-center gap-1.5"
-      onMouseLeave={() => setHovered(null)}
-    >
-      {actions.map((a, i) => {
-        const distance = hovered === null ? null : Math.abs(i - hovered);
-        const y =
-          distance === null || reducedMotion
-            ? 0
-            : COMB_LIFT * Math.pow(COMB_FALLOFF, distance);
-        const scale =
-          !reducedMotion && distance === 0 ? COMB_SCALE : 1;
-        return (
-          <motion.button
-            key={a.label}
-            type="button"
-            aria-label={a.label}
-            title={a.label}
-            onClick={a.onClick}
-            onMouseEnter={() => setHovered(i)}
-            onFocus={() => setHovered(i)}
-            onBlur={() => setHovered(null)}
-            animate={{ y, scale }}
-            transition={{
-              type: "tween",
-              duration: 0.32,
-              ease: hovered === null ? COMB_OUT : COMB_IN,
-            }}
-            className={
-              a.className ??
-              "flex size-4.5 items-center justify-center text-icon-explainer transition-colors duration-200 ease-out hover:text-heading-01"
-            }
-          >
-            {a.node}
-          </motion.button>
-        );
-      })}
+    <span className="flex items-center gap-1.5">
+      {actions.map((a) => (
+        <button
+          key={a.label}
+          type="button"
+          aria-label={a.label}
+          title={a.label}
+          onClick={a.onClick}
+          className={
+            a.className ??
+            "flex size-4.5 items-center justify-center text-icon-explainer transition-colors duration-200 ease-out hover:text-heading-01"
+          }
+        >
+          {a.node}
+        </button>
+      ))}
     </span>
   );
 }
@@ -186,9 +153,7 @@ export function UserMessage({
             {
               label: "Edit question",
               onClick: onEdit,
-              node: <EditSquareGlyph className="size-4.5" />,
-              className:
-                "flex size-4.5 items-center justify-center transition-opacity duration-200 ease-out hover:opacity-80",
+              node: <EditPencilGlyph className="size-4.5" />,
             },
             {
               label: "Copy",
@@ -359,8 +324,9 @@ export function AgentReply({
                   label: "Take into composer",
                   onClick: onUndo,
                   node: <UndoGlyph className="size-3" />,
+                  /* Chromeless at rest; its Figma box fill is the hover. */
                   className:
-                    "flex size-4.5 items-center justify-center overflow-clip rounded-4 bg-surface-foreground-02 p-1 text-icon-system transition-colors duration-200 ease-out hover:text-heading-01",
+                    "flex size-4.5 items-center justify-center overflow-clip rounded-4 p-1 text-icon-explainer transition-colors duration-200 ease-out hover:bg-surface-foreground-02 hover:text-heading-01",
                 },
                 {
                   label: "Ask again",

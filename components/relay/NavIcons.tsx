@@ -904,6 +904,30 @@ export function EditSquareGlyph({ className }: GlyphProps) {
   );
 }
 
+/** The pencil from 619:15462 without its baked grey square — the meta row's
+ *  icons are chromeless until hovered, so the box can't ride along. Ink on
+ *  currentColor like every other row icon. */
+export function EditPencilGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width={18}
+      height={18}
+      viewBox="0 0 18 18"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M4.5 13.4993C4.5 13.4993 7.09112 13.0903 7.77292 12.4085C8.45472 11.7267 13.048 7.13342 13.048 7.13342C13.6507 6.53082 13.6507 5.55384 13.048 4.95195C12.4454 4.34935 11.4685 4.34935 10.8666 4.95195C10.8666 4.95195 6.27325 9.54528 5.59145 10.2271C4.90966 10.9089 4.50072 13.5 4.50072 13.5L4.5 13.4993Z"
+        stroke="currentColor"
+        strokeWidth={0.971942}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The agent's sparkles (619:16942) — "Thinking" while it works, "Thought Ns"
  *  once it has. The SPIN lives on the element, not in the asset. */
 export function SparklesGlyph({ className }: GlyphProps) {
