@@ -438,6 +438,9 @@
   /* The picker's client tile (612:9774): the 34px mark in a washed 42px box.
      Pinned for the inside-stroke reason — padding + a CSS border lands at 44. */
   --spacing-desk-tile: 42px;
+  /* The conversation composer outgrows the 616 message flow by 18 a side —
+     scrolling messages read as sliding INSIDE it (user-set geometry). */
+  --spacing-desk-composer: 652px;
   /* The desk sidebar (639:17444): the 300 chat panel beside the collapsed
      rail; Start-new-chat and the group header pin at 33 (inside stroke). */
   --spacing-desk-panel: 300px;

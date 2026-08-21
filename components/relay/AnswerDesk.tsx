@@ -447,7 +447,7 @@ export function AnswerDesk({
         /* 43px, not the frame's 44: the sheet's own hairline is inside this
            box's coordinate space, and Figma's inside stroke is not. */
         position === "conversation" &&
-          "absolute inset-x-0 bottom-10.75 z-10 mx-auto w-full max-w-desk px-0.5",
+          "absolute inset-x-0 bottom-10.75 z-10 mx-auto w-full max-w-desk-composer",
       )}
     >
       <motion.div
