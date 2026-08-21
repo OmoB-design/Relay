@@ -193,8 +193,34 @@ export function NumbersTab({
         const segmentRows = rows
           .filter((r) => r.segment === segment)
           .slice(-windowDays);
-        const latest = segmentRows[segmentRows.length - 1];
-        if (!latest) return null;
+        if (segmentRows.length === 0) return null;
+
+        /* CORRELATION RULE: each card shows its metric's latest AVAILABLE
+           value in the window — never a dash from a row the source skipped —
+           so the big number always equals the sparkline's endpoint. A metric
+           with no value anywhere in the window goes n/a with the source's
+           own reason: its per-metric note, else the row-level "_row" note
+           the nightly compile leaves when a whole day is missing. */
+        const latestValue = (key: MetricKey): number | undefined => {
+          for (let i = segmentRows.length - 1; i >= 0; i--) {
+            const v = segmentRows[i]!.metrics[key];
+            if (v !== undefined) return v;
+          }
+          return undefined;
+        };
+        const reasonFor = (key: MetricKey): string => {
+          for (let i = segmentRows.length - 1; i >= 0; i--) {
+            const r = segmentRows[i]!.unavailable[key];
+            if (r) return r;
+          }
+          for (let i = segmentRows.length - 1; i >= 0; i--) {
+            const r = (
+              segmentRows[i]!.unavailable as Record<string, string | undefined>
+            )["_row"];
+            if (r) return r;
+          }
+          return `No data in the last ${windowDays} days`;
+        };
 
         return (
           <section key={segment} className="flex flex-col gap-3">
@@ -210,8 +236,9 @@ export function NumbersTab({
                   const v = r.metrics[m.key];
                   return v === undefined ? [] : [{ date: r.date, value: v }];
                 });
-                const value = latest.metrics[m.key];
-                const unavailable = latest.unavailable[m.key];
+                const value = latestValue(m.key);
+                const unavailable =
+                  value === undefined ? reasonFor(m.key) : undefined;
                 const kpi = kpiFor(m.key);
                 const target = kpi ? dailyTarget(m.key, kpi.target) : undefined;
 
@@ -239,12 +266,24 @@ export function NumbersTab({
       })}
 
       <p className="font-geist text-fig-caption-2 text-heading-06">
-        Rolling {windowDays} days · source{" "}
-        {rows[rows.length - 1].source === "Tracker" && rows[rows.length - 1].sourceOfTruth
-          ? `Tracker · ${rows[rows.length - 1].sourceOfTruth}`
-          : rows[rows.length - 1].source}{" "}
-        · through{" "}
-        {format(parseISO(rows[rows.length - 1].date), "MMM d")}
+        {/* The stamp tells the truth about DATA, not rows: "through" is the
+            last day the source actually reported — the engine's own
+            confidence language — never an empty row's date. */}
+        {(() => {
+          const dataRows = rows.filter((r) =>
+            Object.values(r.metrics).some((v) => v !== undefined),
+          );
+          const stamp = dataRows[dataRows.length - 1] ?? rows[rows.length - 1];
+          return (
+            <>
+              Rolling {windowDays} days · source{" "}
+              {stamp.source === "Tracker" && stamp.sourceOfTruth
+                ? `Tracker · ${stamp.sourceOfTruth}`
+                : stamp.source}{" "}
+              · through {format(parseISO(stamp.date), "MMM d")}
+            </>
+          );
+        })()}
       </p>
     </div>
   );
