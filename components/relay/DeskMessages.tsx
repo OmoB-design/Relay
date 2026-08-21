@@ -132,7 +132,9 @@ function MetaIconRow({ actions }: { actions: MetaAction[] }) {
           onClick={a.onClick}
           className={
             a.className ??
-            "flex size-4.5 items-center justify-center text-icon-explainer transition-colors duration-200 ease-out hover:text-heading-01"
+            /* Every icon's housing frame washes on pointer-enter (the
+               composer's + button language) — never just the glyph. */
+            "flex size-4.5 items-center justify-center rounded-4 text-icon-explainer transition-colors duration-200 ease-out hover:bg-surface-foreground-02 hover:text-heading-01"
           }
         >
           {a.node}
@@ -180,7 +182,9 @@ export function UserMessage({
       <ClampedBubble text={text} />
       {/* The Hover variant's row (619:15455): time first, then the controls. */}
       {meta && (
-      <div className="flex items-center justify-end gap-2.5 rounded-14 px-3.5 py-1 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
+      /* Flush under the pill (user-set 12px target; the pill's own 14px
+         padding is the floor) — the -mt cancels the column gap. */
+      <div className="-mt-1.5 flex items-center justify-end gap-2.5 rounded-14 px-3.5 pb-1 pt-0 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
         <span className="text-right font-geist text-fig-caption-2 fig-medium text-icon-explainer">
           {timeAgo(at)}
         </span>
@@ -273,7 +277,9 @@ export function AgentReply({
           mirrored from the user's. Only a finished reply has one, and it
           sits ABOVE the mark — the reply's tail glyph closes the message. */}
       {meta && phase === "done" && (
-        <div className="flex items-center justify-end gap-2.5 rounded-14 py-1 pr-3.5 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
+        /* Pulled to 12px under the text (user-set): the -mt eats the group
+           gap so the mark's own spacing below stays whole. */
+        <div className="-mt-4.5 flex items-center justify-end gap-2.5 rounded-14 py-1 pr-3.5 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
           <MetaIconRow
             actions={[
               {
