@@ -51,7 +51,7 @@ export default function NumbersCataloguePage() {
           id="numbers/on-track"
           title="On track — higher is better"
           when="value ≥ target with higher_is_better polarity"
-          note="Target line verdigris; the rising series reads green; the dashed guide is the target inside the sparkline's own domain."
+          note="One message per card: the line wears the caption's verdict. On track, both green; the dashed guide is the target inside the sparkline's own domain."
         >
           <MetricCard
             label="ROAS"
@@ -68,7 +68,7 @@ export default function NumbersCataloguePage() {
           id="numbers/off-track"
           title="Off track — higher is better"
           when="value < target with higher_is_better polarity"
-          note="Target line negative; the falling series reads red."
+          note="Caption and line agree: off track, both red."
         >
           <MetricCard
             label="ROAS"
@@ -85,7 +85,7 @@ export default function NumbersCataloguePage() {
           id="numbers/lower-on-track"
           title="On track — lower is better"
           when="value ≤ target with lower_is_better polarity (CPA-shaped)"
-          note="The FALLING series reads green here — tone follows polarity, the geometry never flips."
+          note="The FALLING series reads green here — the verdict decides the colour, the geometry never flips."
         >
           <MetricCard
             label="CPA/CPO"
@@ -171,15 +171,13 @@ export default function NumbersCataloguePage() {
         <Spec
           id="numbers/flat"
           title="Flat drift"
-          when="back-half vs front-half drift under the 2% band"
-          note="Grey line even with judged polarity — a trend smaller than noise is not a verdict."
+          when="no target to judge, and drift under the 2% band"
+          note="Grey line even with judged polarity — without a target verdict, a trend smaller than noise is not one either."
         >
           <MetricCard
             label="Revenue"
             kind="money"
             value={50.1}
-            target={50}
-            targetLabel="Revenue"
             polarity="higher_is_better"
             series={FLAT}
           />

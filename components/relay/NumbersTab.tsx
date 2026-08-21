@@ -141,6 +141,7 @@ export function MetricCard({
               points={series}
               polarity={polarity}
               target={target}
+              judgment={onTrack}
               formatValue={(v) => display(kind, v)}
             />
           )}

@@ -72,6 +72,7 @@ export function TrendSparkline({
   points,
   polarity = "neutral",
   target,
+  judgment,
   formatValue = (v) => String(v),
   className,
 }: {
@@ -81,6 +82,11 @@ export function TrendSparkline({
   polarity?: KpiPolarity | "neutral";
   /** The KPI's (pro-rated) target — drawn as a dashed guide in-domain. */
   target?: number;
+  /** ONE message per card (user-set): when the caller has judged standing
+   *  against a target, the line wears THAT verdict — green on-track, red
+   *  off — so the caption and the line always agree. Undefined falls back
+   *  to the drift tone; the trend stays visible in the line's shape. */
+  judgment?: boolean;
   formatValue?: (v: number) => string;
   className?: string;
 }) {
@@ -111,7 +117,9 @@ export function TrendSparkline({
     const base = Math.abs(mean(values)) || 1;
     const drift = (back - front) / base;
     let tone = "text-heading-06";
-    if (
+    if (judgment !== undefined) {
+      tone = judgment ? "text-green-600" : "text-red-600";
+    } else if (
       Math.abs(drift) >= FLAT_BAND &&
       (polarity === "higher_is_better" || polarity === "lower_is_better")
     ) {
@@ -130,7 +138,7 @@ export function TrendSparkline({
       tone,
       targetY: target === undefined ? null : y(target),
     };
-  }, [points, target, polarity]);
+  }, [points, target, polarity, judgment]);
 
   if (points.length < 2) return null;
 
