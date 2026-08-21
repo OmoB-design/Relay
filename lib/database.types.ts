@@ -62,6 +62,8 @@ export interface Database {
         /* Phase 7.5b (0024): set → the compile pulls this client's daily row
            from the Google Ads API; null → tracker path. */
         google_ads_customer_id: string | null;
+        /* Layer C (0025): same contract for Triple Whale. */
+        triple_whale_shop: string | null;
       }>;
       accounts: Row<{
         id: string;

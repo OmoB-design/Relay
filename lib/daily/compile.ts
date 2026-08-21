@@ -149,7 +149,13 @@ export async function compileDaily(options?: {
        stages an ABSENT row with the stated reason, never a zero, and never
        silently falls back to a tracker tab that may be stale. */
     if (client.googleAdsCustomerId) {
-      results.push(await compileFromGoogleAds(client, date));
+      results.push(await compileFromApi(client, date, "Google Ads"));
+      continue;
+    }
+    /* Layer C: same contract for a Triple Whale-mapped shop — the one source
+       carrying real new-customer truth. */
+    if (client.tripleWhaleShop) {
+      results.push(await compileFromApi(client, date, "Triple Whale"));
       continue;
     }
 
@@ -232,13 +238,13 @@ export async function compileDaily(options?: {
   return { source, clients: results };
 }
 
-/** The Google Ads leg of the compile: fetch the flag window from the API,
- *  stage the day's row, run the same detectors. One client, one account. */
-async function compileFromGoogleAds(
+/** The direct-API leg of the compile — one shape for both connectors: fetch
+ *  the flag window, stage the day's row, run the same detectors. */
+async function compileFromApi(
   client: ClientProfile,
   date: string,
+  api: "Google Ads" | "Triple Whale",
 ): Promise<CompiledClient> {
-  const { fetchDailyRows } = await import("@/lib/google-ads");
   const windowStart = format(
     parseISO(date).getTime() - 44 * 86_400_000,
     "yyyy-MM-dd",
@@ -246,14 +252,24 @@ async function compileFromGoogleAds(
 
   let rows;
   try {
-    rows = await fetchDailyRows(client.googleAdsCustomerId!, windowStart, date);
+    if (api === "Google Ads") {
+      const { fetchDailyRows } = await import("@/lib/google-ads");
+      rows = await fetchDailyRows(
+        client.googleAdsCustomerId!,
+        windowStart,
+        date,
+      );
+    } else {
+      const { fetchDailyRows } = await import("@/lib/triple-whale");
+      rows = await fetchDailyRows(client.tripleWhaleShop!, windowStart, date);
+    }
   } catch (e) {
-    const problem = `Google Ads unreachable: ${e instanceof Error ? e.message : "unknown error"}`;
+    const problem = `${api} unreachable: ${e instanceof Error ? e.message : "unknown error"}`;
     await upsertStagedRow({
       clientId: client.id,
       date,
       segment: "overall",
-      source: "Google Ads",
+      source: api,
       sourceOfTruth: client.sourceOfTruth,
       metrics: {},
       unavailable: { [ROW_ABSENT_KEY]: problem },
@@ -271,12 +287,12 @@ async function compileFromGoogleAds(
 
   const dayRow = rows.find((r) => r.date === date);
   if (!dayRow || Object.keys(dayRow.metrics).length === 0) {
-    const problem = `Google Ads has no data for ${format(parseISO(date), "MMM d")} yet.`;
+    const problem = `${api} has no data for ${format(parseISO(date), "MMM d")} yet.`;
     await upsertStagedRow({
       clientId: client.id,
       date,
       segment: "overall",
-      source: "Google Ads",
+      source: api,
       sourceOfTruth: client.sourceOfTruth,
       metrics: {},
       unavailable: { [ROW_ABSENT_KEY]: problem },
@@ -303,7 +319,7 @@ async function compileFromGoogleAds(
     clientId: client.id,
     date,
     segment: "overall",
-    source: "Google Ads",
+    source: api,
     sourceOfTruth: client.sourceOfTruth,
     metrics,
     unavailable: unavailabilityFor(client, metrics),

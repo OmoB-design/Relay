@@ -11,7 +11,7 @@ import { z } from "zod";
 
 /** Evidence source: the ad platform vs. the agency's daily workbook. Meta is out
  *  of scope entirely — "Google Ads" is the only platform value. */
-export const DataSourceSchema = z.enum(["Google Ads", "Tracker"]);
+export const DataSourceSchema = z.enum(["Google Ads", "Tracker", "Triple Whale"]);
 export type DataSource = z.infer<typeof DataSourceSchema>;
 
 /** Per-client trusted tool, read from their tracker tab-header convention.
@@ -182,6 +182,9 @@ export const ClientSchema = z.object({
    *  from the Google Ads API instead of the tracker. Explicit and per-client
    *  — clearing it puts the tracker path back. */
   googleAdsCustomerId: z.string().optional(),
+  /** Layer C: same contract for Triple Whale — the shop domain the compile
+   *  pulls from when set. */
+  tripleWhaleShop: z.string().optional(),
 });
 export type Client = z.infer<typeof ClientSchema>;
 

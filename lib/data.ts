@@ -124,6 +124,7 @@ function mapProfile(
     dailyToClient: client.daily_to_client ?? false,
     accountTimezone: client.account_timezone ?? "Asia/Dubai",
     googleAdsCustomerId: opt(client.google_ads_customer_id),
+    tripleWhaleShop: opt(client.triple_whale_shop),
     accounts: accounts.map(mapAccount),
     kpis: kpis.map(mapKpi),
     sensitivities: sensitivities.map(mapSensitivity),
@@ -1025,7 +1026,7 @@ export async function upsertStagedRow(input: {
   clientId: string;
   date: string;
   segment: MetricSegment;
-  source: "Google Ads" | "Tracker";
+  source: "Google Ads" | "Tracker" | "Triple Whale";
   sourceOfTruth?: string;
   metrics: DailyMetrics;
   unavailable: Record<string, string>;
