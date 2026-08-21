@@ -63,11 +63,11 @@ function dailyTarget(metric: MetricKey, target: number): number {
 }
 
 /** One metric's card — Figma set 676:6444, all ten variants one anatomy:
- *  label over a Helvetica Neue value on the left, the graph WELL (the
- *  foreground-01 frame, up to 120 wide) on the right when a trend exists,
- *  a hairline seam, and the judged caption line below — green-700 on track,
- *  red-700 off, body grey for a source's own n/a reason. The design
- *  catalogue renders every state at /design/numbers. */
+ *  label over a Helvetica Neue value on the left, the bare sparkline on the
+ *  right when a trend exists (the set's foreground-01 frame was only its
+ *  placeholder), a hairline seam, and the judged caption below — green-700
+ *  on track, red-700 off, body grey for a source's own n/a reason. The
+ *  design catalogue renders every state at /design/numbers. */
 export function MetricCard({
   label,
   kind,
@@ -99,13 +99,13 @@ export function MetricCard({
         : value <= target;
 
   const caption = unavailable ? (
-    <p className="truncate font-geist text-fig-caption-2 fig-medium text-heading-06">
+    <p className="truncate font-geist text-fig-caption-1-md fig-medium text-heading-06">
       {unavailable}
     </p>
   ) : target !== undefined ? (
     <p
       className={cn(
-        "truncate font-geist text-fig-caption-2 fig-medium",
+        "truncate font-geist text-fig-caption-1-md fig-medium",
         onTrack === undefined
           ? "text-heading-06"
           : onTrack
@@ -119,7 +119,7 @@ export function MetricCard({
   ) : null;
 
   return (
-    <article className="flex w-full flex-col overflow-clip rounded-14 border-fig border-border bg-surface-primary shadow-metric-card">
+    <article className="flex w-full flex-col overflow-clip rounded-14 border border-border bg-surface-primary shadow-metric-card">
       <div className="w-full pb-2.5">
         <div className="flex w-full items-start gap-2.5 divider-b border-border px-4 pb-3 pt-3.5">
           <div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5">
@@ -130,18 +130,17 @@ export function MetricCard({
               {unavailable ? "n/a" : display(kind, value)}
             </p>
           </div>
-          {/* The well — the foreground-01 frame the graph lives in. Sparse
-              series draw NO well at all (676:6865): one point is not a
-              trend, and an empty grey box is not information. */}
+          {/* The foreground-01 frame in Figma was only the sparkline's
+              placeholder — the real graph stands alone. Sparse series draw
+              nothing (676:6865): one point is not a trend. */}
           {series.length > 1 && (
-            <div className="flex h-11.5 min-w-0 flex-1 max-w-30 items-center justify-center self-center bg-surface-foreground-01">
-              <TrendSparkline
-                points={series}
-                polarity={polarity}
-                target={target}
-                formatValue={(v) => display(kind, v)}
-              />
-            </div>
+            <TrendSparkline
+              className="self-center"
+              points={series}
+              polarity={polarity}
+              target={target}
+              formatValue={(v) => display(kind, v)}
+            />
           )}
         </div>
       </div>
