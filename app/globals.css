@@ -99,6 +99,7 @@
 
   /* Green — done / healthy */
   --color-green-600: #1e8a28; /* the evidence delta text (node 545:3587) */
+  --color-green-700: #16681e; /* the metric card's on-track line (676:6484) */
   --color-green-500: #25ad32;
   --color-green-150: #bce6bf; /* the Sent pill's stroke (node 552:5135) */
   --color-green-100: #d1eed4; /* the delta-up badge's disc */
@@ -477,6 +478,9 @@
   /* The draft card, the resting evidence card, the preview popover's base
      layer: the faintest of the card lifts. */
   --shadow-card-quiet: 0 0 2.5px 0 rgb(217 217 217 / 0.2);
+  /* The metric card's halo (676:6862) — the same 2.5px breath, a shade
+     quieter. */
+  --shadow-metric-card: 0 0 2.5px 0 rgb(217 217 217 / 0.15);
   /* The Answer Desk chatbox (615:11614): three near-white layers — a lift so
      faint it reads as the box sitting a hair proud of the sheet. */
   --shadow-chatbox:

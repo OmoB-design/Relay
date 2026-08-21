@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
 import { config, formatCurrency } from "@/lib/config";
 import type { ClientProfile, DailyMetrics, DailyRow, MetricSegment } from "@/lib/types";
 import { TrendSparkline } from "@/components/relay/TrendSparkline";
-import { EmptyState } from "@/components/relay/EmptyState";
+import { LineChart } from "lucide-react";
+import { EmptyPanel } from "@/components/relay/EmptyPanel";
 
 /* Numbers tab (Phase 7.5a) — the replacement for the chart-scan step of the
    agency's daily ritual (AGENCY.md §1, steps 6–7).
@@ -61,9 +62,12 @@ function dailyTarget(metric: MetricKey, target: number): number {
   return isAdditive(metric) ? target / config.flags.dailyTargetDivisor : target;
 }
 
-/** One metric's card — extracted so the design catalogue can render every
- *  state directly (/design/numbers). NumbersTab derives the props; the card
- *  only draws. */
+/** One metric's card — Figma set 676:6444, all ten variants one anatomy:
+ *  label over a Helvetica Neue value on the left, the graph WELL (the
+ *  foreground-01 frame, up to 120 wide) on the right when a trend exists,
+ *  a hairline seam, and the judged caption line below — green-700 on track,
+ *  red-700 off, body grey for a source's own n/a reason. The design
+ *  catalogue renders every state at /design/numbers. */
 export function MetricCard({
   label,
   kind,
@@ -94,48 +98,58 @@ export function MetricCard({
         ? value >= target
         : value <= target;
 
-  return (
-    <article className="flex items-start justify-between gap-3 rounded-lg border border-line bg-surface p-4">
-      <div className="min-w-0">
-        <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
-          {label}
-        </p>
-        {unavailable ? (
-          <>
-            <p className="font-display text-22 text-ink-soft">n/a</p>
-            <p className="font-ui text-12 text-ink-soft">{unavailable}</p>
-          </>
-        ) : (
-          <>
-            <p className="font-display text-28 text-ink">
-              {display(kind, value)}
-            </p>
-            {target !== undefined && (
-              <p
-                className={cn(
-                  "font-ui text-12",
-                  onTrack === undefined
-                    ? "text-ink-soft"
-                    : onTrack
-                      ? "text-verdigris"
-                      : "text-negative",
-                )}
-              >
-                {targetLabel} target {display(kind, target)}
-                {perDay && "/day"}
-              </p>
-            )}
-          </>
-        )}
-      </div>
-      {series.length > 1 && (
-        <TrendSparkline
-          points={series}
-          polarity={polarity}
-          target={target}
-          formatValue={(v) => display(kind, v)}
-        />
+  const caption = unavailable ? (
+    <p className="truncate font-geist text-fig-caption-2 fig-medium text-heading-06">
+      {unavailable}
+    </p>
+  ) : target !== undefined ? (
+    <p
+      className={cn(
+        "truncate font-geist text-fig-caption-2 fig-medium",
+        onTrack === undefined
+          ? "text-heading-06"
+          : onTrack
+            ? "text-green-700"
+            : "text-red-700",
       )}
+    >
+      {targetLabel} target {display(kind, target)}
+      {perDay && "/day"}
+    </p>
+  ) : null;
+
+  return (
+    <article className="flex w-full flex-col overflow-clip rounded-14 border-fig border-border bg-surface-primary shadow-metric-card">
+      <div className="w-full pb-2.5">
+        <div className="flex w-full items-start gap-2.5 divider-b border-border px-4 pb-3 pt-3.5">
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5">
+            <p className="w-full truncate font-geist text-fig-body-sm fig-medium text-heading-05">
+              {label}
+            </p>
+            <p className="whitespace-nowrap py-0.5 font-greeting text-fig-h5 fig-medium text-heading-02">
+              {unavailable ? "n/a" : display(kind, value)}
+            </p>
+          </div>
+          {/* The well — the foreground-01 frame the graph lives in. Sparse
+              series draw NO well at all (676:6865): one point is not a
+              trend, and an empty grey box is not information. */}
+          {series.length > 1 && (
+            <div className="flex h-11.5 min-w-0 flex-1 max-w-30 items-center justify-center self-center bg-surface-foreground-01">
+              <TrendSparkline
+                points={series}
+                polarity={polarity}
+                target={target}
+                formatValue={(v) => display(kind, v)}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      {/* The caption row keeps its height even empty — ten cards, one grid,
+          one baseline. */}
+      <div className="flex min-h-6.5 w-full items-start px-4 pb-3.5">
+        {caption}
+      </div>
     </article>
   );
 }
@@ -151,10 +165,19 @@ export function NumbersTab({
 
   if (rows.length === 0) {
     return (
-      <EmptyState title="No daily numbers yet">
+      <EmptyPanel
+        title="No daily numbers yet"
+        glyph={
+          <LineChart
+            size={14}
+            aria-hidden="true"
+            className="text-icon-explainer"
+          />
+        }
+      >
         Once the nightly compile runs, {profile.name}&apos;s last {windowDays}{" "}
         days land here — each figure stamped with where it came from.
-      </EmptyState>
+      </EmptyPanel>
     );
   }
 
@@ -176,12 +199,12 @@ export function NumbersTab({
         return (
           <section key={segment} className="flex flex-col gap-3">
             {segments.length > 1 && (
-              <h3 className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+              <h3 className="font-geist text-fig-caption-1-md fig-medium uppercase text-heading-06">
                 {SEGMENT_LABEL[segment]}
               </h3>
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {METRICS.map((m) => {
                 const series = segmentRows.flatMap((r) => {
                   const v = r.metrics[m.key];
@@ -215,7 +238,7 @@ export function NumbersTab({
         );
       })}
 
-      <p className="font-ui text-12 text-ink-soft">
+      <p className="font-geist text-fig-caption-2 text-heading-06">
         Rolling {windowDays} days · source{" "}
         {rows[rows.length - 1].source === "Tracker" && rows[rows.length - 1].sourceOfTruth
           ? `Tracker · ${rows[rows.length - 1].sourceOfTruth}`

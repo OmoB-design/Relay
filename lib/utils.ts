@@ -68,6 +68,7 @@ const BORDER_WIDTHS = ["fig", "hair"];
 const SHADOWS = [
   "card",
   "card-quiet",
+  "metric-card",
   "popover",
   "field-active",
   "input-active",
