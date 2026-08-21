@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gauge, LogOut, ShieldCheck } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { toast } from "sonner";
+import { Gauge, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
 import type { Profile } from "@/lib/types";
@@ -14,6 +16,8 @@ import {
   LibraryGlyph,
   PanelToggleGlyph,
   RelayMark,
+  SettingsDialGlyph,
+  SignOutDoorGlyph,
   TodayGlyph,
 } from "@/components/relay/NavIcons";
 
@@ -373,22 +377,69 @@ function AccountCard({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const name = displayName(profile);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  /* Click-away and Escape both hand the keys back. */
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
 
   return (
-    <div className="relative w-full">
-      {open && (
-        <div className="absolute bottom-full left-0 z-10 mb-1 w-full min-w-nav-collapsed overflow-hidden rounded-10 border-fig border-border bg-surface-primary shadow-nav-profile">
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => startTransition(() => signOutAction())}
-            className="flex w-full items-center gap-1.5 p-2 font-geist text-fig-caption-2 text-heading-01 hover:bg-surface-foreground-01"
+    <div ref={rootRef} className="relative w-full">
+      <AnimatePresence>
+        {open && (
+          /* The account's own menu — the composer's @ popover language:
+             same card, same pop, Settings first, Sign out underneath. */
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.98 }}
+            transition={{
+              type: "tween",
+              duration: 0.14,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            role="menu"
+            aria-label="Account"
+            className="absolute bottom-full left-0 z-10 mb-1.5 flex w-full min-w-nav-collapsed flex-col gap-0.5 rounded-10 border-fig border-border bg-surface-primary p-1 shadow-popover"
           >
-            <LogOut aria-hidden="true" className="size-nav-icon" />
-            {pending ? config.copy.daily.working : "Sign out"}
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                toast("Settings is on its way — nothing to change here yet.");
+              }}
+              className="flex w-full items-center gap-2 rounded-8 px-2 py-1.5 text-left font-geist text-fig-caption-1-md fig-medium text-heading-03 transition-colors duration-100 ease-out hover:bg-surface-foreground-01"
+            >
+              <SettingsDialGlyph className="size-3.5 shrink-0" />
+              Settings
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              disabled={pending}
+              onClick={() => startTransition(() => signOutAction())}
+              className="flex w-full items-center gap-2 rounded-8 px-2 py-1.5 text-left font-geist text-fig-caption-1-md fig-medium text-heading-03 transition-colors duration-100 ease-out hover:bg-surface-foreground-01"
+            >
+              <SignOutDoorGlyph className="size-3.5 shrink-0" />
+              {pending ? config.copy.daily.working : "Sign out"}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <button
         type="button"

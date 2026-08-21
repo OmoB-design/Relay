@@ -1019,3 +1019,52 @@ export function ChatDotGlyph({ className }: GlyphProps) {
     </svg>
   );
 }
+
+/** The dropdown's Settings mark — the user's own dial-gear, verbatim paths
+ *  (18 viewBox), inked by currentColor so the row's hover can take it. */
+export function SettingsDialGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 18 18"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <line x1="6.25" y1="4.237" x2="9" y2="9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="6.25" y1="13.764" x2="9" y2="9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="14.5" y1="9" x2="9" y2="9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="9" y1="1.75" x2="9" y2="3.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="2.721" y1="5.375" x2="4.237" y2="6.25" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="1.75" y1="9" x2="3.5" y2="9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="16.25" y1="9" x2="14.5" y2="9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="2.721" y1="12.625" x2="4.237" y2="11.75" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="9" y1="16.25" x2="9" y2="14.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="12.625" y1="15.279" x2="11.75" y2="13.763" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="5.375" y1="15.279" x2="6.25" y2="13.763" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="15.279" y1="12.625" x2="13.763" y2="11.75" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="15.279" y1="5.375" x2="13.763" y2="6.25" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="12.625" y1="2.721" x2="11.75" y2="4.237" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="5.375" y1="2.721" x2="6.25" y2="4.237" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+/** The dropdown's Sign out mark — the user's door-and-arrow, verbatim. */
+export function SignOutDoorGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 18 18"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <line x1="2.75" y1="16.25" x2="15.25" y2="16.25" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="10.25" y1="9.25" x2="11.25" y2="9.25" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <polyline points="13.75 1.75 16.25 4.25 13.75 6.75" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <line x1="16" y1="4.25" x2="11.25" y2="4.25" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <path d="m13.75,16.25v-6.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+      <path d="m9.6263,1.75h-3.8763c-.8284,0-1.5.6716-1.5,1.5v13" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    </svg>
+  );
+}
