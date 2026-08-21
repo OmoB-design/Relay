@@ -143,6 +143,16 @@ export async function compileDaily(options?: {
 
   for (const client of clients) {
     const date = options?.date ?? yesterdayFor(client, options?.at);
+
+    /* Phase 7.5b: a client mapped to a Google Ads customer pulls straight
+       from the API — same staging, same flags, same honesty rules. Failure
+       stages an ABSENT row with the stated reason, never a zero, and never
+       silently falls back to a tracker tab that may be stale. */
+    if (client.googleAdsCustomerId) {
+      results.push(await compileFromGoogleAds(client, date));
+      continue;
+    }
+
     const tab = byName.get(client.name.toLowerCase());
 
     if (!tab) {
@@ -220,4 +230,102 @@ export async function compileDaily(options?: {
   }
 
   return { source, clients: results };
+}
+
+/** The Google Ads leg of the compile: fetch the flag window from the API,
+ *  stage the day's row, run the same detectors. One client, one account. */
+async function compileFromGoogleAds(
+  client: ClientProfile,
+  date: string,
+): Promise<CompiledClient> {
+  const { fetchDailyRows } = await import("@/lib/google-ads");
+  const windowStart = format(
+    parseISO(date).getTime() - 44 * 86_400_000,
+    "yyyy-MM-dd",
+  );
+
+  let rows;
+  try {
+    rows = await fetchDailyRows(client.googleAdsCustomerId!, windowStart, date);
+  } catch (e) {
+    const problem = `Google Ads unreachable: ${e instanceof Error ? e.message : "unknown error"}`;
+    await upsertStagedRow({
+      clientId: client.id,
+      date,
+      segment: "overall",
+      source: "Google Ads",
+      sourceOfTruth: client.sourceOfTruth,
+      metrics: {},
+      unavailable: { [ROW_ABSENT_KEY]: problem },
+    });
+    return {
+      clientId: client.id,
+      clientName: client.name,
+      date,
+      ok: false,
+      problem,
+      flagsRaised: 0,
+      flagsResolved: 0,
+    };
+  }
+
+  const dayRow = rows.find((r) => r.date === date);
+  if (!dayRow || Object.keys(dayRow.metrics).length === 0) {
+    const problem = `Google Ads has no data for ${format(parseISO(date), "MMM d")} yet.`;
+    await upsertStagedRow({
+      clientId: client.id,
+      date,
+      segment: "overall",
+      source: "Google Ads",
+      sourceOfTruth: client.sourceOfTruth,
+      metrics: {},
+      unavailable: { [ROW_ABSENT_KEY]: problem },
+    });
+    return {
+      clientId: client.id,
+      clientName: client.name,
+      date,
+      ok: false,
+      problem,
+      flagsRaised: 0,
+      flagsResolved: 0,
+    };
+  }
+
+  const metrics: DailyMetrics = {};
+  for (const metric of TRACKED) {
+    const key: MetricKey = metric === "sales" ? "conversions" : metric;
+    const value = dayRow.metrics[key];
+    if (value !== undefined) metrics[metric as keyof DailyMetrics] = value;
+  }
+
+  await upsertStagedRow({
+    clientId: client.id,
+    date,
+    segment: "overall",
+    source: "Google Ads",
+    sourceOfTruth: client.sourceOfTruth,
+    metrics,
+    unavailable: unavailabilityFor(client, metrics),
+  });
+
+  const detected: DetectedFlag[] = detectFlags({
+    client,
+    rows: rows.filter((r) => r.date <= date),
+    onDate: date,
+  });
+  const raised = await raiseFlags(detected);
+  const resolved = await resolveStaleFlags({
+    clientId: client.id,
+    activeKeys: detected.map((d) => d.dedupeKey),
+  });
+
+  return {
+    clientId: client.id,
+    clientName: client.name,
+    date,
+    ok: true,
+    flagsRaised: raised,
+    flagsResolved: resolved,
+  };
 }

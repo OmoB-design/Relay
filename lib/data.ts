@@ -123,6 +123,7 @@ function mapProfile(
     logoError: opt(client.logo_error),
     dailyToClient: client.daily_to_client ?? false,
     accountTimezone: client.account_timezone ?? "Asia/Dubai",
+    googleAdsCustomerId: opt(client.google_ads_customer_id),
     accounts: accounts.map(mapAccount),
     kpis: kpis.map(mapKpi),
     sensitivities: sensitivities.map(mapSensitivity),

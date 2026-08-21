@@ -178,6 +178,10 @@ export const ClientSchema = z.object({
   dailyToClient: z.boolean().default(false),
   /** "Yesterday" is defined in the ad account's timezone, not the agency's. */
   accountTimezone: z.string().default("Asia/Dubai"),
+  /** Phase 7.5b: when set, the nightly compile pulls this client's daily row
+   *  from the Google Ads API instead of the tracker. Explicit and per-client
+   *  — clearing it puts the tracker path back. */
+  googleAdsCustomerId: z.string().optional(),
 });
 export type Client = z.infer<typeof ClientSchema>;
 

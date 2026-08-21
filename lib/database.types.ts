@@ -59,6 +59,9 @@ export interface Database {
         logo_error: string | null;
         daily_to_client: boolean;
         account_timezone: string;
+        /* Phase 7.5b (0024): set → the compile pulls this client's daily row
+           from the Google Ads API; null → tracker path. */
+        google_ads_customer_id: string | null;
       }>;
       accounts: Row<{
         id: string;
