@@ -24,6 +24,8 @@ import {
   StakeholderSchema,
   TimelineEntrySchema,
   type AnswerThread,
+  type DeskChat,
+  type DeskChatMessage,
   type ClientProfile,
   type Profile,
   type DailyMetrics,
@@ -856,6 +858,128 @@ export async function answerThread(
     .eq("id", threadId);
   throwIf(updateError);
   await pinAnswerToTimeline(t.client_id, threadId, t.question, answer);
+}
+
+// --- Universal desk chats (0022) ------------------------------------------------------
+
+function mapDeskChat(r: {
+  id: string;
+  title: string;
+  scope_client_id: string | null;
+  last_client_id: string | null;
+  last_message_at: string;
+}): DeskChat {
+  return {
+    id: r.id,
+    title: r.title,
+    scopeClientId: r.scope_client_id,
+    lastClientId: r.last_client_id,
+    at: r.last_message_at,
+  };
+}
+
+/** The rail's flat list — every conversation this buyer owns, newest first. */
+export async function listDeskChats(buyerId: string): Promise<DeskChat[]> {
+  const { data, error } = await (await getSupabase())
+    .from("desk_chats")
+    .select("*")
+    .eq("buyer_id", buyerId)
+    .order("last_message_at", { ascending: false });
+  throwIf(error);
+  return (data ?? []).map(mapDeskChat);
+}
+
+/** One chat, ownership-checked — reopening must never cross buyers. */
+export async function getDeskChat(
+  chatId: string,
+  buyerId: string,
+): Promise<DeskChat | null> {
+  const { data, error } = await (await getSupabase())
+    .from("desk_chats")
+    .select("*")
+    .eq("id", chatId)
+    .eq("buyer_id", buyerId)
+    .maybeSingle();
+  throwIf(error);
+  return data ? mapDeskChat(data) : null;
+}
+
+export async function getDeskChatMessages(
+  chatId: string,
+): Promise<DeskChatMessage[]> {
+  const { data, error } = await (await getSupabase())
+    .from("desk_chat_messages")
+    .select("*")
+    .eq("chat_id", chatId)
+    .order("created_at", { ascending: true });
+  throwIf(error);
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    role: r.role === "user" ? ("user" as const) : ("agent" as const),
+    body: r.body,
+    clientId: r.client_id,
+    at: r.created_at,
+  }));
+}
+
+export async function createDeskChat(
+  id: string,
+  buyerId: string,
+  title: string,
+  scopeClientId: string | null,
+): Promise<void> {
+  const { error } = await (await getSupabase()).from("desk_chats").insert({
+    id,
+    buyer_id: buyerId,
+    title,
+    scope_client_id: scopeClientId,
+    created_at: nowIso(),
+    last_message_at: nowIso(),
+  });
+  throwIf(error);
+}
+
+/** One exchange lands atomically enough for a chat log: the question, the
+ *  reply, the chat's recency, and (when a client resolved) its last-subject
+ *  memory. */
+export async function appendDeskExchange(
+  chatId: string,
+  question: string,
+  replyBody: string,
+  clientId: string | null,
+): Promise<void> {
+  const sb = await getSupabase();
+  const at = nowIso();
+  const { error } = await sb.from("desk_chat_messages").insert([
+    {
+      id: crypto.randomUUID(),
+      chat_id: chatId,
+      role: "user",
+      body: question,
+      client_id: clientId,
+      created_at: at,
+    },
+    {
+      id: crypto.randomUUID(),
+      chat_id: chatId,
+      role: "agent",
+      body: replyBody,
+      client_id: clientId,
+      /* Message order is created_at ASC — the reply must sort after its
+         question even inside one exchange. */
+      created_at: new Date(Date.parse(at) + 1).toISOString(),
+    },
+  ]);
+  throwIf(error);
+  const { error: chatError } = await sb
+    .from("desk_chats")
+    .update(
+      clientId
+        ? { last_message_at: at, last_client_id: clientId }
+        : { last_message_at: at },
+    )
+    .eq("id", chatId);
+  throwIf(chatError);
 }
 
 // --- Daily rows + flag raising (Phase 7.5a) -------------------------------------------

@@ -242,6 +242,27 @@ export interface Database {
         created_at: string;
         answer: Json | null;
       }>;
+      /* Universal desk chats (0022): one row = one CONVERSATION in the rail;
+         messages are its transcript. Resolved answers dual-write into
+         answer_threads so the legacy surfaces stay fed. */
+      desk_chats: Row<{
+        id: string;
+        buyer_id: string;
+        title: string;
+        scope_client_id: string | null;
+        last_client_id: string | null;
+        created_at: string;
+        last_message_at: string;
+      }>;
+      desk_chat_messages: Row<{
+        id: string;
+        chat_id: string;
+        role: string;
+        body: string;
+        client_id: string | null;
+        thought_secs: number | null;
+        created_at: string;
+      }>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

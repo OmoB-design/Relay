@@ -467,6 +467,25 @@ export const AnswerSchema = z.object({
 });
 export type Answer = z.infer<typeof AnswerSchema>;
 
+/** A universal desk chat: ONE rail entry per conversation. Scope is the
+ *  landing-card seed (optional); lastClientId keeps follow-ups on subject. */
+export type DeskChat = {
+  id: string;
+  title: string;
+  scopeClientId: string | null;
+  lastClientId: string | null;
+  /** last_message_at — the rail orders by this, newest first. */
+  at: string;
+};
+
+export type DeskChatMessage = {
+  id: string;
+  role: "user" | "agent";
+  body: string;
+  clientId: string | null;
+  at: string;
+};
+
 export const AnswerThreadSchema = z.object({
   id: z.string().uuid(),
   clientId: z.string().uuid(),

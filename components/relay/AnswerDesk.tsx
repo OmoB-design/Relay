@@ -6,15 +6,17 @@ import { toast } from "sonner";
 import { useDialKit } from "dialkit";
 import { config } from "@/lib/config";
 import { cn } from "@/lib/utils";
-import type { AnswerThread, ClientProfile, Profile } from "@/lib/types";
+import type {
+  ClientProfile,
+  DeskChat,
+  DeskChatMessage,
+  Profile,
+} from "@/lib/types";
 import { AppNav } from "@/components/relay/AppNav";
 import { ClientAvatar } from "@/components/relay/ClientAvatar";
 import { DeskChatbox } from "@/components/relay/DeskChatbox";
 import { DeskDials } from "@/components/relay/DeskDials";
-import {
-  DeskSideBar,
-  type DeskChatGroup,
-} from "@/components/relay/DeskSideBar";
+import { DeskSideBar } from "@/components/relay/DeskSideBar";
 import {
   AgentReply,
   UserMessage,
@@ -22,8 +24,8 @@ import {
 } from "@/components/relay/DeskMessages";
 import { RelayMark } from "@/components/relay/NavIcons";
 import {
-  askDeskQuestionAction,
-  getDeskThreadsAction,
+  askUniversalAction,
+  getDeskChatMessagesAction,
 } from "@/app/(desk)/answer-desk/actions";
 
 /* The Answer Desk — both of its states and the ride between them.
@@ -97,7 +99,9 @@ export function AnswerDesk({
   greetName,
   clients,
   initialClientId,
-  initialThreadsByClient,
+  initialChats,
+  initialOpenChatId,
+  initialOpenMessages,
 }: {
   profile: Profile;
   isAdmin: boolean;
@@ -106,8 +110,11 @@ export function AnswerDesk({
   greetName: string;
   clients: DeskClient[];
   initialClientId?: string;
-  /** Every client's history — the rail groups by client (639:17442). */
-  initialThreadsByClient: Record<string, AnswerThread[]>;
+  /** The rail's FLAT list — one row per conversation, newest first. */
+  initialChats: DeskChat[];
+  /** ?chat= reopens a conversation with its transcript preloaded. */
+  initialOpenChatId: string | null;
+  initialOpenMessages: DeskChatMessage[] | null;
 }) {
   /* Every ride's tuning (dialkit). Defaults are the tuned values; production
      ships them as constants. */
@@ -177,31 +184,29 @@ export function AnswerDesk({
     { id: "desk-interactions", persist: true },
   );
 
-  const [client, setClient] = useState<DeskClient | null>(
+  /* The chat is UNIVERSAL: a conversation may be seeded with a client scope
+     (the landing card), but it never belongs to one — the server resolves
+     each question's subject. One rail entry per conversation; Start new chat
+     is the only boundary. */
+  const [scopeClient, setScopeClient] = useState<DeskClient | null>(
     () => clients.find((c) => c.id === initialClientId) ?? null,
   );
-  const conversation = client !== null;
-  const [sidebarIn, setSidebarIn] = useState(conversation);
-  const [messages, setMessages] = useState<DeskMessage[]>(() =>
-    client ? greetingTranscript(greetName, client.name) : [],
+  const [conversation, setConversation] = useState(
+    () => initialClientId !== undefined || initialOpenChatId !== null,
   );
-  const [threadsByClient, setThreadsByClient] = useState<
-    Record<string, AnswerThread[]>
-  >(initialThreadsByClient);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
-
-  /* The rail's groups: every client with history, in the picker's order —
-     the question text is the row's preview. */
-  const chatGroups: DeskChatGroup[] = clients
-    .filter((c) => (threadsByClient[c.id] ?? []).length > 0)
-    .map((c) => ({
-      clientId: c.id,
-      clientName: c.name,
-      chats: (threadsByClient[c.id] ?? []).map((t) => ({
-        id: t.id,
-        title: t.question,
-      })),
-    }));
+  const [sidebarIn, setSidebarIn] = useState(conversation);
+  const [messages, setMessages] = useState<DeskMessage[]>(() => {
+    if (initialOpenMessages) return transcriptFromRows(initialOpenMessages);
+    const c = clients.find((x) => x.id === initialClientId);
+    return c ? greetingTranscript(greetName, c.name) : [];
+  });
+  const [chats, setChats] = useState<DeskChat[]>(initialChats);
+  const [activeChatId, setActiveChatId] = useState<string | null>(
+    initialOpenChatId,
+  );
+  /** The persisted conversation this window is in — null until the first
+   *  real exchange lands. */
+  const chatIdRef = useRef<string | null>(initialOpenChatId);
   const [seed, setSeed] = useState<{ text: string; nonce: number }>();
   const [pending, setPending] = useState(false);
   const [shakeNonce, setShakeNonce] = useState(0);
@@ -271,19 +276,12 @@ export function AnswerDesk({
     const rippleMs =
       dial.cards.fadeMs + (clients.length - 1) * dial.cards.staggerMs;
     later(rippleMs, () => {
-      setClient(picked);
+      setScopeClient(picked);
+      setConversation(true);
       /* Anything typed on the landing survives the handoff. */
       if (draftRef.current.trim())
         setSeed({ text: draftRef.current, nonce: Date.now() });
     });
-
-    /* The picked client's history refreshes by action while the theater
-       plays, so the chat rail is current by the time it slides in. */
-    getDeskThreadsAction(picked.id)
-      .then((threads) => {
-        setThreadsByClient((was) => ({ ...was, [picked.id]: threads }));
-      })
-      .catch(() => {});
 
     const t0 = rippleMs + dial.pill.delayMs;
     later(t0, () => {
@@ -329,10 +327,15 @@ export function AnswerDesk({
   /** A real question — the engine answers, the transcript streams it.
    *  Attached images ride the message visually; the engine reads them when
    *  Phase 8's real engine takes over this same action. */
-  function ask(question: string, images: string[] = []): boolean {
-    if (!client || pending) return false;
+  function ask(
+    question: string,
+    images: string[] = [],
+    opts: { starting?: boolean } = {},
+  ): boolean {
+    /* `starting` lets the landing's first ask run in the same tick that
+       flips `conversation` on — state commits after this frame. */
+    if ((!conversation && !opts.starting) || pending) return false;
     setPending(true);
-    setActiveChatId(null);
     const userId = nextId();
     const agentId = nextId();
     setMessages((was) => [
@@ -353,20 +356,36 @@ export function AnswerDesk({
         at: Date.now(),
       },
     ]);
-    askDeskQuestionAction({ clientId: client.id, question })
-      .then(({ threadId, answer }) => {
-        const thread: AnswerThread = {
-          id: threadId,
-          clientId: client.id,
-          question,
-          createdAt: new Date().toISOString(),
-          answer,
-        };
-        setThreadsByClient((was) => ({
-          ...was,
-          [client.id]: [thread, ...(was[client.id] ?? [])],
-        }));
-        streamReply(agentId, answer.text, () => setPending(false));
+    askUniversalAction({
+      chatId: chatIdRef.current,
+      scopeClientId: scopeClient?.id ?? null,
+      question,
+    })
+      .then(({ chatId, title, reply }) => {
+        const fresh = chatIdRef.current === null;
+        chatIdRef.current = chatId;
+        setActiveChatId(chatId);
+        window.history.replaceState(null, "", `/answer-desk?chat=${chatId}`);
+        const at = new Date().toISOString();
+        setChats((was) =>
+          fresh
+            ? [
+                {
+                  id: chatId,
+                  title,
+                  scopeClientId: scopeClient?.id ?? null,
+                  lastClientId: null,
+                  at,
+                },
+                ...was,
+              ]
+            : /* An existing chat rises to the top with its recency. */
+              [
+                ...was.filter((c) => c.id === chatId).map((c) => ({ ...c, at })),
+                ...was.filter((c) => c.id !== chatId),
+              ],
+        );
+        streamReply(agentId, reply, () => setPending(false));
       })
       .catch(() => {
         setPending(false);
@@ -383,38 +402,42 @@ export function AnswerDesk({
     return true;
   }
 
+  /** The landing composer is LIVE: typing there starts a universal chat —
+   *  the landing hands the room to the conversation, then the same ask runs.
+   *  No pill, no greeting: the first exchange is the question itself. */
+  function startUniversalChat(question: string, images: string[]): boolean {
+    if (conversation || pending || pickedId) return false;
+    setConversation(true);
+    const accepted = ask(question, images, { starting: true });
+    /* The sidebar arrives once the room has changed hands — the same beat
+       as the seeded ride's first reply. */
+    if (accepted && !sidebarIn)
+      later(dial.thinking.greetDelayMs + dial.sidebar.delayMs, () =>
+        setSidebarIn(true),
+      );
+    return accepted;
+  }
+
   /** A chat row recalls its exchange — across clients: picking another
    *  client's question swaps the desk's scope with it, no theater. */
-  function selectChat(clientId: string, id: string | null) {
-    const rowClient = clients.find((c) => c.id === clientId);
-    if (!rowClient) return;
-    if (client?.id !== clientId) {
-      setClient(rowClient);
-      window.history.replaceState(null, "", `/answer-desk?client=${clientId}`);
-    }
+  function selectChat(id: string) {
+    if (id === chatIdRef.current && conversation) return;
+    chatIdRef.current = id;
     setActiveChatId(id);
-    if (id === null) {
-      setMessages(greetingTranscript(greetName, rowClient.name));
-      return;
-    }
-    const thread = (threadsByClient[clientId] ?? []).find((t) => t.id === id);
-    if (!thread) return;
-    setMessages([
-      {
-        kind: "user",
-        id: nextId(),
-        text: thread.question,
-        at: Date.parse(thread.createdAt),
-      },
-      {
-        kind: "agent",
-        id: nextId(),
-        chunks: thread.answer ? [{ id: 0, text: thread.answer.text }] : [],
-        thinking: false,
-        done: true,
-        at: Date.parse(thread.createdAt),
-      },
-    ]);
+    setConversation(true);
+    setScopeClient(null);
+    setPickedId(null);
+    setPending(false);
+    window.history.replaceState(null, "", `/answer-desk?chat=${id}`);
+    /* The transcript comes whole from its rows — no theater on reopen. */
+    getDeskChatMessagesAction(id)
+      .then((rows) => {
+        /* Only if this chat is still the one on stage. */
+        if (chatIdRef.current === id) setMessages(transcriptFromRows(rows));
+      })
+      .catch(() => {
+        toast("That chat couldn’t load — try again.");
+      });
   }
 
   /** "Start new chat" keeps the desk chrome exactly where it is — the rail
@@ -423,7 +446,9 @@ export function AnswerDesk({
   function newChat() {
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
-    setClient(null);
+    chatIdRef.current = null;
+    setConversation(false);
+    setScopeClient(null);
     setPickedId(null);
     setActiveChatId(null);
     setMessages([]);
@@ -431,9 +456,6 @@ export function AnswerDesk({
     window.history.replaceState(null, "", "/answer-desk");
   }
 
-  function nudge() {
-    toast(ad.pickClient);
-  }
 
   const composer = (position: "landing" | "conversation") => (
     <motion.div
@@ -470,15 +492,8 @@ export function AnswerDesk({
             draftRef.current = t;
           }}
           onSubmit={
-            position === "conversation"
-              ? ask
-              : () => {
-                  nudge();
-                  return false;
-                }
+            position === "conversation" ? ask : startUniversalChat
           }
-          onAttach={position === "conversation" ? undefined : nudge}
-          onVoice={position === "conversation" ? undefined : nudge}
         />
       </motion.div>
     </motion.div>
@@ -498,8 +513,7 @@ export function AnswerDesk({
           {sidebarIn && (
             <DeskSideBar
               key="desk-panel"
-              groups={chatGroups}
-              activeClientId={client?.id ?? null}
+              chats={chats.map((c) => ({ id: c.id, title: c.title }))}
               activeChatId={activeChatId}
               slideMs={dial.sidebar.slideMs}
               staggerMs={dial.sidebar.staggerMs}
@@ -701,6 +715,27 @@ export function AnswerDesk({
 
 /** The opening exchange, as it reads once the theater has already played —
  *  a reload shows the same conversation the ride arrived at. */
+/** A reopened chat's transcript, straight from its rows — no theater. */
+function transcriptFromRows(rows: DeskChatMessage[]): DeskMessage[] {
+  return rows.map((r) =>
+    r.role === "user"
+      ? {
+          kind: "user" as const,
+          id: nextId(),
+          text: r.body,
+          at: Date.parse(r.at),
+        }
+      : {
+          kind: "agent" as const,
+          id: nextId(),
+          chunks: [{ id: 0, text: r.body }],
+          thinking: false,
+          done: true,
+          at: Date.parse(r.at),
+        },
+  );
+}
+
 function greetingTranscript(
   greetName: string,
   clientName: string,

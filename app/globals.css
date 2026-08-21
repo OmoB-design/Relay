@@ -702,7 +702,7 @@
 @utility chat-fade-active {
   background: linear-gradient(
     to left,
-    var(--color-surface-foreground-03) 20%,
+    var(--color-surface-foreground-02) 20%,
     transparent
   );
 }

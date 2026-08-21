@@ -1,5 +1,10 @@
 import { firstName, requireProfile } from "@/lib/auth";
-import { getClients, getThreadsForClient } from "@/lib/data";
+import {
+  getClients,
+  getDeskChat,
+  getDeskChatMessages,
+  listDeskChats,
+} from "@/lib/data";
 import { AnswerDesk } from "@/components/relay/AnswerDesk";
 import { countNewTeamJoins } from "@/lib/team";
 
@@ -9,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function AnswerDeskPage({
   searchParams,
 }: {
-  searchParams: { client?: string };
+  searchParams: { client?: string; chat?: string };
 }) {
   const [profile, clients] = await Promise.all([
     requireProfile(),
@@ -19,14 +24,15 @@ export default async function AnswerDeskPage({
   const newTeamJoins = isAdmin ? await countNewTeamJoins(profile.id) : 0;
   const selected = clients.find((c) => c.id === searchParams.client);
 
-  /* The chat rail groups by client (639:17442), so every client's history
-     loads up front — a handful of small reads, in parallel. */
-  const threadLists = await Promise.all(
-    clients.map((c) => getThreadsForClient(c.id)),
-  );
-  const initialThreadsByClient = Object.fromEntries(
-    clients.map((c, i) => [c.id, threadLists[i]!]),
-  );
+  /* The rail is FLAT: one row per conversation, newest first — the chat is
+     universal, so no client owns it. ?chat= reopens one with its transcript. */
+  const chats = await listDeskChats(profile.id);
+  const openChat = searchParams.chat
+    ? await getDeskChat(searchParams.chat, profile.id)
+    : null;
+  const openMessages = openChat
+    ? await getDeskChatMessages(openChat.id)
+    : null;
 
   return (
     <AnswerDesk
@@ -41,7 +47,9 @@ export default async function AnswerDeskPage({
         logoUrl: c.logoUrl,
       }))}
       initialClientId={selected?.id}
-      initialThreadsByClient={initialThreadsByClient}
+      initialChats={chats}
+      initialOpenChatId={openChat?.id ?? null}
+      initialOpenMessages={openMessages}
     />
   );
 }
