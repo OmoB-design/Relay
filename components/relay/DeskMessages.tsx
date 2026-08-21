@@ -182,9 +182,9 @@ export function UserMessage({
       <ClampedBubble text={text} />
       {/* The Hover variant's row (619:15455): time first, then the controls. */}
       {meta && (
-      /* Flush under the pill (user-set 12px target; the pill's own 14px
-         padding is the floor) — the -mt cancels the column gap. */
-      <div className="-mt-1.5 flex items-center justify-end gap-2.5 rounded-14 px-3.5 pb-1 pt-0 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
+      /* 12px under the pill's bottom edge (user-set), flush with its right
+         edge — the column gap and the row's own top pad split the twelve. */
+      <div className="flex items-center justify-end gap-2.5 rounded-14 pb-1 pt-1.5 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
         <span className="text-right font-geist text-fig-caption-2 fig-medium text-icon-explainer">
           {timeAgo(at)}
         </span>
