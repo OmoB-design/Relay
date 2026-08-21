@@ -61,6 +61,85 @@ function dailyTarget(metric: MetricKey, target: number): number {
   return isAdditive(metric) ? target / config.flags.dailyTargetDivisor : target;
 }
 
+/** One metric's card — extracted so the design catalogue can render every
+ *  state directly (/design/numbers). NumbersTab derives the props; the card
+ *  only draws. */
+export function MetricCard({
+  label,
+  kind,
+  value,
+  unavailable,
+  target,
+  targetLabel,
+  perDay = false,
+  polarity,
+  series,
+}: {
+  label: string;
+  kind: "money" | "count" | "ratio" | "percent";
+  value: number | undefined;
+  /** The source's own reason the figure is missing — renders the n/a state. */
+  unavailable?: string;
+  target?: number;
+  targetLabel?: string;
+  /** Additive metrics judge a pro-rated daily share — the label says so. */
+  perDay?: boolean;
+  polarity: "higher_is_better" | "lower_is_better" | "neutral";
+  series: { date: string; value: number }[];
+}) {
+  const onTrack =
+    value === undefined || target === undefined || polarity === "neutral"
+      ? undefined
+      : polarity === "higher_is_better"
+        ? value >= target
+        : value <= target;
+
+  return (
+    <article className="flex items-start justify-between gap-3 rounded-lg border border-line bg-surface p-4">
+      <div className="min-w-0">
+        <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
+          {label}
+        </p>
+        {unavailable ? (
+          <>
+            <p className="font-display text-22 text-ink-soft">n/a</p>
+            <p className="font-ui text-12 text-ink-soft">{unavailable}</p>
+          </>
+        ) : (
+          <>
+            <p className="font-display text-28 text-ink">
+              {display(kind, value)}
+            </p>
+            {target !== undefined && (
+              <p
+                className={cn(
+                  "font-ui text-12",
+                  onTrack === undefined
+                    ? "text-ink-soft"
+                    : onTrack
+                      ? "text-verdigris"
+                      : "text-negative",
+                )}
+              >
+                {targetLabel} target {display(kind, target)}
+                {perDay && "/day"}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+      {series.length > 1 && (
+        <TrendSparkline
+          points={series}
+          polarity={polarity}
+          target={target}
+          formatValue={(v) => display(kind, v)}
+        />
+      )}
+    </article>
+  );
+}
+
 export function NumbersTab({
   profile,
   rows,
@@ -115,59 +194,20 @@ export function NumbersTab({
 
                 const polarity =
                   config.deltaPolarity[internalKey(m.key)] ?? "neutral";
-                const onTrack =
-                  value === undefined || target === undefined || polarity === "neutral"
-                    ? undefined
-                    : polarity === "higher_is_better"
-                      ? value >= target
-                      : value <= target;
 
                 return (
-                  <article
+                  <MetricCard
                     key={m.key}
-                    className="flex items-start justify-between gap-3 rounded-lg border border-line bg-surface p-4"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-ui text-13 uppercase tracking-wide text-ink-soft">
-                        {m.label}
-                      </p>
-                      {unavailable ? (
-                        <>
-                          <p className="font-display text-22 text-ink-soft">n/a</p>
-                          <p className="font-ui text-12 text-ink-soft">{unavailable}</p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="font-display text-28 text-ink">
-                            {display(m.kind, value)}
-                          </p>
-                          {target !== undefined && (
-                            <p
-                              className={cn(
-                                "font-ui text-12",
-                                onTrack === undefined
-                                  ? "text-ink-soft"
-                                  : onTrack
-                                    ? "text-verdigris"
-                                    : "text-negative",
-                              )}
-                            >
-                              {kpi?.label} target {display(m.kind, target)}
-                              {isAdditive(m.key) && "/day"}
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    {series.length > 1 && (
-                      <TrendSparkline
-                        points={series}
-                        polarity={polarity}
-                        target={target}
-                        formatValue={(v) => display(m.kind, v)}
-                      />
-                    )}
-                  </article>
+                    label={m.label}
+                    kind={m.kind}
+                    value={value}
+                    unavailable={unavailable}
+                    target={target}
+                    targetLabel={kpi?.label}
+                    perDay={isAdditive(m.key)}
+                    polarity={polarity}
+                    series={series}
+                  />
                 );
               })}
             </div>

@@ -24,6 +24,11 @@ const SECTIONS: { href: string; label: string; hint: string }[] = [
     hint: "Relay + shadcn primitives",
   },
   {
+    href: "/design/numbers",
+    label: "Numbers",
+    hint: "Metric cards — every state",
+  },
+  {
     href: "/design/skeletons",
     label: "Skeletons",
     hint: "Shimmer tweak panel — temporary",
