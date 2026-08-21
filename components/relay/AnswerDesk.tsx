@@ -494,6 +494,7 @@ export function AnswerDesk({
           onSubmit={
             position === "conversation" ? ask : startUniversalChat
           }
+          mentionables={clients}
         />
       </motion.div>
     </motion.div>

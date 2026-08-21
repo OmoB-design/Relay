@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { ClientAvatar } from "@/components/relay/ClientAvatar";
 import { useDialKit } from "dialkit";
 import { cn } from "@/lib/utils";
 import {
@@ -80,6 +81,23 @@ function speechRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
 
 type Attachment = { id: string; url: string; loaded: boolean };
 
+/** An @-mentionable client — the popover row's worth of identity. */
+export type MentionClient = {
+  id: string;
+  name: string;
+  descriptor?: string;
+  logoUrl?: string | null;
+};
+
+/** The live mention token under the caret: its query and where the @ sits. */
+type MentionToken = { query: string; start: number };
+
+function mentionTokenAt(text: string, caret: number): MentionToken | null {
+  const head = text.slice(0, caret);
+  const m = /(^|\s)@([\w-]*)$/.exec(head);
+  return m ? { query: m[2]!, start: caret - m[2]!.length - 1 } : null;
+}
+
 /* The reference video's growth law (frame-measured): the box rises from the
    frame's 130 one line-pitch at a time, bottom edge pinned, until ONE cap —
    the same cap with or without attachments; the chip row eats viewport, the
@@ -102,6 +120,7 @@ export function DeskChatbox({
   seed,
   autoFocus = false,
   onDraftChange,
+  mentionables = [],
 }: {
   placeholder: string;
   /** The tip banner's label — renders the Tips housing when present. What
@@ -125,11 +144,16 @@ export function DeskChatbox({
   autoFocus?: boolean;
   /** Every keystroke, so the page can carry a draft across a handoff. */
   onDraftChange?: (text: string) => void;
+  /** Clients the @ key can mention — typing @ opens the picker. */
+  mentionables?: MentionClient[];
 }) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
   const [images, setImages] = useState<Attachment[]>([]);
   const [listening, setListening] = useState(false);
+  /** The open @-mention: the token under the caret, or null. */
+  const [mention, setMention] = useState<MentionToken | null>(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
   /** The measured textarea height (grows with content, capped). */
   const [areaH, setAreaH] = useState(AREA_MIN);
   /** Which edges have content scrolled past them — the ghost fades. */
@@ -178,6 +202,47 @@ export function DeskChatbox({
     recRef.current = rec;
     setListening(true);
     rec.start();
+  }
+
+  /* --- @ mentions ---------------------------------------------------------
+     Typing @ (at a word start) opens the client picker above the box; the
+     query is whatever follows the @ up to the caret. Arrows walk it, Enter or
+     Tab takes the highlighted client, Escape hands the keys back. Picking
+     writes "@Name " into the text — the desk's router treats a mentioned
+     name as the winning signal, so the mention IS the scope. */
+  const mentionMatches = mention
+    ? mentionables.filter((c) =>
+        c.name.toLowerCase().startsWith(mention.query.toLowerCase()),
+      )
+    : [];
+
+  function syncMention(text: string, caret: number) {
+    if (!mentionables.length) return;
+    const token = mentionTokenAt(text, caret);
+    if (
+      token &&
+      (!mention ||
+        token.start !== mention.start ||
+        token.query !== mention.query)
+    ) {
+      setMentionIndex(0);
+    }
+    setMention(token);
+  }
+
+  function pickMention(c: MentionClient) {
+    const area = areaRef.current;
+    if (!area || !mention) return;
+    const caret = area.selectionStart ?? value.length;
+    const next = `${value.slice(0, mention.start)}@${c.name} ${value.slice(caret)}`;
+    setValue(next);
+    onDraftChange?.(next);
+    setMention(null);
+    const pos = mention.start + c.name.length + 2;
+    requestAnimationFrame(() => {
+      area.focus();
+      area.setSelectionRange(pos, pos);
+    });
   }
 
   function addFiles(list: FileList | null) {
@@ -231,6 +296,10 @@ export function DeskChatbox({
       chip: {
         // The attachment's landing pop.
         pop: { type: "spring", visualDuration: 0.28, bounce: 0.25 },
+      },
+      mention: {
+        // The @ picker's arrival above the box.
+        popMs: [140, 60, 400, 5],
       },
     },
     { id: "desk-chatbox", persist: true },
@@ -403,14 +472,57 @@ export function DeskChatbox({
           onChange={(e) => {
             setValue(e.target.value);
             onDraftChange?.(e.target.value);
+            syncMention(
+              e.target.value,
+              e.target.selectionStart ?? e.target.value.length,
+            );
+          }}
+          onKeyUp={(e) => {
+            /* Caret travel (arrows, Home/End) can enter or leave a token. */
+            if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
+              syncMention(value, e.currentTarget.selectionStart ?? 0);
           }}
           onScroll={updateClips}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={() => {
+            setFocused(false);
+            setMention(null);
+          }}
+          aria-autocomplete="list"
+          aria-expanded={mention !== null && mentionMatches.length > 0}
           placeholder={placeholder}
           aria-label="Question"
           className="block w-full resize-none overflow-y-auto scrollbar-none bg-transparent px-4 pb-3 pt-3.5 font-geist text-fig-body-lg text-heading-01 caret-grey-400 outline-none transition-[height] ease-out placeholder:text-heading-06"
           onKeyDown={(e) => {
+            /* The open mention picker owns the keys before the send does. */
+            if (mention && mentionMatches.length > 0) {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setMentionIndex((i) => (i + 1) % mentionMatches.length);
+                return;
+              }
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setMentionIndex(
+                  (i) => (i - 1 + mentionMatches.length) % mentionMatches.length,
+                );
+                return;
+              }
+              if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                pickMention(
+                  mentionMatches[
+                    Math.min(mentionIndex, mentionMatches.length - 1)
+                  ]!,
+                );
+                return;
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                setMention(null);
+                return;
+              }
+            }
             // isComposing: an IME confirming a candidate is not a send.
             if (
               e.key === "Enter" &&
@@ -545,14 +657,75 @@ export function DeskChatbox({
     </form>
   );
 
-  if (!tipped) return <MotionConfig reducedMotion="user">{box}</MotionConfig>;
+  /* The picker floats ABOVE the box (Claude's shape) — a sibling outside the
+     form's overflow-clip, in the composer's own chrome. */
+  const mentionMenu = (
+    <AnimatePresence>
+      {mention && focused && mentionMatches.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 6, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 4, scale: 0.98 }}
+          transition={{
+            type: "tween",
+            duration: dial.mention.popMs / 1000,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          role="listbox"
+          aria-label="Mention a client"
+          className="absolute bottom-full left-3 z-20 mb-1.5 flex w-72 flex-col gap-0.5 rounded-10 border-fig border-border bg-surface-primary p-1 shadow-popover"
+        >
+          {mentionMatches.map((c, i) => (
+            <button
+              key={c.id}
+              type="button"
+              role="option"
+              aria-selected={i === mentionIndex}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => pickMention(c)}
+              onMouseEnter={() => setMentionIndex(i)}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-8 px-2 py-1.5 text-left transition-colors duration-100 ease-out",
+                i === mentionIndex && "bg-surface-foreground-01",
+              )}
+            >
+              <ClientAvatar
+                name={c.name}
+                logo={c.logoUrl ?? undefined}
+                className="size-6 shrink-0 rounded-6 p-px"
+              />
+              <span className="shrink-0 font-geist text-fig-caption-1-md fig-medium text-heading-03">
+                {c.name}
+              </span>
+              {c.descriptor && (
+                <span className="min-w-0 truncate font-geist text-fig-caption-2 text-heading-06">
+                  {c.descriptor}
+                </span>
+              )}
+            </button>
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  if (!tipped)
+    return (
+      <MotionConfig reducedMotion="user">
+        <div className="relative w-full">
+          {mentionMenu}
+          {box}
+        </div>
+      </MotionConfig>
+    );
 
   return (
     <MotionConfig reducedMotion="user">
       {/* p-px, not the frame's p-2: Figma's inside stroke doesn't consume the
           2px padding, a CSS border does — 1px pad + the hairline = the same
           2px inset, and the inner box keeps its full 616. */}
-      <div className="-mx-0.5 flex flex-col rounded-20 border-fig border-border bg-surface-foreground-01 bg-clip-padding p-px">
+      <div className="relative -mx-0.5 flex flex-col rounded-20 border-fig border-border bg-surface-foreground-01 bg-clip-padding p-px">
+        {mentionMenu}
         <div className="flex w-full items-center gap-1.5 px-3.5 py-1.5">
           <span className="flex min-w-0 flex-1 items-center rounded-8 py-0.5 shadow-chat-control">
             <span className="truncate font-geist text-fig-caption-1 text-heading-06">
