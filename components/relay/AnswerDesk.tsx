@@ -448,6 +448,10 @@ export function AnswerDesk({
            box's coordinate space, and Figma's inside stroke is not. */
         position === "conversation" &&
           "absolute inset-x-0 bottom-10.75 z-10 mx-auto w-full max-w-desk-composer",
+        /* The landing box matches the conversation's 652: negative margins
+           push it 18 past the 616 column each side, and the drop morph
+           carries one width the whole ride. */
+        position === "landing" && "-mx-4.5",
       )}
     >
       <motion.div
