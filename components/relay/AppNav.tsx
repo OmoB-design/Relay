@@ -14,6 +14,7 @@ import {
   AnswerDeskGlyph,
   ClientsGlyph,
   LibraryGlyph,
+  ExpandUpDownGlyph,
   PanelToggleGlyph,
   RelayMark,
   SettingsDialGlyph,
@@ -240,7 +241,7 @@ export function AppNav({
                     "flex items-center gap-1.5 overflow-hidden rounded-10 p-2",
                     collapsed ? "shrink-0" : "w-full",
                     active
-                      ? "bg-surface-primary"
+                      ? "bg-surface-primary shadow-nav-active"
                       : "hover:bg-surface-primary/60",
                   )}
                 >
@@ -275,11 +276,10 @@ export function AppNav({
           </nav>
         </div>
 
-        {/* Account ------------------------------------------------------ */}
+        {/* Account (670:5241): a true hairline seam over an 8px well. */}
         <div
           className={cn(
-            "flex w-full flex-col items-center justify-center px-2 pb-1",
-            collapsed ? "pt-2" : "h-nav-profile pt-0.5",
+            "flex w-full flex-col items-center justify-center divider-t border-border px-2 py-2",
           )}
         >
           <AccountCard profile={profile} collapsed={collapsed} />
@@ -462,14 +462,19 @@ function AccountCard({
           {name.slice(0, 1)}
         </span>
         {!collapsed && (
-          <span className="flex min-w-0 flex-col items-start justify-center">
-            <span className="max-w-full truncate font-geist text-fig-caption-2 fig-medium text-heading-01">
-              {name}
+          <>
+            {/* The tile's revision (357:2733): a 13px Medium name over a
+                10px address, and the expand mark announcing the menu. */}
+            <span className="flex min-w-0 flex-1 flex-col items-start justify-center gap-px">
+              <span className="max-w-full truncate font-geist text-fig-body-sm fig-medium text-heading-01">
+                {name}
+              </span>
+              <span className="max-w-full truncate font-geist text-fig-caption-2 text-heading-06">
+                {profile.email}
+              </span>
             </span>
-            <span className="max-w-full truncate font-geist text-fig-caption-2 text-heading-06">
-              {profile.email}
-            </span>
-          </span>
+            <ExpandUpDownGlyph className="size-2.75 shrink-0 text-icon-explainer" />
+          </>
         )}
       </button>
     </div>

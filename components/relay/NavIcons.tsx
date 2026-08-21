@@ -1068,3 +1068,19 @@ export function SignOutDoorGlyph({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** The profile tile's expand mark (Icon/Expand 3776:3220) — verbatim vectors,
+ *  stacked chevrons on currentColor; Figma inks it icon-explainer (#777). */
+export function ExpandUpDownGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M7.66907 3.83429L5.52179 1.68701L3.37451 3.83429" stroke="currentColor" strokeWidth="0.920262" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7.66907 7.2085L5.52179 9.35577L3.37451 7.2085" stroke="currentColor" strokeWidth="0.920262" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

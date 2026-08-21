@@ -235,6 +235,9 @@
      variables, which collides; the designer's resolution is a monotonic ladder —
      Regular 450 · Medium 470 · SemiBold 500. */
   --text-fig-caption-2: 0.625rem; /* 10 / 1.2 */
+  /* Body small — the nav profile tile's name (357:2734: Geist Medium 13). */
+  --text-fig-body-sm: 0.8125rem; /* 13 / 1.2 */
+  --text-fig-body-sm--line-height: 1.2;
   --text-fig-caption-2--line-height: 1.2;
   --text-fig-caption-1: 0.75rem; /* 12 / 1.4 */
   --text-fig-caption-1--line-height: 1.4;
@@ -784,6 +787,12 @@
 /* The sidebar's account card (Figma 357:2730): a faint outer lift plus two
    insets — a top white catch-light and a bottom shade — which together read as a
    pressed tile rather than a floating one. */
+/* The active nav row's whisper of lift (670:4279): one 1.5px layer, nothing
+   else — the white pill does the talking. */
+@utility shadow-nav-active {
+  box-shadow: 0 1px 1.5px 0 rgb(214 214 214 / 0.25);
+}
+
 @utility shadow-nav-profile {
   box-shadow:
     0 1.882px 12.518px 0 rgb(197 197 197 / 0.1),

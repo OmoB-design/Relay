@@ -46,6 +46,7 @@ const FONT_SIZES = [
   // caption-1 and caption-1-md are distinct sizes, not a prefix pair.
   "fig-caption-1-md",
   "fig-caption-2",
+  "fig-body-sm",
   "12",
   "13",
   "14",
