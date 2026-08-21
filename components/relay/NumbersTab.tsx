@@ -119,7 +119,9 @@ export function MetricCard({
   ) : null;
 
   return (
-    <article className="flex w-full flex-col overflow-clip rounded-14 border border-border bg-surface-primary shadow-metric-card">
+    /* No overflow-clip: the sparkline's scrub readout floats ABOVE the card
+       edge; nothing else in the card ever reaches its corners anyway. */
+    <article className="flex w-full flex-col rounded-14 border border-border bg-surface-primary shadow-metric-card">
       <div className="w-full pb-2.5">
         <div className="flex w-full items-start gap-2.5 divider-b border-border px-4 pb-3 pt-3.5">
           <div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5">
