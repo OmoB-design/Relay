@@ -194,7 +194,16 @@ export function AnswerDesk({
   const [conversation, setConversation] = useState(
     () => initialClientId !== undefined || initialOpenChatId !== null,
   );
-  const [sidebarIn, setSidebarIn] = useState(conversation);
+  /* The rail shows on the LANDING too whenever there is history to browse —
+     resume is the returning user's first intent. Only the true first run
+     (zero chats) keeps the full-width welcome and the cinematic slide-in
+     after the first reply. */
+  const [sidebarIn, setSidebarIn] = useState(
+    () => conversation || initialChats.length > 0,
+  );
+  /** True when the rail was already standing at mount — it must not replay
+   *  its arrival ride on an ordinary page load. */
+  const railAtMount = useRef(conversation || initialChats.length > 0);
   const [messages, setMessages] = useState<DeskMessage[]>(() => {
     if (initialOpenMessages) return transcriptFromRows(initialOpenMessages);
     const c = clients.find((x) => x.id === initialClientId);
@@ -514,6 +523,7 @@ export function AnswerDesk({
           {sidebarIn && (
             <DeskSideBar
               key="desk-panel"
+              arrive={!railAtMount.current}
               chats={chats.map((c) => ({ id: c.id, title: c.title }))}
               activeChatId={activeChatId}
               slideMs={dial.sidebar.slideMs}

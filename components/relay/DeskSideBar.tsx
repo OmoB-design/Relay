@@ -34,6 +34,7 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 export function DeskSideBar({
   chats,
   activeChatId,
+  arrive = true,
   slideMs,
   staggerMs,
   itemMs,
@@ -43,6 +44,9 @@ export function DeskSideBar({
   /** Newest first — the caller keeps recency order. */
   chats: DeskChatRow[];
   activeChatId: string | null;
+  /** False when the panel is standing at page load — no width ride, no
+   *  cascade; the arrival theater belongs to the first-run slide-in only. */
+  arrive?: boolean;
   /** The width ride's duration — the page hands the same number to the nav
    *  rail so both edges move as one. */
   slideMs: number;
@@ -67,8 +71,9 @@ export function DeskSideBar({
   }
 
   /* The cascade belongs to the panel's ARRIVAL. Rows that join later — a new
-   * chat after an ask — enter plainly, without replaying the furnishing. */
-  const furnished = useRef(false);
+   * chat after an ask — enter plainly, without replaying the furnishing.
+   * A panel standing at page load was never arriving at all. */
+  const furnished = useRef(!arrive);
   useEffect(() => {
     const t = setTimeout(
       () => {
@@ -95,7 +100,7 @@ export function DeskSideBar({
 
   return (
     <motion.div
-      initial={{ width: 0 }}
+      initial={arrive ? { width: 0 } : false}
       animate={{ width: "var(--spacing-desk-panel)" }}
       exit={{ width: 0 }}
       transition={{ type: "tween", duration: slideMs / 1000, ease: EASE }}

@@ -16,23 +16,27 @@ export default async function AnswerDeskPage({
 }: {
   searchParams: { client?: string; chat?: string };
 }) {
-  const [profile, clients] = await Promise.all([
-    requireProfile(),
-    getClients(),
-  ]);
+  /* ONE serial hop (the profile, deduped with the layout's own call), then
+     everything else in a single parallel wave — the desk was five stacked
+     round trips and the slowest page in the app before this. The transcript
+     is fetched optimistically alongside its ownership check and discarded
+     if the check fails; RLS guards it regardless. */
+  const profile = await requireProfile();
   const isAdmin = profile.role === "admin";
-  const newTeamJoins = isAdmin ? await countNewTeamJoins(profile.id) : 0;
+  const [clients, newTeamJoins, chats, openChat, openMessagesRaw] =
+    await Promise.all([
+      getClients(),
+      isAdmin ? countNewTeamJoins(profile.id) : Promise.resolve(0),
+      listDeskChats(profile.id),
+      searchParams.chat
+        ? getDeskChat(searchParams.chat, profile.id)
+        : Promise.resolve(null),
+      searchParams.chat
+        ? getDeskChatMessages(searchParams.chat)
+        : Promise.resolve(null),
+    ]);
   const selected = clients.find((c) => c.id === searchParams.client);
-
-  /* The rail is FLAT: one row per conversation, newest first — the chat is
-     universal, so no client owns it. ?chat= reopens one with its transcript. */
-  const chats = await listDeskChats(profile.id);
-  const openChat = searchParams.chat
-    ? await getDeskChat(searchParams.chat, profile.id)
-    : null;
-  const openMessages = openChat
-    ? await getDeskChatMessages(openChat.id)
-    : null;
+  const openMessages = openChat ? openMessagesRaw : null;
 
   return (
     <AnswerDesk
