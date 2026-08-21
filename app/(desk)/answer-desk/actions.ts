@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { format, parseISO } from "date-fns";
 import { z } from "zod";
-import { answerQuestion } from "@/lib/answers";
+import { generateAnswer } from "@/lib/answer-engine";
+import { config } from "@/lib/config";
 import { requireProfile } from "@/lib/auth";
 import { clarifyReply, resolveClientFromQuestion } from "@/lib/desk-resolve";
 import type { Answer, AnswerThread, DeskChatMessage } from "@/lib/types";
@@ -14,6 +15,7 @@ import {
   createDeskChat,
   getClientProfile,
   getClients,
+  getDailyRowsForClient,
   getDeskChat,
   getDeskChatMessages,
   getLatestSnapshot,
@@ -30,17 +32,21 @@ function revalidate(clientId: string) {
 }
 
 async function engineAnswer(clientId: string, question: string) {
-  const [profile, snapshot] = await Promise.all([
+  const [profile, snapshot, rows] = await Promise.all([
     getClientProfile(clientId),
     getLatestSnapshot(clientId),
+    getDailyRowsForClient(clientId, config.daily.numbersWindowDays),
   ]);
   if (!profile) throw new Error("Client not found.");
   const throughLabel = snapshot
     ? format(parseISO(snapshot.asOf), "MMM d")
     : "today";
-  return answerQuestion({
-    clientId,
-    clientName: profile.name,
+  /* Phase 8: Claude answers over the client's own evidence when the key is
+     present; the deterministic engine stands in otherwise. Same contract. */
+  return generateAnswer({
+    profile,
+    snapshot: snapshot ?? null,
+    rows,
     question,
     throughLabel,
   });
