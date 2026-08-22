@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/auth";
 import { countNewTeamJoins } from "@/lib/team";
 import { AppNav } from "@/components/relay/AppNav";
 import { LiveRefresh } from "@/components/relay/LiveRefresh";
+import { WorkspaceDials } from "@/components/relay/WorkspaceDials";
 
 /* The client workspace shell — the (app) shell verbatim EXCEPT the sheet.
    Node 683:8146 redraws the client page's surface: an 8px corner instead of
@@ -32,6 +33,8 @@ export default async function ClientWorkspaceLayout({
       <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain scrollbar-stable bg-surface-primary pt-15 md:rounded-l-8 md:border-fig md:border-border-sheet md:pt-0 md:shadow-sheet-quiet">
         {children}
       </main>
+      {/* Dev-only dial panel — the timeline's rail pour registers here. */}
+      <WorkspaceDials />
     </div>
   );
 }

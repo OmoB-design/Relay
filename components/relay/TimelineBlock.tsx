@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useDialKit } from "dialkit";
 import type { AnswerThread, EvidenceSnapshot, TimelineEntry } from "@/lib/types";
 import { EmptyState } from "@/components/relay/EmptyState";
 import {
@@ -53,6 +55,50 @@ const RAIL = (color: string) =>
     background: `var(${color})`,
   }) as React.CSSProperties;
 const THREAD_X = 15;
+
+/* The buttery settle the whole app rides (DeskSideBar's EASE): fast out of
+   the gate, long soft landing — ink reaching the bottom of the margin. */
+const RAIL_EASE = [0.22, 1, 0.36, 1] as const;
+
+export type RailDial = { flowMs: number; outMs: number };
+
+/** The highlighter POURS (user-directed): on open it flows top-to-bottom
+ *  down the margin rather than appearing — the sensation of a fluid
+ *  highlighter marking the open frame. On close it lets go in a quick
+ *  fade; a reverse pour would make closing feel like rewinding. */
+function Rail({
+  expanded,
+  color,
+  dial,
+}: {
+  expanded: boolean;
+  color: string;
+  dial: RailDial;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <AnimatePresence>
+      {expanded && (
+        <motion.span
+          aria-hidden
+          className="absolute origin-top rounded-4"
+          style={RAIL(color)}
+          initial={reduced ? false : { scaleY: 0 }}
+          animate={{ scaleY: 1 }}
+          exit={{
+            opacity: 0,
+            transition: { duration: dial.outMs / 1000, ease: "easeOut" },
+          }}
+          transition={{
+            type: "tween",
+            duration: dial.flowMs / 1000,
+            ease: RAIL_EASE,
+          }}
+        />
+      )}
+    </AnimatePresence>
+  );
+}
 
 function SpeechGlyph({ className }: { className?: string }) {
   return (
@@ -250,10 +296,12 @@ function AnswerRow({
   entry,
   snapshot,
   thread,
+  railDial,
 }: {
   entry: TimelineEntry;
   snapshot?: EvidenceSnapshot;
   thread?: AnswerThread;
+  railDial: RailDial;
 }) {
   const [expanded, setExpanded] = useState(false);
   const question = thread?.question;
@@ -261,9 +309,7 @@ function AnswerRow({
 
   return (
     <li className="relative">
-      {expanded && (
-        <span aria-hidden className="absolute rounded-4" style={RAIL("--color-blue-500")} />
-      )}
+      <Rail expanded={expanded} color="--color-blue-500" dial={railDial} />
       <div
         className={`flex w-full flex-col overflow-clip rounded-14 border-fig border-border bg-surface-primary ${
           expanded ? "shadow-timeline-lift" : ""
@@ -330,17 +376,17 @@ function AnswerRow({
 function InsightRow({
   entry,
   snapshot,
+  railDial,
 }: {
   entry: TimelineEntry;
   snapshot?: EvidenceSnapshot;
+  railDial: RailDial;
 }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <li className="relative">
-      {expanded && (
-        <span aria-hidden className="absolute rounded-4" style={RAIL("--color-blue-900")} />
-      )}
+      <Rail expanded={expanded} color="--color-blue-900" dial={railDial} />
       <div
         className={`flex w-full flex-col overflow-clip rounded-14 border-fig border-border bg-surface-primary ${
           expanded ? "shadow-timeline-lift" : ""
@@ -383,6 +429,15 @@ export function TimelineBlock({
   snapshots: Record<string, EvidenceSnapshot>;
   threads: Record<string, AnswerThread>;
 }) {
+  /* The highlighter's pour, on dials ("Timeline interactions", dev-only
+     panel) — tune, then bake the values here as the defaults. */
+  const dial = useDialKit("Timeline interactions", {
+    rail: {
+      flowMs: [550, 150, 1200, 10],
+      outMs: [120, 40, 400, 10],
+    },
+  });
+
   if (entries.length === 0) {
     return (
       <EmptyState title="Nothing tracked yet">
@@ -408,12 +463,14 @@ export function TimelineBlock({
               entry={entry}
               snapshot={entry.snapshotId ? snapshots[entry.snapshotId] : undefined}
               thread={entry.refId ? threads[entry.refId] : undefined}
+              railDial={dial.rail}
             />
           ) : (
             <InsightRow
               key={entry.id}
               entry={entry}
               snapshot={entry.snapshotId ? snapshots[entry.snapshotId] : undefined}
+              railDial={dial.rail}
             />
           ),
         )}
