@@ -377,9 +377,11 @@ function RailSection({
         aria-expanded={open}
         className="group/sec flex h-8 w-full shrink-0 items-center gap-1.5 rounded-8 px-1"
       >
+        {/* Revised in the frame (2026-08-22): the nameplate reads at 13/390
+            now — the rail's own body size at its lightest weight. */}
         <span
           className={cn(
-            "font-geist text-fig-caption-1 transition-colors duration-150 ease-out group-hover/sec:text-heading-02",
+            "font-geist text-fig-body fig-w390 transition-colors duration-150 ease-out group-hover/sec:text-heading-02",
             open ? "text-heading-05" : "text-heading-04",
           )}
         >
