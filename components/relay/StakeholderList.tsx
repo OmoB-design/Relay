@@ -19,7 +19,7 @@ import {
 import {
   deleteStakeholderAction,
   saveStakeholderAction,
-} from "@/app/(app)/clients/[clientId]/actions";
+} from "@/app/(client)/clients/[clientId]/actions";
 
 /* Stakeholders — the individual component set 499:3921: each one its own
    white card, the name over "role · gets X version"; editing swaps the card

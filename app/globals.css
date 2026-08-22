@@ -292,6 +292,7 @@
   --tracking-range: -0.04em;
   --tracking-greeting: -0.02em; /* −0.48px on the 24px desk greeting */
   --tracking-chat: -0.01em; /* −0.16px on the 16px agent reply */
+  --tracking-title: -0.03em; /* −0.87px on the 29px client masthead (683:8164) */
 
   /* --- Color: Relay semantic palette (design.md §2) --- */
   --color-paper: #f4f6f5; /* app background — cool porcelain, not cream */
@@ -330,6 +331,9 @@
   --color-destructive: var(--color-red-600);
   --color-destructive-foreground: var(--color-button-primary-text);
   --color-border: var(--color-surface-stroke);
+  /* The client workspace sheet's line (683:8150): ink at 7%, not the #eaeaea
+     stroke — on white they read close, but the node says black. */
+  --color-border-sheet: rgb(0 0 0 / 0.07);
   --color-input: var(--color-surface-stroke);
   --color-ring: var(--color-blue-500);
 
@@ -804,6 +808,11 @@
    nav's foreground-01 without drawing a line down the middle of the app. */
 @utility shadow-sheet {
   box-shadow: 0 0 4px 0 rgb(208 208 208 / 0.15);
+}
+/* The client workspace's sheet (683:8150): the same 4px halo, a step
+   quieter, under the tighter 8px corner. */
+@utility shadow-sheet-quiet {
+  box-shadow: 0 0 4px 0 rgb(208 208 208 / 0.1);
 }
 
 /* The sidebar's account card (Figma 357:2730): a faint outer lift plus two

@@ -7,7 +7,7 @@ import { config } from "@/lib/config";
 import type { EvidenceItem, LoomHeadline } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { updateLoomHeadlineAction } from "@/app/(app)/clients/[clientId]/narratives/[narrativeId]/loom/actions";
+import { updateLoomHeadlineAction } from "@/app/(client)/clients/[clientId]/narratives/[narrativeId]/loom/actions";
 
 /* LoomHeadlineCard (design.md §3): one glance-formatted headline — bold claim
    set in Fraunces (this is SCANNED, not read), its one supporting number

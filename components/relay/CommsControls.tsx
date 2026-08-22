@@ -11,7 +11,7 @@ import {
   FieldTimeSelect,
 } from "@/components/relay/FieldSelect";
 import { ProfileFooter, ProfileWell } from "@/components/relay/ProfileCard";
-import { updateCommsAction } from "@/app/(app)/clients/[clientId]/actions";
+import { updateCommsAction } from "@/app/(client)/clients/[clientId]/actions";
 
 /* Cadence & channel controls (design.md §4.2). Primary cadence + channel are
    editable; secondary cadence/note render read-only (they're seed nuance, not

@@ -20,7 +20,7 @@ import {
   addKpiAction,
   deleteKpiAction,
   updateKpiAction,
-} from "@/app/(app)/clients/[clientId]/actions";
+} from "@/app/(client)/clients/[clientId]/actions";
 
 /* KPIs in the client's language — the individual-metric component set
    499:3562. Each metric is its OWN white card; editing swaps that card for

@@ -40,7 +40,7 @@ import {
   saveDraftAction,
   sendNarrativeAction,
   unreviewAction,
-} from "@/app/(app)/clients/[clientId]/narratives/[narrativeId]/actions";
+} from "@/app/(client)/clients/[clientId]/narratives/[narrativeId]/actions";
 
 /* ============================================================================
    NarrativeSplitView — the flagship (design.md §4.3 + the reference mockup).

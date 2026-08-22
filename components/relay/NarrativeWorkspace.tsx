@@ -35,7 +35,7 @@ import {
   saveDraftAction,
   sendNarrativeAction,
   unreviewAction,
-} from "@/app/(app)/clients/[clientId]/narratives/[narrativeId]/actions";
+} from "@/app/(client)/clients/[clientId]/narratives/[narrativeId]/actions";
 
 /* ============================================================================
    The narrative workspace (Figma 506:5375) — the drafted message itself.

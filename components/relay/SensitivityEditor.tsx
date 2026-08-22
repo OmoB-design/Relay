@@ -23,7 +23,7 @@ import { CloseGlyph } from "@/components/relay/NavIcons";
 import {
   deleteSensitivityAction,
   saveSensitivityAction,
-} from "@/app/(app)/clients/[clientId]/actions";
+} from "@/app/(client)/clients/[clientId]/actions";
 
 /* Sensitivities: chip list + the Add/Edit modal — Figma component set
    433:9379, all six variants.
