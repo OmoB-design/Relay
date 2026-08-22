@@ -19,7 +19,7 @@ import type { TrackerRow } from "@/lib/ingestion/types";
    already words that honestly per client.
    ========================================================================== */
 
-const ADS_API = "https://googleads.googleapis.com/v18";
+const ADS_API = "https://googleads.googleapis.com/v22";
 
 export function hasGoogleAdsCredentials(): boolean {
   return Boolean(
