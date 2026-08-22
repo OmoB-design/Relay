@@ -174,6 +174,12 @@ export function AnswerDesk({
         staggerMs: [45, 0, 150, 5],
         itemMs: [240, 60, 600, 5],
       },
+      type: {
+        // Message line-heights — the Figma 1.2 reads tight once replies run
+        // several lines; these open the leading without touching sizes.
+        userLine: [1.4, 1.1, 2.2, 0.05],
+        agentLine: [1.5, 1.1, 2.2, 0.05],
+      },
       veil: {
         // The wash under the composer: the transcript fades at its top edge
         // and is unseen below. Height in px; solid share in percent.
@@ -558,6 +564,7 @@ export function AnswerDesk({
                         <UserMessage
                           text={m.text}
                           at={m.at}
+                          lineHeight={dial.type.userLine}
                           images={m.images}
                           meta={!m.synthetic}
                           onRetry={() => ask(m.text)}
@@ -579,6 +586,7 @@ export function AnswerDesk({
                       >
                         <AgentReply
                           chunks={m.chunks}
+                          lineHeight={dial.type.agentLine}
                           phase={
                             m.thinking
                               ? "thinking"

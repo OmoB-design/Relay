@@ -58,21 +58,33 @@ function timeAgo(at: number): string {
    rest, a grey pill wash under the pointer (the composer's + button
    language). Expand and collapse are INSTANT — the video swaps states
    between adjacent frames, no height tween. */
-const CLAMP_H = 180; // ten lines of the 15/1.2 body
-const CLAMP_PAST = 216; // fold only when at least two lines would be hidden
+/* Ten lines shown, fold only past twelve — computed from the LIVE leading so
+   the law holds at any type dial value (15px body × lineHeight × lines). */
+const clampHeights = (lineHeight: number) => ({
+  show: Math.round(15 * lineHeight * 10),
+  past: Math.round(15 * lineHeight * 12),
+});
 
-function ClampedBubble({ text }: { text: string }) {
+function ClampedBubble({
+  text,
+  lineHeight = 1.2,
+}: {
+  text: string;
+  lineHeight?: number;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
 
+  const { show, past } = clampHeights(lineHeight);
+
   useLayoutEffect(() => {
     const el = textRef.current;
     if (!el) return;
-    setOverflows(el.scrollHeight > CLAMP_PAST);
+    setOverflows(el.scrollHeight > past);
     // A different (edited/retried) text starts folded again.
     setExpanded(false);
-  }, [text]);
+  }, [text, past]);
 
   const clamped = overflows && !expanded;
   return (
@@ -82,11 +94,14 @@ function ClampedBubble({ text }: { text: string }) {
       <div
         ref={textRef}
         className="relative w-full overflow-hidden"
-        style={{ maxHeight: clamped ? CLAMP_H : undefined }}
+        style={{ maxHeight: clamped ? show : undefined }}
       >
         {/* The bubble sits right; the TEXT inside reads left (the reference's
             law) — long questions rag naturally instead of centring ragged. */}
-        <p className="text-left font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]">
+        <p
+          style={{ lineHeight }}
+          className="text-left font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]"
+        >
           {text}
         </p>
         {clamped && (
@@ -151,6 +166,7 @@ function copyText(text: string) {
 export function UserMessage({
   text,
   at,
+  lineHeight,
   images,
   meta = true,
   onRetry,
@@ -158,6 +174,8 @@ export function UserMessage({
 }: {
   text: string;
   at: number;
+  /** Dial-driven leading (Desk interactions → type.userLine). */
+  lineHeight?: number;
   /** Attached screenshots — client-side object URLs, shown above the pill. */
   images?: string[];
   /** The scope pill is theater — it takes no retry/edit row. */
@@ -179,7 +197,7 @@ export function UserMessage({
           ))}
         </div>
       )}
-      <ClampedBubble text={text} />
+      <ClampedBubble text={text} lineHeight={lineHeight} />
       {/* The Hover variant's row (619:15455): time first, then the controls. */}
       {meta && (
       /* 12px under the pill's bottom edge (user-set), flush with its right
@@ -217,6 +235,7 @@ export function AgentReply({
   chunks,
   phase,
   at,
+  lineHeight,
   meta = true,
   tail = false,
   chunkFadeMs,
@@ -235,6 +254,8 @@ export function AgentReply({
    *  No header, no label, ever. */
   phase: "thinking" | "streaming" | "done";
   at: number;
+  /** Dial-driven leading (Desk interactions → type.agentLine). */
+  lineHeight?: number;
   /** The greeting is theater — it takes no controls row. */
   meta?: boolean;
   /** True on the transcript's LAST agent reply — the only one that keeps
@@ -253,7 +274,10 @@ export function AgentReply({
     <div className="group flex w-full flex-col items-start gap-4">
       {chunks.length > 0 && (
         <div className="flex w-full flex-col items-start justify-center py-2.5">
-          <p className="w-full font-geist text-fig-chat fig-w390 tracking-chat text-heading-01 [overflow-wrap:anywhere]">
+          <p
+            style={lineHeight ? { lineHeight } : undefined}
+            className="w-full font-geist text-fig-chat fig-w390 tracking-chat text-heading-01 [overflow-wrap:anywhere]"
+          >
             {chunks.map((c) => (
               <motion.span
                 key={c.id}
