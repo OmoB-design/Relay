@@ -7,7 +7,7 @@
  * must parse to something presentable (no raw ** or ### flashes), and the
  * source offsets that key the spans must be stable as text appends.
  */
-import { parseDeskMarkdown } from "../lib/desk-markdown";
+import { emphasizeSpans, parseDeskMarkdown } from "../lib/desk-markdown";
 
 type Check = { name: string; pass: boolean; got?: string };
 const checks: Check[] = [];
@@ -144,6 +144,43 @@ function main() {
     if (!stable) break;
   }
   if (stable) ok("offsets stable across all stream prefixes", true);
+
+  // THE EMPHASIS LAW: key spans are data, applied server-side, capped in
+  // code. Verbatim or dropped; already-bold left alone; three at most.
+  ok(
+    "emphasizeSpans wraps the named figure and verdict",
+    emphasizeSpans("CPO held at $41.20, under target this week.", [
+      "$41.20",
+      "under target",
+    ]) === "CPO held at **$41.20**, **under target** this week.",
+    emphasizeSpans("CPO held at $41.20, under target this week.", [
+      "$41.20",
+      "under target",
+    ]),
+  );
+  ok(
+    "a span not in the text is dropped, never guessed",
+    emphasizeSpans("Spend ran $12.4k.", ["$99"]) === "Spend ran $12.4k.",
+    emphasizeSpans("Spend ran $12.4k.", ["$99"]),
+  );
+  ok(
+    "an already-bold span is left alone (no ****)",
+    emphasizeSpans("ROAS hit **3.15** this week.", ["3.15"]) ===
+      "ROAS hit **3.15** this week.",
+    emphasizeSpans("ROAS hit **3.15** this week.", ["3.15"]),
+  );
+  ok(
+    "the cap is three — a fourth span is ignored",
+    emphasizeSpans("a1 b2 c3 d4", ["a1", "b2", "c3", "d4"]) ===
+      "**a1** **b2** **c3** d4",
+    emphasizeSpans("a1 b2 c3 d4", ["a1", "b2", "c3", "d4"]),
+  );
+  ok(
+    "only the first occurrence carries the weight",
+    emphasizeSpans("$41 today, $41 last week.", ["$41"]) ===
+      "**$41** today, $41 last week.",
+    emphasizeSpans("$41 today, $41 last week.", ["$41"]),
+  );
 
   const failed = checks.filter((c) => !c.pass);
   for (const c of checks) {

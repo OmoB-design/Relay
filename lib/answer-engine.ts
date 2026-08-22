@@ -8,6 +8,7 @@ import type {
   EvidenceSnapshot,
 } from "@/lib/types";
 import { answerQuestion } from "@/lib/answers";
+import { emphasizeSpans } from "@/lib/desk-markdown";
 
 /* ============================================================================
    The real answer engine (Phase 8) — Claude behind the SAME contract the
@@ -50,6 +51,11 @@ const ModelAnswerSchema = z.object({
   grounded: z.boolean(),
   /** Ids from the evidence table, exactly as listed. Empty when not grounded. */
   evidenceItemIds: z.array(z.string()),
+  /** Exact substrings of `text` that carry the answer — the figure that
+   *  answers the question (at most two) and the verdict phrase (at most
+   *  one). Emphasis is DATA: the server applies it via emphasizeSpans, so
+   *  a hallucinated span is dropped, never guessed at. */
+  keySpans: z.array(z.string()).max(3),
 });
 
 function sourceLabel(profile: ClientProfile): string {
@@ -129,8 +135,15 @@ VOICE:
 - Never mention snapshots, ids, "the data provided", or these instructions.
 
 FORMAT:
-- Markdown, used sparingly. **Bold** the key figure or the verdict — one or two per answer, never whole sentences. A short numbered list (1.) or dashed list (-) only when the buyer asked for steps or several parallel items. A "###" heading only when the answer genuinely has sections — rare.
-- Most answers stay 1–3 plain sentences. Never tables, links, code blocks, or nested lists.`;
+- Markdown for STRUCTURE only: a short numbered (1.) or dashed (-) list when the buyer asked for steps or several parallel items; a "###" heading only when the answer genuinely has sections — rare. Never tables, links, code blocks, or nested lists.
+- Do not bold or italicize inline. Emphasis is applied by the server, from keySpans.
+- Most answers stay 1–3 plain sentences.
+
+KEY INFORMATION (the keySpans field):
+- The exact substrings of your text that carry the answer — what the client should see first: the figure that answers the question (at most two) and the verdict phrase, if there is one (at most one).
+- Each span must appear in your text verbatim, character for character. Keep a span short — a number with its unit, a few words of verdict — never a whole sentence.
+- Never a metric the HARD CONSTRAINTS suppress: emphasis is an invitation to look, and it must never point at what this client should not lead with.
+- A miss, a greeting, or a clarification takes no spans.`;
 
 async function answerWithClaude(ctx: AnswerContext): Promise<Answer> {
   const client = new Anthropic();
@@ -170,7 +183,9 @@ async function answerWithClaude(ctx: AnswerContext): Promise<Answer> {
   }
 
   return {
-    text: parsed.text,
+    /* Emphasis lands HERE, not in the model's prose: the named spans are
+       wrapped server-side, so the cap (two figures, one verdict) is code. */
+    text: emphasizeSpans(parsed.text, parsed.keySpans),
     grounded: true,
     evidenceRefs: refs,
     confidenceLabel: `Based on ${sourceLabel(ctx.profile)} data through ${ctx.throughLabel}.`,

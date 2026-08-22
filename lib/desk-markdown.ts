@@ -186,3 +186,26 @@ export function deskMarkdownToPlain(text: string): string {
     )
     .join("\n");
 }
+
+/** Server-side emphasis — the ONLY place bold is applied to an answer.
+ *  Key spans are DATA: the engine names the substrings that carry the
+ *  answer, and this wraps each one's first verbatim occurrence in ** so
+ *  the cap and the definition hold in code, not in a prompt's good
+ *  intentions. A span that isn't in the text is dropped, never guessed;
+ *  a span already emphasized is left alone. */
+export function emphasizeSpans(text: string, spans: string[]): string {
+  let out = text;
+  for (const span of spans.slice(0, 3)) {
+    const s = span.trim();
+    if (s.length < 2) continue;
+    const idx = out.indexOf(s);
+    if (idx === -1) continue;
+    if (
+      out.slice(Math.max(0, idx - 2), idx) === "**" ||
+      out.slice(idx + s.length, idx + s.length + 2) === "**"
+    )
+      continue;
+    out = `${out.slice(0, idx)}**${s}**${out.slice(idx + s.length)}`;
+  }
+  return out;
+}

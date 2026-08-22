@@ -30,7 +30,9 @@ const AUTHORED: Record<string, AuthoredAnswer[]> = {
       // Q1: "Saw spend was really high on Thursday, everything ok?"
       match: [/thursday/i, /spend.*(high|spike|jump|ok)/i],
       answer: {
-        text: "Thursday ran $10.4k, about 38% over the daily average, because the new Performance Max campaign exited learning and Google front-loaded delivery. Cost per order actually came in 12% under target that day — this is the algorithm scaling a winner, not waste.",
+        /* Emphasis follows the engine's KEY INFORMATION law: the figure
+           that answers the question, and the verdict. Nothing else. */
+        text: "Thursday ran **$10.4k**, about 38% over the daily average, because the new Performance Max campaign exited learning and Google front-loaded delivery. Cost per order actually came in **12% under target** that day — this is the algorithm scaling a winner, not waste.",
         grounded: true,
         evidenceRefs: [
           { snapshotId: SNAP_NB, itemId: "E1" },
@@ -43,7 +45,7 @@ const AUTHORED: Record<string, AuthoredAnswer[]> = {
       // Q2: "How is the new creative angle doing?"
       match: [/creative|angle|asset|objection/i],
       answer: {
-        text: "The objection-handling asset group is now driving 31% of conversions at $23.10 cost per order — the cheapest of any group in the account since it launched the week of Jun 22.",
+        text: "The objection-handling asset group is now driving 31% of conversions at **$23.10** cost per order — the **cheapest of any group** in the account since it launched the week of Jun 22.",
         grounded: true,
         evidenceRefs: [{ snapshotId: SNAP_NB, itemId: "E4" }],
         confidenceLabel: "Based on Google Ads data through Jul 12.",
@@ -56,7 +58,9 @@ const AUTHORED: Record<string, AuthoredAnswer[]> = {
       // references trajectory (their framing sensitivity).
       match: [/roas|aov|order value|performance|trajectory/i],
       answer: {
-        text: "Blended ROAS closed the week at 3.15, ahead of the 3.0 benchmark and continuing the upward trajectory of the prior fortnight. Average order value held at $98.40, modestly above the $96 target, on media investment of $31.5k.",
+        /* ROAS is THIS client's lead metric (their sensitivity), so it may
+           carry the weight; the supporting AOV and spend stay plain. */
+        text: "Blended ROAS closed the week at **3.15**, **ahead of the 3.0 benchmark** and continuing the upward trajectory of the prior fortnight. Average order value held at $98.40, modestly above the $96 target, on media investment of $31.5k.",
         grounded: true,
         evidenceRefs: [
           { snapshotId: SNAP_SU, itemId: "H1" },
