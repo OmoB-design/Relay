@@ -26,7 +26,7 @@ export default async function NarrativePage({
         narratives={narratives}
         activeId={context.narrative.id}
       />
-      <section className="relative min-w-0 flex-1 overflow-hidden bg-surface-primary md:rounded-l-24 md:border-fig md:border-border md:shadow-sheet">
+      <section className="relative min-w-0 flex-1 overflow-hidden bg-surface-primary md:rounded-l-8 md:border-fig md:border-border-sheet md:shadow-sheet-quiet">
         <NarrativeWorkspace context={context} />
       </section>
     </div>

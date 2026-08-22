@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/auth";
 import { countNewTeamJoins } from "@/lib/team";
 import { AppNav } from "@/components/relay/AppNav";
 import { LiveRefresh } from "@/components/relay/LiveRefresh";
+import { WorkspaceDials } from "@/components/relay/WorkspaceDials";
 
 /* App shell. AppNav owns the whole sidebar now — logo strip, items and account
    card are a single Figma frame (357:2590), and splitting them between the
@@ -39,12 +40,15 @@ export default async function AppLayout({
         isAdmin={isAdmin}
         newTeamJoins={newTeamJoins}
       />
-      {/* THE CONTENT SHEET (node 357:1074). A white surface that sits BESIDE the
-          nav rather than under it: rounded on its left corners only, so it reads
-          as sliding out from behind the sidebar and running off the right edge.
+      {/* THE CONTENT SHEET — promoted app-wide from the client page's 683:8150
+          revision (user's call, 2026-08-22): an 8px left corner instead of the
+          old 24, the stroke in ink at 7%, the 4px halo a step quieter. A white
+          surface that sits BESIDE the nav rather than under it: rounded on its
+          left corners only, so it reads as sliding out from behind the sidebar
+          and running off the right edge.
 
           Rounding is desktop-only — below md the nav is a bottom bar, there is
-          nothing to slide out from behind, and two 24px notches at the top of a
+          nothing to slide out from behind, and corner notches at the top of a
           full-bleed page is just odd. The scrolling is not: the sheet is the
           scroll container at every width.
 
@@ -54,9 +58,11 @@ export default async function AppLayout({
           scrollbar-stable: with classic scrollbars the bar otherwise appears on
           tall tabs and vanishes on short ones, shifting the centred column
           (the client page's tab-toggle shrink). */}
-      <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain scrollbar-stable bg-surface-primary pt-15 md:rounded-l-24 md:border-fig md:border-border md:pt-0 md:shadow-sheet">
+      <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain scrollbar-stable bg-surface-primary pt-15 md:rounded-l-8 md:border-fig md:border-border-sheet md:pt-0 md:shadow-sheet-quiet">
         {children}
       </main>
+      {/* Dev-only dial panel — the timeline's rail pour registers here. */}
+      <WorkspaceDials />
     </div>
   );
 }

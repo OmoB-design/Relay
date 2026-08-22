@@ -640,7 +640,7 @@ export function AnswerDesk({
           )}
         </AnimatePresence>
 
-        <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-surface-primary pt-15 md:rounded-l-24 md:border-fig md:border-border md:pt-0 md:shadow-sheet">
+        <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-surface-primary pt-15 md:rounded-l-8 md:border-fig md:border-border-sheet md:pt-0 md:shadow-sheet-quiet">
           {conversation && (
             <>
               {/* scrollbar-stable: the rail must never appear mid-stream and

@@ -16,7 +16,7 @@ export default function Loading() {
           <div className="h-8.5 w-full animate-pulse rounded-10 bg-surface-foreground-01" />
         </div>
       </div>
-      <main className="min-w-0 flex-1 bg-surface-primary md:rounded-l-24 md:border-fig md:border-border md:shadow-sheet" />
+      <main className="min-w-0 flex-1 bg-surface-primary md:rounded-l-8 md:border-fig md:border-border-sheet md:shadow-sheet-quiet" />
     </div>
   );
 }

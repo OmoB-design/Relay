@@ -11,7 +11,7 @@ import type { LoomBriefContext } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LoomHeadlineCard } from "@/components/relay/LoomHeadlineCard";
-import { updateLoomLineAction } from "@/app/(client)/clients/[clientId]/narratives/[narrativeId]/loom/actions";
+import { updateLoomLineAction } from "@/app/(app)/clients/[clientId]/narratives/[narrativeId]/loom/actions";
 
 /* LoomBriefView (design.md §4.6): the recording-prep page. Single column,
    generous type, NO split view — the buyer already verified this data in the
