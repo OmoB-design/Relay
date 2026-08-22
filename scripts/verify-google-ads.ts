@@ -8,6 +8,8 @@ import {
   hasGoogleAdsCredentials,
   listAccessibleCustomers,
 } from "../lib/google-ads";
+import { getClients } from "../lib/data";
+import { runWithServiceRole } from "../lib/supabase";
 
 async function main() {
   if (!hasGoogleAdsCredentials()) {
@@ -23,7 +25,13 @@ async function main() {
 
   const end = format(subDays(new Date(), 1), "yyyy-MM-dd");
   const start = format(subDays(new Date(), 7), "yyyy-MM-dd");
-  const target = customers[0]!;
+  /* A mapped client's account is the true target - the accessible list can
+     lead with accounts this token may see but not read (managers, real
+     accounts on a test-level developer token). */
+  const clients = await runWithServiceRole(getClients);
+  const mapped = clients.find((c) => c.googleAdsCustomerId);
+  const target = mapped?.googleAdsCustomerId ?? customers[0]!;
+  if (mapped) console.log(`target: ${mapped.name} -> ${target}`);
   const rows = await fetchDailyRows(target, start, end);
   console.log(`rows for ${target} (${start}..${end}): ${rows.length}`);
   for (const r of rows.slice(-3)) {
