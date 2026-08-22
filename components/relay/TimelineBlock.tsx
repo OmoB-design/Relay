@@ -433,7 +433,8 @@ export function TimelineBlock({
      panel) — tune, then bake the values here as the defaults. */
   const dial = useDialKit("Timeline interactions", {
     rail: {
-      flowMs: [550, 150, 1200, 10],
+      // 1100: the user's settled pour — a slow, deliberate fill.
+      flowMs: [1100, 150, 1200, 10],
       outMs: [120, 40, 400, 10],
     },
   });
