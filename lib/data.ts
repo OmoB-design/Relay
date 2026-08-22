@@ -198,6 +198,7 @@ function mapTimelineEntry(r: any): TimelineEntry {
     body: opt(r.body),
     snapshotId: opt(r.snapshot_id),
     refId: opt(r.ref_id),
+    askedBy: opt(r.asked_by),
   });
 }
 
@@ -322,6 +323,24 @@ export async function getTimeline(clientId: string): Promise<TimelineEntry[]> {
     .order("date", { ascending: false });
   throwIf(error);
   return (data ?? []).map(mapTimelineEntry);
+}
+
+/** The threads behind the timeline's answer entries, keyed by id — the
+ *  question strip's food (718:9677 renders the question as asked, and the
+ *  clean answer text, not the entry body's "Q: … — A: …" mush). */
+export async function getAnswerThreadsByIds(
+  ids: string[],
+): Promise<Record<string, AnswerThread>> {
+  if (ids.length === 0) return {};
+  const sb = await getSupabase();
+  const { data, error } = await sb
+    .from("answer_threads")
+    .select("*")
+    .in("id", ids);
+  throwIf(error);
+  const out: Record<string, AnswerThread> = {};
+  for (const r of data ?? []) out[r.id] = mapThread(r);
+  return out;
 }
 
 /** Fetch a set of snapshots (with items) keyed by id — the Timeline dialog's food. */

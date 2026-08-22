@@ -329,6 +329,9 @@ export const TimelineEntrySchema = z.object({
   body: z.string().optional(), // full artifact text
   snapshotId: z.string().uuid().optional(), // the pinned data snapshot
   refId: z.string().uuid().optional(), // narrative / answer / flag id
+  /** Who asked (answer entries) — stamped by the Slack layer when it lands;
+   *  absent means the card shows the question with no name line. */
+  askedBy: z.string().optional(),
 });
 export type TimelineEntry = z.infer<typeof TimelineEntrySchema>;
 

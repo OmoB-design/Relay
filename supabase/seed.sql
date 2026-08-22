@@ -307,4 +307,10 @@ insert into timeline_entries (id, client_id, type, date, summary, body, snapshot
     'Quarterly-arc update sent: blended ROAS 3.15 ahead of the 3.0 benchmark, AOV $98.40, media investment $31.5k (+3%). Trajectory intact for the Q3 story.',
     '11111111-0000-4000-8000-0000000000a3', '11111111-0000-4000-8000-0000000000b3');
 
+-- Who asked (0026): the demo's two answered exchanges came from Dana. Kept
+-- as an update so the insert tuples above stay column-stable.
+update timeline_entries set asked_by = 'Dana'
+  where id in ('77777777-0000-4000-8000-000000000005',
+               '77777777-0000-4000-8000-000000000006');
+
 commit;

@@ -3,6 +3,7 @@
 import { format, parseISO } from "date-fns";
 import { config } from "@/lib/config";
 import type {
+  AnswerThread,
   ClientProfile,
   EvidenceSnapshot,
   DailyRow,
@@ -20,7 +21,7 @@ import { KpiList } from "@/components/relay/KpiList";
 import { SensitivityEditor } from "@/components/relay/SensitivityEditor";
 import { CommsControls } from "@/components/relay/CommsControls";
 import { StakeholderList } from "@/components/relay/StakeholderList";
-import { TimelineFeed } from "@/components/relay/TimelineFeed";
+import { TimelineBlock } from "@/components/relay/TimelineBlock";
 import {
   NarrativeEmpty,
   NarrativeList,
@@ -61,6 +62,7 @@ export function WorkspaceTabs({
   profile,
   timeline,
   snapshots,
+  answerThreads = {},
   narratives,
   dailyRows,
   loomNarrativeIds = [],
@@ -70,6 +72,8 @@ export function WorkspaceTabs({
   profile: ClientProfile;
   timeline: TimelineEntry[];
   snapshots: Record<string, EvidenceSnapshot>;
+  /** Keyed by thread id — the timeline's answer rows replay the question. */
+  answerThreads?: Record<string, AnswerThread>;
   narratives: Narrative[];
   dailyRows: DailyRow[];
   loomNarrativeIds?: string[];
@@ -189,7 +193,11 @@ export function WorkspaceTabs({
       </TabsContent>
 
       <TabsContent value="timeline" className="mt-12">
-        <TimelineFeed entries={timeline} snapshots={snapshots} />
+        <TimelineBlock
+          entries={timeline}
+          snapshots={snapshots}
+          threads={answerThreads}
+        />
       </TabsContent>
 
       <TabsContent value="narratives" className="mt-12">

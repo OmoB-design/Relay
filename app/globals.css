@@ -815,6 +815,20 @@
   box-shadow: 0 0 4px 0 rgb(208 208 208 / 0.1);
 }
 
+/* The timeline's well (728:10423 wraps 683:8690/8691): the card lift plus
+   a wide faint bloom — the container reads set-into the page, its rows lit
+   from within. */
+@utility shadow-timeline-well {
+  box-shadow:
+    0 1.5px 2px 0 rgb(227 227 227 / 0.1),
+    0 0 9.3px 0 rgb(243 243 243 / 0.25);
+}
+/* An open timeline row (714:9582): the only elevation in the well — the
+   expanded exchange lifts, its collapsed neighbours stay flush. */
+@utility shadow-timeline-lift {
+  box-shadow: 0 2px 2.2px 0 rgb(169 169 169 / 0.1);
+}
+
 /* The sidebar's account card (Figma 357:2730): a faint outer lift plus two
    insets — a top white catch-light and a bottom shade — which together read as a
    pressed tile rather than a floating one. */

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import { config } from "@/lib/config";
 import {
+  getAnswerThreadsByIds,
   getClientProfile,
   getDailyRowsForClient,
   getLoomNarrativeIds,
@@ -49,7 +50,18 @@ export default async function ClientWorkspacePage({
         .filter((id): id is string => Boolean(id)),
     ),
   );
-  const snapshots = await getSnapshotsByIds(snapshotIds);
+  const threadIds = Array.from(
+    new Set(
+      timeline
+        .filter((e) => e.type === "answer")
+        .map((e) => e.refId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+  const [snapshots, answerThreads] = await Promise.all([
+    getSnapshotsByIds(snapshotIds),
+    getAnswerThreadsByIds(threadIds),
+  ]);
 
   return (
     <div className="flex flex-col items-center px-5 md:px-6 pt-8">
@@ -62,6 +74,7 @@ export default async function ClientWorkspacePage({
             profile={profile}
             timeline={timeline}
             snapshots={snapshots}
+            answerThreads={answerThreads}
             narratives={narratives}
             dailyRows={dailyRows}
             loomNarrativeIds={loomNarrativeIds}
