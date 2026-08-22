@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   ChatOptionsMenu,
@@ -13,6 +12,7 @@ import {
   ChatDotGlyph,
   ChatOptionsGlyph,
   SearchChatGlyph,
+  SectionCaretGlyph,
   TipDismissGlyph,
 } from "@/components/relay/NavIcons";
 
@@ -34,6 +34,10 @@ import {
 export type DeskChatRow = {
   id: string;
   title: string;
+  /** Set = the row lives in the Pinned section (736:11148). */
+  pinnedAt?: string;
+  /** True = the row's dot burns blue until the chat is opened. */
+  unread?: boolean;
 };
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -48,6 +52,8 @@ export function DeskSideBar({
   onSelectChat,
   onNewChat,
   onDeleteChat,
+  onTogglePin,
+  onToggleUnread,
 }: {
   /** Newest first — the caller keeps recency order. */
   chats: DeskChatRow[];
@@ -63,6 +69,8 @@ export function DeskSideBar({
   onSelectChat: (chatId: string) => void;
   onNewChat: () => void;
   onDeleteChat: (chatId: string) => void;
+  onTogglePin: (chatId: string) => void;
+  onToggleUnread: (chatId: string) => void;
 }) {
   /* Search filters the flat list live, the way Claude's sidebar does: type,
      the rail narrows to matches; Escape (or emptying and leaving) hands the
@@ -79,6 +87,27 @@ export function DeskSideBar({
   const shown = q
     ? chats.filter((c) => c.title.toLowerCase().includes(q))
     : chats;
+
+  /* One pin and the rail grows its sections (736:11148's Pinned variant);
+     none, and it stays the flat list it always was. Each section folds —
+     the header remembers its state across visits. */
+  const pinnedRows = shown.filter((c) => c.pinnedAt);
+  const chatRows = shown.filter((c) => !c.pinnedAt);
+  const sectioned = pinnedRows.length > 0;
+  const [pinnedOpen, setPinnedOpen] = useState(true);
+  const [chatsOpen, setChatsOpen] = useState(true);
+  useEffect(() => {
+    setPinnedOpen(localStorage.getItem("desk-rail-pinned") !== "closed");
+    setChatsOpen(localStorage.getItem("desk-rail-chats") !== "closed");
+  }, []);
+  const fold = (
+    key: string,
+    open: boolean,
+    set: (v: boolean) => void,
+  ) => {
+    set(!open);
+    localStorage.setItem(key, open ? "closed" : "open");
+  };
 
   function closeSearch() {
     setSearching(false);
@@ -179,8 +208,16 @@ export function DeskSideBar({
 
         {/* The chats: a hairline, then the flat column — the whole list
             scrolls as one, a wash at the clipped edge saying "more". */}
-        <ListRows count={shown.length}>
-          {shown.map((chat, i) => {
+        <ListRows count={shown.length} framed={!sectioned}>
+          {(sectioned
+            ? [
+                { label: "Pinned", key: "desk-rail-pinned", open: pinnedOpen, set: setPinnedOpen, rows: pinnedRows, base: 0 },
+                { label: "Chats", key: "desk-rail-chats", open: chatsOpen, set: setChatsOpen, rows: chatRows, base: pinnedRows.length },
+              ]
+            : [{ label: null, key: "", open: true, set: () => {}, rows: shown, base: 0 }]
+          ).map((section) => {
+            const rows = section.rows.map((chat, offset) => {
+            const i = section.base + offset;
             const active = chat.id === activeChatId;
             return (
               /* The 732:10950 row set: rest is bare, hover and active BOTH
@@ -204,7 +241,13 @@ export function DeskSideBar({
                       : "group-hover:bg-surface-row",
                   )}
                 >
-                  <ChatDotGlyph className="size-1.25 shrink-0 text-grey-300" />
+                  {/* The dot is the unread signal: quiet outline normally,
+                      a solid blue-500 burn while the chat waits. */}
+                  {chat.unread ? (
+                    <span className="size-1.25 shrink-0 rounded-full bg-blue-500" />
+                  ) : (
+                    <ChatDotGlyph className="size-1.25 shrink-0 text-grey-300" />
+                  )}
                   <span className="relative min-w-0 flex-1 overflow-hidden">
                     <span
                       className={cn(
@@ -266,19 +309,38 @@ export function DeskSideBar({
                 </button>
               </motion.div>
             );
+            });
+            return section.label === null ? (
+              rows
+            ) : (
+              <RailSection
+                key={section.label}
+                label={section.label}
+                open={section.open}
+                onToggle={() => fold(section.key, section.open, section.set)}
+              >
+                {rows}
+              </RailSection>
+            );
           })}
         </ListRows>
 
         <ChatOptionsMenu
           at={menu?.at ?? null}
+          pinned={Boolean(
+            menu && chats.find((c) => c.id === menu.chatId)?.pinnedAt,
+          )}
+          unread={Boolean(
+            menu && chats.find((c) => c.id === menu.chatId)?.unread,
+          )}
           onClose={() => setMenu(null)}
           onPin={() => {
+            if (menu) onTogglePin(menu.chatId);
             setMenu(null);
-            toast("Pinning is on its way — the rail can't hold one yet.");
           }}
           onUnread={() => {
+            if (menu) onToggleUnread(menu.chatId);
             setMenu(null);
-            toast("Unread marks are on their way.");
           }}
           onDelete={() => {
             if (menu) onDeleteChat(menu.chatId);
@@ -292,11 +354,69 @@ export function DeskSideBar({
 
 /** The flat list fills the panel and scrolls as one — while there is more
  *  below the clip, a wash at the bottom edge says so. */
+/** A foldable stretch of the rail (738:11474): the quiet 12px nameplate on
+ *  its own hairline. Open at rest hides the caret — hovering reveals it
+ *  pointing down; a closed section keeps it out, pointing on, and darkens
+ *  its label to heading-04. The fold itself rides the house curve. */
+function RailSection({
+  label,
+  open,
+  onToggle,
+  children,
+}: {
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex w-full shrink-0 flex-col gap-0.5 divider-t border-border px-2 pb-4 pt-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="group/sec flex h-8 w-full shrink-0 items-center gap-1.5 rounded-8 px-1"
+      >
+        <span
+          className={cn(
+            "font-geist text-fig-caption-1 transition-colors duration-150 ease-out group-hover/sec:text-heading-02",
+            open ? "text-heading-05" : "text-heading-04",
+          )}
+        >
+          {label}
+        </span>
+        <SectionCaretGlyph
+          className={cn(
+            "shrink-0 text-heading-05 transition-opacity duration-150 ease-out",
+            open && "rotate-90 opacity-0 group-hover/sec:opacity-100",
+          )}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "tween", duration: 0.2, ease: EASE }}
+            className="flex w-full flex-col gap-0.5 overflow-hidden"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function ListRows({
   count,
+  framed = true,
   children,
 }: {
   count: number;
+  /** False when sections carry their own hairlines and padding. */
+  framed?: boolean;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -315,7 +435,10 @@ function ListRows({
       <div
         ref={ref}
         onScroll={measure}
-        className="flex h-full w-full flex-col gap-0.5 overflow-y-auto divider-t border-border px-2 py-4"
+        className={cn(
+          "flex h-full w-full flex-col gap-0.5 overflow-y-auto",
+          framed && "divider-t border-border px-2 py-4",
+        )}
       >
         {children}
       </div>

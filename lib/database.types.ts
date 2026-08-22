@@ -258,6 +258,9 @@ export interface Database {
         last_client_id: string | null;
         created_at: string;
         last_message_at: string;
+        /* 0027: the rail's Pinned section and the unread blue dot. */
+        pinned_at: string | null;
+        unread: boolean;
       }>;
       desk_chat_messages: Row<{
         id: string;

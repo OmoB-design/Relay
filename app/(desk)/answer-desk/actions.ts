@@ -14,6 +14,8 @@ import {
   askQuestion,
   createDeskChat,
   deleteDeskChat,
+  setDeskChatPinned,
+  setDeskChatUnread,
   getClientProfile,
   getClients,
   getDailyRowsForClient,
@@ -173,6 +175,32 @@ export async function getDeskChatMessagesAction(
 export async function deleteDeskChatAction(chatId: string): Promise<void> {
   const profile = await requireProfile();
   await deleteDeskChat(z.string().uuid().parse(chatId), profile.id);
+}
+
+/** Pin or unpin a conversation — the rail menu's second real action. */
+export async function setDeskChatPinnedAction(
+  chatId: string,
+  pinned: boolean,
+): Promise<void> {
+  const profile = await requireProfile();
+  await setDeskChatPinned(
+    z.string().uuid().parse(chatId),
+    profile.id,
+    z.boolean().parse(pinned),
+  );
+}
+
+/** Mark a conversation unread (blue dot) or read — the menu's third. */
+export async function setDeskChatUnreadAction(
+  chatId: string,
+  unread: boolean,
+): Promise<void> {
+  const profile = await requireProfile();
+  await setDeskChatUnread(
+    z.string().uuid().parse(chatId),
+    profile.id,
+    z.boolean().parse(unread),
+  );
 }
 
 const AnswerThreadInput = z.object({

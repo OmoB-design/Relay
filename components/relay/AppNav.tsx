@@ -375,6 +375,15 @@ function AccountCard({
   collapsed: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  /* Fixed coordinates, captured when the tile is clicked: absolute
+     positioning left the menu UNDER the desk's chat panel (a later sibling
+     with its own stacking context always paints over z-10 trapped in this
+     one). Fixed + z-50 is the ChatOptionsMenu's law, applied here. */
+  const [anchor, setAnchor] = useState<{
+    left: number;
+    bottom: number;
+    width: number;
+  } | null>(null);
   const [pending, startTransition] = useTransition();
   const name = displayName(profile);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -413,7 +422,16 @@ function AccountCard({
             }}
             role="menu"
             aria-label="Account"
-            className="absolute bottom-full left-0 z-10 mb-1.5 flex w-full min-w-nav-collapsed flex-col gap-0.5 rounded-10 border-fig border-border bg-surface-primary p-1 shadow-popover"
+            style={
+              anchor
+                ? {
+                    left: anchor.left,
+                    bottom: anchor.bottom,
+                    width: anchor.width,
+                  }
+                : undefined
+            }
+            className="fixed z-50 flex flex-col gap-0.5 rounded-10 border-fig border-border bg-surface-primary p-1 shadow-popover"
           >
             <button
               type="button"
@@ -443,7 +461,19 @@ function AccountCard({
 
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          const r = rootRef.current?.getBoundingClientRect();
+          if (r)
+            setAnchor({
+              left: r.left,
+              bottom: window.innerHeight - r.top + 6,
+              /* The expanded tile's width when there is one; never narrower
+                 than the options-menu standard — the collapsed rail's 55px
+                 was what squeezed "Settings" into "Se…". */
+              width: Math.max(r.width, 171),
+            });
+          setOpen((o) => !o);
+        }}
         aria-expanded={open}
         aria-label={`${name} — account`}
         className={cn(

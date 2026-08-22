@@ -1104,3 +1104,26 @@ export function ChatOptionsGlyph({ className }: GlyphProps) {
     </svg>
   );
 }
+
+/** The rail section's caret (738:11412, verbatim): an 8px chevron that
+ *  points right at a closed section and rotates down when an open one is
+ *  hovered — the only hint the headers fold. */
+export function SectionCaretGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width="8"
+      height="8"
+      viewBox="0 0 8 8"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M2.83329 6.83352L5.66662 4.00019L2.83329 1.16685"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

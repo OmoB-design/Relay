@@ -889,6 +889,8 @@ function mapDeskChat(r: {
   scope_client_id: string | null;
   last_client_id: string | null;
   last_message_at: string;
+  pinned_at?: string | null;
+  unread?: boolean | null;
 }): DeskChat {
   return {
     id: r.id,
@@ -896,6 +898,8 @@ function mapDeskChat(r: {
     scopeClientId: r.scope_client_id,
     lastClientId: r.last_client_id,
     at: r.last_message_at,
+    pinnedAt: r.pinned_at ?? undefined,
+    unread: r.unread ?? false,
   };
 }
 
@@ -1667,6 +1671,36 @@ export async function deleteDeskChat(
   const { error } = await (await getSupabase())
     .from("desk_chats")
     .delete()
+    .eq("id", chatId)
+    .eq("buyer_id", buyerId);
+  throwIf(error);
+}
+
+/** Pin or unpin a chat — the rail's Pinned section is a timestamp away.
+ *  Ownership is the filter and RLS the backstop, as with delete. */
+export async function setDeskChatPinned(
+  chatId: string,
+  buyerId: string,
+  pinned: boolean,
+): Promise<void> {
+  const { error } = await (await getSupabase())
+    .from("desk_chats")
+    .update({ pinned_at: pinned ? nowIso() : null })
+    .eq("id", chatId)
+    .eq("buyer_id", buyerId);
+  throwIf(error);
+}
+
+/** Set or clear a chat's unread mark — set from the options menu, cleared
+ *  by opening the chat. Same ownership discipline as pin and delete. */
+export async function setDeskChatUnread(
+  chatId: string,
+  buyerId: string,
+  unread: boolean,
+): Promise<void> {
+  const { error } = await (await getSupabase())
+    .from("desk_chats")
+    .update({ unread })
     .eq("id", chatId)
     .eq("buyer_id", buyerId);
   throwIf(error);

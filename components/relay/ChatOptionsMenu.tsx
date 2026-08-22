@@ -64,6 +64,8 @@ function TrashGlyph() {
 
 export function ChatOptionsMenu({
   at,
+  pinned = false,
+  unread = false,
   onClose,
   onPin,
   onUnread,
@@ -71,6 +73,10 @@ export function ChatOptionsMenu({
 }: {
   /** Where to stand, viewport coordinates — null keeps the menu closed. */
   at: { x: number; y: number } | null;
+  /** The node draws "Pin"; a pinned chat's row must offer the way back. */
+  pinned?: boolean;
+  /** Same law for the unread mark: the label always names the way out. */
+  unread?: boolean;
   onClose: () => void;
   onPin: () => void;
   onUnread: () => void;
@@ -104,10 +110,16 @@ export function ChatOptionsMenu({
   }, [at, onClose, onPin, onUnread, onDelete]);
 
   const items: Item[] = [
-    { key: "P", label: "Pin", hint: "P", glyph: <PinGlyph />, onPick: onPin },
+    {
+      key: "P",
+      label: pinned ? "Unpin" : "Pin",
+      hint: "P",
+      glyph: <PinGlyph />,
+      onPick: onPin,
+    },
     {
       key: "U",
-      label: "Mark as unread",
+      label: unread ? "Mark as read" : "Mark as unread",
       hint: "U",
       glyph: <UnreadGlyph />,
       onPick: onUnread,

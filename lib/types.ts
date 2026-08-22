@@ -486,6 +486,10 @@ export type DeskChat = {
   lastClientId: string | null;
   /** last_message_at — the rail orders by this, newest first. */
   at: string;
+  /** Set = the chat lives in the rail's Pinned section (736:11148). */
+  pinnedAt?: string;
+  /** True = the row's dot burns blue until the chat is opened. */
+  unread?: boolean;
 };
 
 export type DeskChatMessage = {

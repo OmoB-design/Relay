@@ -34,6 +34,8 @@ import {
   askUniversalAction,
   deleteDeskChatAction,
   getDeskChatMessagesAction,
+  setDeskChatPinnedAction,
+  setDeskChatUnreadAction,
 } from "@/app/(desk)/answer-desk/actions";
 
 /* The Answer Desk — both of its states and the ride between them.
@@ -535,6 +537,13 @@ export function AnswerDesk({
     if (id === chatIdRef.current && conversation) return;
     chatIdRef.current = id;
     setActiveChatId(id);
+    /* Opening reads: the blue dot dies quietly, server following. */
+    if (chats.find((c) => c.id === id)?.unread) {
+      setChats((was) =>
+        was.map((c) => (c.id === id ? { ...c, unread: false } : c)),
+      );
+      void setDeskChatUnreadAction(id, false).catch(() => {});
+    }
     setConversation(true);
     setScopeClient(null);
     setPickedId(null);
@@ -581,6 +590,38 @@ export function AnswerDesk({
         setChats(before);
         toast("That delete didn’t go through — the chat is still here.");
       });
+  }
+
+  /** Pin/unpin, optimistically — the row crosses sections at once, and a
+   *  refused toggle crosses straight back. */
+  function togglePin(id: string) {
+    const before = chats;
+    const pinning = !chats.find((c) => c.id === id)?.pinnedAt;
+    setChats((was) =>
+      was.map((c) =>
+        c.id === id
+          ? { ...c, pinnedAt: pinning ? new Date().toISOString() : undefined }
+          : c,
+      ),
+    );
+    setDeskChatPinnedAction(id, pinning).catch(() => {
+      setChats(before);
+      toast("That pin didn’t take — try again.");
+    });
+  }
+
+  /** The unread mark, from the menu — and its natural death: OPENING a
+   *  chat reads it (selectChat clears the blue dot without asking). */
+  function toggleUnread(id: string) {
+    const before = chats;
+    const unread = !chats.find((c) => c.id === id)?.unread;
+    setChats((was) =>
+      was.map((c) => (c.id === id ? { ...c, unread } : c)),
+    );
+    setDeskChatUnreadAction(id, unread).catch(() => {
+      setChats(before);
+      toast("That mark didn’t take — try again.");
+    });
   }
 
 
@@ -646,7 +687,12 @@ export function AnswerDesk({
             <DeskSideBar
               key="desk-panel"
               arrive={!railAtMount.current}
-              chats={chats.map((c) => ({ id: c.id, title: c.title }))}
+              chats={chats.map((c) => ({
+                id: c.id,
+                title: c.title,
+                pinnedAt: c.pinnedAt,
+                unread: c.unread,
+              }))}
               activeChatId={activeChatId}
               slideMs={dial.sidebar.slideMs}
               staggerMs={dial.sidebar.staggerMs}
@@ -654,6 +700,8 @@ export function AnswerDesk({
               onSelectChat={selectChat}
               onNewChat={newChat}
               onDeleteChat={deleteChat}
+              onTogglePin={togglePin}
+              onToggleUnread={toggleUnread}
             />
           )}
         </AnimatePresence>
