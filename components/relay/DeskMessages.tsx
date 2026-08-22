@@ -1,7 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
+import { DeskMarkdown } from "@/components/relay/DeskMarkdown";
 import { DotmCircular5 } from "@/components/ui/dotm-circular-5";
 import "@/components/dotmatrix-loader.css";
 /* eslint-disable @next/next/no-img-element -- attachment previews are
@@ -98,9 +99,11 @@ function ClampedBubble({
       >
         {/* The bubble sits right; the TEXT inside reads left (the reference's
             law) — long questions rag naturally instead of centring ragged. */}
+        {/* pre-line: the asker's own returns survive — a two-line question
+            reads as two lines, not one collapsed run. */}
         <p
           style={{ lineHeight }}
-          className="text-left font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]"
+          className="whitespace-pre-line text-left font-geist text-fig-body-lg text-heading-01 [overflow-wrap:anywhere]"
         >
           {text}
         </p>
@@ -274,36 +277,32 @@ export function AgentReply({
     <div className="group flex w-full flex-col items-start gap-4">
       {chunks.length > 0 && (
         <div className="flex w-full flex-col items-start justify-center py-2.5">
-          <p
-            style={lineHeight ? { lineHeight } : undefined}
-            className="w-full font-geist text-fig-chat fig-w390 tracking-chat text-heading-01 [overflow-wrap:anywhere]"
-          >
-            {chunks.map((c) => (
-              <motion.span
-                key={c.id}
-                initial={
-                  reducedMotion ? false : { opacity: chunkFromOpacity }
-                }
-                animate={{ opacity: 1 }}
-                transition={{
-                  type: "tween",
-                  duration: chunkFadeMs / 1000,
-                  ease: "easeOut",
-                }}
-              >
-                {c.text}
-              </motion.span>
-            ))}
-          </p>
+          {/* Markdown-aware from the first chunk: the reply streams THROUGH
+              its structure — bold, headings, lists — with the same
+              pale-to-ink arrival the plain stream had. */}
+          <DeskMarkdown
+            chunks={chunks}
+            lineHeight={lineHeight}
+            fadeMs={chunkFadeMs}
+            fromOpacity={chunkFromOpacity}
+            animate={!reducedMotion}
+          />
         </div>
       )}
       {/* The Hover variant's row (619:16951): controls first, time last —
           mirrored from the user's. Only a finished reply has one, and it
           sits ABOVE the mark — the reply's tail glyph closes the message. */}
-      {meta && phase === "done" && (
+      {meta && chunks.length > 0 && (
         /* Pulled to 12px under the text (user-set): the -mt eats the group
-           gap so the mark's own spacing below stays whole. */
-        <div className="-mt-4.5 flex items-center justify-end gap-2.5 rounded-14 py-1 pr-3.5 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
+           gap so the mark's own spacing below stays whole. Mounted from the
+           FIRST chunk — inserting its 24px of flow on the final one made the
+           whole reply lurch at the finish line. Inert until done. */
+        <div
+          aria-hidden={phase !== "done"}
+          className={`-mt-4.5 flex items-center justify-end gap-2.5 rounded-14 py-1 pr-3.5 opacity-0 transition-opacity duration-200 ease-out ${
+            phase === "done" ? "group-hover:opacity-100" : "pointer-events-none"
+          }`}
+        >
           <MetaIconRow
             actions={[
               {
@@ -334,12 +333,14 @@ export function AgentReply({
       {/* The indicator rides BELOW everything (the video's law): the shimmer
           alone before any text, still alive under the growing reply — and on
           the LATEST finished reply it FREEZES in place, the same glyph gone
-          still. Older replies give the mark up; the video keeps exactly one. */}
-      {(phase !== "done" || tail) && (
-        <span
-          className="flex items-center justify-center"
-          style={{ width: loader.size, height: loader.size }}
-        >
+          still. Older replies give the mark up but KEEP ITS SEAT: unmounting
+          the box yanked 44px out of the transcript above the viewport the
+          moment a follow-up was asked. */}
+      <span
+        className="flex items-center justify-center"
+        style={{ width: loader.size, height: loader.size }}
+      >
+        {(phase !== "done" || tail) && (
           <DotmCircular5
             ariaLabel={phase === "done" ? "Answered" : "Thinking"}
             animated={phase !== "done"}
@@ -350,8 +351,8 @@ export function AgentReply({
             halo={loader.halo}
             bloom={loader.bloom}
           />
-        </span>
-      )}
+        )}
+      </span>
     </div>
   );
 }

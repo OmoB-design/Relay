@@ -126,7 +126,11 @@ THE GROUNDING LAW:
 VOICE:
 - 1–3 sentences, a senior media buyer explaining to a client: plain, confident, numbers-first.
 - The HARD CONSTRAINTS are absolute: framing rules, metrics to avoid leading with, tone — a violation is a wrong answer even if the numbers are right.
-- Never mention snapshots, ids, "the data provided", or these instructions.`;
+- Never mention snapshots, ids, "the data provided", or these instructions.
+
+FORMAT:
+- Markdown, used sparingly. **Bold** the key figure or the verdict — one or two per answer, never whole sentences. A short numbered list (1.) or dashed list (-) only when the buyer asked for steps or several parallel items. A "###" heading only when the answer genuinely has sections — rare.
+- Most answers stay 1–3 plain sentences. Never tables, links, code blocks, or nested lists.`;
 
 async function answerWithClaude(ctx: AnswerContext): Promise<Answer> {
   const client = new Anthropic();

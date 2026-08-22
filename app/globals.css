@@ -579,6 +579,11 @@
    the bar appears or vanishes, so toggling between a tall tab and a short one
    reflows everything inside (the client page's tab-toggle shrink). Overlay
    scrollbars have no gutter, so this is a no-op there. */
+/* The transcript pins its own scroll while a reply streams; Blink's scroll
+   anchoring would be a second, uncoordinated writer of scrollTop. */
+@utility scroll-anchor-none {
+  overflow-anchor: none;
+}
 @utility scrollbar-stable {
   scrollbar-gutter: stable;
 }
@@ -627,6 +632,14 @@
   }
 }
 
+/* Inline code in the transcript. No mono face ships with the app, so the
+   platform's own — stepped down so its x-height sits level with the Geist
+   body around it. */
+@utility font-code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875em;
+}
+
 /* The email preview's bottom fade (node 552:4615): the clipped tail of the
    message dissolving into the popover's ground instead of cutting off. */
 @utility preview-fade {
@@ -654,6 +667,11 @@
 }
 @utility fig-w420 {
   font-weight: 420;
+}
+/* The transcript's markdown bold — two full steps above the reply's 390
+   body, so emphasis reads clearly without shouting. */
+@utility fig-w560 {
+  font-weight: 560;
 }
 
 /* Card elevations, straight from the Figma nodes. Borders still carry most of

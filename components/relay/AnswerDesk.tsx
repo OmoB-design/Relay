@@ -1,10 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { AnimatePresence, LayoutGroup, MotionConfig, motion } from "motion/react";
 import { toast } from "sonner";
 import { useDialKit } from "dialkit";
 import { config } from "@/lib/config";
+import { deskMarkdownToPlain } from "@/lib/desk-markdown";
 import { cn } from "@/lib/utils";
 import type {
   ClientProfile,
@@ -89,8 +96,14 @@ function toMotion(t: DialTransition) {
     : t;
 }
 
-let msgSeq = 0;
-const nextId = () => `m${++msgSeq}`;
+/* The counter lives on globalThis, NOT module scope: a hot reload resets
+   module state while the transcript's messages survive, so a reset counter
+   re-issues "m1" into a transcript that already holds one — and the next
+   stream's chunks land on BOTH matches (measured: a 96px duplicate block
+   that snapped away seconds after the reply finished). */
+const seqHome = globalThis as typeof globalThis & { __deskMsgSeq?: number };
+const nextId = () =>
+  `m${(seqHome.__deskMsgSeq = (seqHome.__deskMsgSeq ?? 0) + 1)}`;
 
 export function AnswerDesk({
   profile,
@@ -165,6 +178,9 @@ export function AnswerDesk({
         intervalMs: [90, 20, 400, 5],
         chunkFadeMs: [260, 60, 800, 10],
         fromOpacity: [0.3, 0, 1, 0.02],
+        // The follow-scroll's time constant: how quickly the viewport
+        // closes on a line-wrap. Small = eager, large = languid.
+        followMs: [140, 40, 600, 10],
       },
       sidebar: {
         // After the first reply lands: the rail folds and the panel unfurls
@@ -238,14 +254,84 @@ export function AnswerDesk({
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  /* The transcript follows its newest line. */
-  useEffect(() => {
+  /* The transcript follows its newest line — but never on a smooth curve
+     restarted per chunk: Blink resets the animation's velocity to zero on
+     every scrollTo, and at stream cadence that reads as a stagger. A new
+     MESSAGE glides down; a growing reply is followed by the CHASE below;
+     a reader who scrolled up is left alone until the next exchange. */
+  const msgCountRef = useRef(0);
+  const scrolledChatRef = useRef<string | null | undefined>(undefined);
+
+  /* The chase: scrollTop eases toward the growing content on its own rAF
+     loop — exponential decay, so its velocity is proportional to distance
+     and stays CONTINUOUS however many chunks land mid-flight. A line-wrap
+     reads as a glide, not a 24px yank (the measured stagger). The loop
+     yields the moment the reader takes the wheel: any scrollTop we didn't
+     write ends the chase until the next exchange re-arms it. */
+  const chaseRaf = useRef<number | null>(null);
+  const chaseWrote = useRef<number | null>(null);
+  const stopChase = useCallback(() => {
+    if (chaseRaf.current !== null) cancelAnimationFrame(chaseRaf.current);
+    chaseRaf.current = null;
+    chaseWrote.current = null;
+  }, []);
+  const chase = useCallback(() => {
+    if (chaseRaf.current !== null) return;
+    let last = performance.now();
+    const step = (now: number) => {
+      const el = scrollerRef.current;
+      if (!el) return stopChase();
+      if (
+        chaseWrote.current !== null &&
+        Math.abs(el.scrollTop - chaseWrote.current) > 4
+      )
+        return stopChase();
+      const dt = Math.min(64, now - last);
+      last = now;
+      const target = el.scrollHeight - el.clientHeight;
+      const d = target - el.scrollTop;
+      if (Math.abs(d) < 0.5) {
+        el.scrollTop = target;
+        chaseRaf.current = null;
+        chaseWrote.current = null;
+        return;
+      }
+      el.scrollTop += d * (1 - Math.exp(-dt / dial.stream.followMs));
+      chaseWrote.current = el.scrollTop;
+      chaseRaf.current = requestAnimationFrame(step);
+    };
+    chaseRaf.current = requestAnimationFrame(step);
+  }, [dial.stream.followMs, stopChase]);
+  useEffect(() => stopChase, [stopChase]);
+
+  useLayoutEffect(() => {
     const el = scrollerRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+    if (!el) return;
+    const appended = messages.length !== msgCountRef.current;
+    /* A transcript ARRIVING — first mount, or another chat picked from the
+       rail — lands at its newest line already settled; only a live exchange
+       in the chat the reader is watching earns the glide. */
+    const arriving = scrolledChatRef.current !== chatIdRef.current;
+    scrolledChatRef.current = chatIdRef.current;
+    msgCountRef.current = messages.length;
+    const pinned = el.scrollHeight - el.scrollTop - el.clientHeight < 200;
+    if (appended) {
+      stopChase();
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: arriving ? "auto" : "smooth",
+      });
+    } else if (pinned) {
+      chase();
+    }
+  }, [messages, chase, stopChase]);
 
   const later = useCallback((ms: number, fn: () => void) => {
-    timersRef.current.push(setTimeout(fn, ms));
+    const t = setTimeout(() => {
+      timersRef.current = timersRef.current.filter((x) => x !== t);
+      fn();
+    }, ms);
+    timersRef.current.push(t);
   }, []);
 
   /** Streams `text` into the agent message `id` in pale chunks. */
@@ -257,26 +343,35 @@ export function AnswerDesk({
       for (let i = 0; i < words.length; i += per) {
         chunks.push(words.slice(i, i + per).join(""));
       }
-      chunks.forEach((chunk, i) => {
-        later(i * dial.stream.intervalMs, () => {
-          setMessages((was) =>
-            was.map((m) =>
-              m.kind === "agent" && m.id === id
-                ? {
-                    ...m,
-                    thinking: false,
-                    done: i === chunks.length - 1,
-                    chunks: [...m.chunks, { id: i, text: chunk }],
-                  }
-                : m,
-            ),
-          );
-          if (i === chunks.length - 1) {
-            setAnnounced(text);
-            onDone?.();
-          }
-        });
-      });
+      /* Self-scheduling, one timer at a time: an armed-up-front timer list
+         flushes in clumps after any main-thread stall — text arriving in
+         bursts is its own kind of stagger. Chained, a stall only delays. */
+      let i = 0;
+      const step = () => {
+        const at = i;
+        setMessages((was) =>
+          was.map((m) =>
+            m.kind === "agent" && m.id === id
+              ? {
+                  ...m,
+                  thinking: false,
+                  done: at === chunks.length - 1,
+                  chunks: [...m.chunks, { id: at, text: chunks[at] }],
+                }
+              : m,
+          ),
+        );
+        i += 1;
+        if (i < chunks.length) {
+          later(dial.stream.intervalMs, step);
+        } else {
+          /* Screen readers get the reply's CONTENT — never "asterisk
+             asterisk" from the markdown the eyes don't see either. */
+          setAnnounced(deskMarkdownToPlain(text));
+          onDone?.();
+        }
+      };
+      later(0, step);
     },
     [dial.stream.chunkWords, dial.stream.intervalMs, later],
   );
@@ -515,6 +610,10 @@ export function AnswerDesk({
     </motion.div>
   );
 
+  /* Once per render, not once per row — the transcript re-renders at stream
+     cadence and the map must stay O(n). */
+  const tailAgentId = messages.filter((x) => x.kind === "agent").at(-1)?.id;
+
   return (
     <MotionConfig reducedMotion="user">
       <LayoutGroup>
@@ -544,9 +643,13 @@ export function AnswerDesk({
         <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-surface-primary pt-15 md:rounded-l-24 md:border-fig md:border-border md:pt-0 md:shadow-sheet">
           {conversation && (
             <>
+              {/* scrollbar-stable: the rail must never appear mid-stream and
+                  re-center the column. scroll-anchor-none: the pin above is
+                  the only writer of scrollTop — Blink's anchoring would be a
+                  second, uncoordinated one. */}
               <div
                 ref={scrollerRef}
-                className="min-h-0 w-full flex-1 overflow-y-auto"
+                className="min-h-0 w-full flex-1 overflow-y-auto scrollbar-stable scroll-anchor-none"
               >
                 <div className="mx-auto flex w-full max-w-desk flex-col gap-8 px-5 pb-56 pt-27.5 md:px-0.5">
                   {messages.map((m) =>
@@ -596,11 +699,7 @@ export function AnswerDesk({
                           }
                           at={m.at}
                           meta={!m.synthetic}
-                          tail={
-                            m.id ===
-                            messages.filter((x) => x.kind === "agent").at(-1)
-                              ?.id
-                          }
+                          tail={m.id === tailAgentId}
                           chunkFadeMs={dial.stream.chunkFadeMs}
                           chunkFromOpacity={dial.stream.fromOpacity}
                           loader={dial.loader}
