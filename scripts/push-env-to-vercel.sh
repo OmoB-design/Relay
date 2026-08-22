@@ -26,9 +26,11 @@
 #
 #   RELAY_PILOT_NOW  freezes the clock for the demo. Production must not have it.
 #
-#   The empty ones (Google Ads, Triple Whale, Anthropic) are skipped: Relay
-#     treats a missing credential as "that integration is off", and an empty
-#     string set explicitly is not the same thing as absent.
+#   Anything EMPTY in .env.local is skipped, whatever its name: Relay treats
+#     a missing credential as "that integration is off", and an empty string
+#     set explicitly is not the same thing as absent. The connector keys
+#     (Google Ads, Triple Whale, Anthropic) are in the list below — they copy
+#     once they hold values and skip until then.
 # USAGE:  bash scripts/push-env-to-vercel.sh [production|preview]
 #
 # PREVIEW IS A CONVENIENCE, NOT AN ISOLATION BOUNDARY. There is one Supabase
@@ -77,7 +79,14 @@ for name in \
   NEXT_PUBLIC_SUPABASE_ANON_KEY \
   SUPABASE_SERVICE_ROLE_KEY \
   GOOGLE_SHEETS_SPREADSHEET_ID \
-  CRON_SECRET
+  CRON_SECRET \
+  ANTHROPIC_API_KEY \
+  GOOGLE_ADS_DEVELOPER_TOKEN \
+  GOOGLE_ADS_LOGIN_CUSTOMER_ID \
+  GOOGLE_ADS_CLIENT_ID \
+  GOOGLE_ADS_CLIENT_SECRET \
+  GOOGLE_ADS_REFRESH_TOKEN \
+  TRIPLE_WHALE_API_KEY
 do
   add "$name" "$(val "$name")"
 done
