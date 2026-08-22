@@ -126,7 +126,9 @@ export function NarrativeSideNav({
     >
       {/* Search + the three sections (552:4984). */}
       <div className="flex w-full flex-col gap-2 px-2 pb-2.5 pt-5">
-        <label className="flex w-full items-center gap-1.5 rounded-8 bg-surface-foreground-02 px-2 py-2.5">
+        {/* Dashboard white, not the foreground-02 grey (user's call,
+            2026-08-22): the field reads as a light well on the panel wash. */}
+        <label className="flex w-full items-center gap-1.5 rounded-8 bg-surface-dashboard px-2 py-2.5">
           <SearchGlyph className="shrink-0 text-icon-explainer" />
           <input
             type="search"
