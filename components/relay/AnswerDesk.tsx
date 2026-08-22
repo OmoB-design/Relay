@@ -32,6 +32,7 @@ import {
 import { RelayMark } from "@/components/relay/NavIcons";
 import {
   askUniversalAction,
+  deleteDeskChatAction,
   getDeskChatMessagesAction,
 } from "@/app/(desk)/answer-desk/actions";
 
@@ -566,6 +567,22 @@ export function AnswerDesk({
     window.history.replaceState(null, "", "/answer-desk");
   }
 
+  /** The rail menu's Delete: the row leaves the rail at once (the server
+   *  follows), and a failed delete puts it back with an apology — the rail
+   *  must never lie in either direction. Deleting the OPEN chat hands the
+   *  room back to the landing. */
+  function deleteChat(id: string) {
+    const before = chats;
+    setChats((was) => was.filter((c) => c.id !== id));
+    if (chatIdRef.current === id) newChat();
+    deleteDeskChatAction(id)
+      .then(() => toast("Chat deleted."))
+      .catch(() => {
+        setChats(before);
+        toast("That delete didn’t go through — the chat is still here.");
+      });
+  }
+
 
   const composer = (position: "landing" | "conversation") => (
     <motion.div
@@ -636,6 +653,7 @@ export function AnswerDesk({
               itemMs={dial.sidebar.itemMs}
               onSelectChat={selectChat}
               onNewChat={newChat}
+              onDeleteChat={deleteChat}
             />
           )}
         </AnimatePresence>

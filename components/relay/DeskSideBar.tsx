@@ -5,6 +5,11 @@ import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
+  ChatOptionsMenu,
+  CHAT_MENU_H,
+  CHAT_MENU_W,
+} from "@/components/relay/ChatOptionsMenu";
+import {
   ChatDotGlyph,
   ChatOptionsGlyph,
   SearchChatGlyph,
@@ -42,6 +47,7 @@ export function DeskSideBar({
   itemMs,
   onSelectChat,
   onNewChat,
+  onDeleteChat,
 }: {
   /** Newest first — the caller keeps recency order. */
   chats: DeskChatRow[];
@@ -56,12 +62,19 @@ export function DeskSideBar({
   itemMs: number;
   onSelectChat: (chatId: string) => void;
   onNewChat: () => void;
+  onDeleteChat: (chatId: string) => void;
 }) {
   /* Search filters the flat list live, the way Claude's sidebar does: type,
      the rail narrows to matches; Escape (or emptying and leaving) hands the
      pill back. */
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
+  /* Which row's option menu stands, and where — viewport coordinates from
+     the kebab's own rect, so the list's scroll clip can't cut it. */
+  const [menu, setMenu] = useState<{
+    chatId: string;
+    at: { x: number; y: number };
+  } | null>(null);
   const q = query.trim().toLowerCase();
   const shown = q
     ? chats.filter((c) => c.title.toLowerCase().includes(q))
@@ -216,16 +229,38 @@ export function DeskSideBar({
                 </button>
                 {/* The option kebab (732:10833): lives at the row's right
                     edge, arrives with the row's hover, wears its own wash
-                    when the pointer reaches it. The menu it will open is a
-                    later component — the seat is real, the door isn't hung. */}
+                    when the pointer reaches it — and opens the 736:11147
+                    menu, right-aligned to itself, flipped up when the
+                    viewport floor is close. */}
                 <button
                   type="button"
                   aria-label="Chat options"
-                  onClick={() =>
-                    toast("Chat options are on their way — nothing behind this yet.")
-                  }
+                  aria-haspopup="menu"
+                  aria-expanded={menu?.chatId === chat.id || undefined}
+                  onClick={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const below = r.bottom + 6;
+                    setMenu(
+                      menu?.chatId === chat.id
+                        ? null
+                        : {
+                            chatId: chat.id,
+                            at: {
+                              x: Math.max(8, r.right - CHAT_MENU_W),
+                              y:
+                                below + CHAT_MENU_H > window.innerHeight - 8
+                                  ? r.top - CHAT_MENU_H - 6
+                                  : below,
+                            },
+                          },
+                    );
+                  }}
                   style={{ borderRadius: 2.2857 }}
-                  className="absolute right-1 top-2 flex size-4 items-center justify-center overflow-clip bg-surface-foreground-01 text-icon-explainer opacity-0 transition-[opacity,background-color] duration-150 ease-out hover:bg-grey-250/50 focus-visible:opacity-100 group-hover:opacity-100"
+                  className={cn(
+                    "absolute right-1 top-2 flex size-4 items-center justify-center overflow-clip bg-surface-foreground-01 text-icon-explainer opacity-0 transition-[opacity,background-color] duration-150 ease-out hover:bg-grey-250/50 focus-visible:opacity-100 group-hover:opacity-100",
+                    menu?.chatId === chat.id &&
+                      "bg-grey-250/50 opacity-100",
+                  )}
                 >
                   <ChatOptionsGlyph />
                 </button>
@@ -233,6 +268,23 @@ export function DeskSideBar({
             );
           })}
         </ListRows>
+
+        <ChatOptionsMenu
+          at={menu?.at ?? null}
+          onClose={() => setMenu(null)}
+          onPin={() => {
+            setMenu(null);
+            toast("Pinning is on its way — the rail can't hold one yet.");
+          }}
+          onUnread={() => {
+            setMenu(null);
+            toast("Unread marks are on their way.");
+          }}
+          onDelete={() => {
+            if (menu) onDeleteChat(menu.chatId);
+            setMenu(null);
+          }}
+        />
       </div>
     </motion.div>
   );

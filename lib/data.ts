@@ -1657,3 +1657,17 @@ export async function deleteStakeholder(id: string): Promise<void> {
     .eq("id", id);
   throwIf(error);
 }
+
+/** Delete a chat — its messages go with it (0022's cascade). Ownership is
+ *  the filter AND the RLS policy: a cross-buyer id deletes nothing. */
+export async function deleteDeskChat(
+  chatId: string,
+  buyerId: string,
+): Promise<void> {
+  const { error } = await (await getSupabase())
+    .from("desk_chats")
+    .delete()
+    .eq("id", chatId)
+    .eq("buyer_id", buyerId);
+  throwIf(error);
+}

@@ -13,6 +13,7 @@ import {
   appendDeskExchange,
   askQuestion,
   createDeskChat,
+  deleteDeskChat,
   getClientProfile,
   getClients,
   getDailyRowsForClient,
@@ -164,6 +165,14 @@ export async function getDeskChatMessagesAction(
   const chat = await getDeskChat(z.string().uuid().parse(chatId), profile.id);
   if (!chat) throw new Error("Chat not found.");
   return getDeskChatMessages(chat.id);
+}
+
+/** Delete a conversation (the rail menu's one real action today). Ownership
+ *  is checked in the delete itself — a cross-buyer id deletes nothing and
+ *  reports nothing to delete. */
+export async function deleteDeskChatAction(chatId: string): Promise<void> {
+  const profile = await requireProfile();
+  await deleteDeskChat(z.string().uuid().parse(chatId), profile.id);
 }
 
 const AnswerThreadInput = z.object({
