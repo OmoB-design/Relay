@@ -47,6 +47,7 @@ const FONT_SIZES = [
   "fig-caption-1-md",
   "fig-caption-2",
   "fig-body-sm",
+  "fig-rail",
   "12",
   "13",
   "14",
@@ -93,6 +94,10 @@ const SHADOWS = [
   "chat-control",
   "chat-group",
   "side-control",
+  "nav-active",
+  "sheet-quiet",
+  "timeline-well",
+  "timeline-lift",
 ];
 
 /** Named font weights. Figma's Body-small ladder: Regular 450 / MD 470 / SB
@@ -104,6 +109,7 @@ const FONT_WEIGHTS = [
   "fig-w450",
   "fig-medium",
   "fig-sb",
+  "fig-w560",
 ];
 
 /** Named heights, for the boxes Figma pins outright rather than deriving from
@@ -137,7 +143,7 @@ const twMerge = extendTailwindMerge({
       h: [{ h: HEIGHTS }],
       "min-h": [{ "min-h": ["due-empty", "textarea"] }],
       "max-h": [{ "max-h": ["chat-cap", "dialog-cap"] }],
-      tracking: [{ tracking: ["count", "range", "greeting", "chat"] }],
+      tracking: [{ tracking: ["count", "range", "greeting", "chat", "title"] }],
       gap: [{ gap: ["bar-gap"] }],
     },
   },

@@ -1084,3 +1084,23 @@ export function ExpandUpDownGlyph({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** The rail row's option kebab (732:10833, verbatim geometry): three dots
+ *  on a 16 grid, revealed by the row's hover, wearing its own wash when
+ *  the pointer reaches it. */
+export function ChatOptionsGlyph({ className }: GlyphProps) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="7.71" cy="3.14" r="0.857" fill="currentColor" />
+      <circle cx="7.71" cy="7.71" r="0.857" fill="currentColor" />
+      <circle cx="7.71" cy="12.29" r="0.857" fill="currentColor" />
+    </svg>
+  );
+}

@@ -38,6 +38,7 @@
   --color-surface-foreground-02: #eaeaea;
   --color-surface-stroke: #eaeaea;
   --color-surface-dashboard: #fcfcfc; /* Surface/Dashboard — row fill inside a card */
+  --color-surface-row: #f3f3f3; /* the chat rail's hover AND active fill (732:10949) */
 
   /* Icon — a separate ramp from typography, and it does not track it.
      NOTE the names read backwards against the frame: Icon-Nav-Active (#424242)
@@ -125,6 +126,7 @@
   --color-grey-400: #959595; /* the Sent pill's label (node 557:6160) */
   --color-grey-300: #bfbfbf;
   --color-grey-200: #d9d9d9; /* the 5px and 3px separator dots */
+  --color-grey-250: #d8d8d8; /* the rail kebab's hover wash, at 50% (732:10888) */
   --color-grey-150: #dfdfdf; /* the desk chatbox's hairline (615:11614) */
   --color-grey-100: #eaeaea; /* text on disabled/working fills */
 
@@ -274,6 +276,9 @@
      against the chrome's 1.2/1.4 captions. */
   --text-fig-prose: 0.875rem;
   --text-fig-prose--line-height: 1.6;
+  /* The chat rail's rows (732:10855): 14 at the rail's own tight leading. */
+  --text-fig-rail: 0.875rem;
+  --text-fig-rail--line-height: 1.2;
 
   /* The Answer Desk greeting (612:7947): 24/1.2 Helvetica Neue Medium — between
      H5's section title and H4's workspace masthead, and the only one of the
@@ -728,10 +733,12 @@
     transparent
   );
 }
+/* The filled row's fade (hover and active both wear it now — 732:10946's
+   right-edge wash, resolved from Figma's blurred rect to a gradient). */
 @utility chat-fade-active {
   background: linear-gradient(
     to left,
-    var(--color-surface-foreground-02) 20%,
+    var(--color-surface-row) 20%,
     transparent
   );
 }

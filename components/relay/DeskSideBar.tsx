@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   ChatDotGlyph,
+  ChatOptionsGlyph,
   SearchChatGlyph,
   TipDismissGlyph,
 } from "@/components/relay/NavIcons";
@@ -168,40 +170,66 @@ export function DeskSideBar({
           {shown.map((chat, i) => {
             const active = chat.id === activeChatId;
             return (
-              <motion.button
+              /* The 732:10950 row set: rest is bare, hover and active BOTH
+                 wear the surface-row fill (the active one holds it), the
+                 label steps from heading-05 to full ink only when the chat
+                 is the open one. A group wrapper, not one button — the
+                 kebab is its own control and buttons don't nest. */
+              <motion.div
                 {...item(2 + i)}
                 key={chat.id}
-                type="button"
-                onClick={() => onSelectChat(chat.id)}
-                aria-current={active ? "true" : undefined}
-                className={cn(
-                  "flex h-8.5 w-full shrink-0 items-center gap-1.5 rounded-10 py-2 pl-2 pr-1",
-                  /* The current chat wears the foreground-02 fill (user-set)
-                     so there is never a doubt which window you are in. */
-                  active && "bg-surface-foreground-02",
-                )}
+                className="group relative w-full shrink-0"
               >
-                <ChatDotGlyph className="size-1.25 shrink-0 text-grey-300" />
-                <span className="relative min-w-0 flex-1 overflow-hidden">
-                  <span
-                    className={cn(
-                      "block whitespace-nowrap text-left font-geist text-fig-caption-1-md fig-w420",
-                      active ? "text-heading-03" : "text-heading-05",
-                    )}
-                  >
-                    {chat.title}
+                <button
+                  type="button"
+                  onClick={() => onSelectChat(chat.id)}
+                  aria-current={active ? "true" : undefined}
+                  className={cn(
+                    "flex h-8 w-full items-center gap-3 rounded-10 py-1.5 pl-2 pr-1 transition-colors duration-150 ease-out",
+                    active
+                      ? "bg-surface-row"
+                      : "group-hover:bg-surface-row",
+                  )}
+                >
+                  <ChatDotGlyph className="size-1.25 shrink-0 text-grey-300" />
+                  <span className="relative min-w-0 flex-1 overflow-hidden">
+                    <span
+                      className={cn(
+                        "block whitespace-nowrap text-left font-geist text-fig-rail fig-w420",
+                        active ? "text-heading-01" : "text-heading-05",
+                      )}
+                    >
+                      {chat.title}
+                    </span>
+                    {/* The right-edge wash — the text runs out under a fade
+                        in the row's own colour, hover included. */}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "pointer-events-none absolute inset-y-0 right-0 w-8",
+                        active
+                          ? "chat-fade-active"
+                          : "chat-fade group-hover:chat-fade-active",
+                      )}
+                    />
                   </span>
-                  {/* The frame's right-edge wash (639:17216) — the text runs
-                      out under a fade in the row's own colour. */}
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "pointer-events-none absolute inset-y-0 right-0 w-8",
-                      active ? "chat-fade-active" : "chat-fade",
-                    )}
-                  />
-                </span>
-              </motion.button>
+                </button>
+                {/* The option kebab (732:10833): lives at the row's right
+                    edge, arrives with the row's hover, wears its own wash
+                    when the pointer reaches it. The menu it will open is a
+                    later component — the seat is real, the door isn't hung. */}
+                <button
+                  type="button"
+                  aria-label="Chat options"
+                  onClick={() =>
+                    toast("Chat options are on their way — nothing behind this yet.")
+                  }
+                  style={{ borderRadius: 2.2857 }}
+                  className="absolute right-1 top-2 flex size-4 items-center justify-center overflow-clip bg-surface-foreground-01 text-icon-explainer opacity-0 transition-[opacity,background-color] duration-150 ease-out hover:bg-grey-250/50 focus-visible:opacity-100 group-hover:opacity-100"
+                >
+                  <ChatOptionsGlyph />
+                </button>
+              </motion.div>
             );
           })}
         </ListRows>
